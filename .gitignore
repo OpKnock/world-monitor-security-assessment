@@ -1,0 +1,26 @@
+# secrets & environment
+.env
+*.db
+*.sqlite3
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# generated artifacts
+evidence/*
+reports/*
+!evidence/.gitkeep
+!reports/.gitkeep
+bin/*.exe
+.bomber/
+
+# node
+node_modules/
+_sources/
+_world/
+_sources/
+logs/

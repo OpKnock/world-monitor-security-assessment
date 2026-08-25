@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>World Monitor · Security Assessment Platform</title>
+<link rel="stylesheet" href="/assets/css/app.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230b1630'/><path d='M16 4l9 4v7c0 6-4 10-9 13-5-3-9-7-9-13V8z' fill='none' stroke='%233d8bfd' stroke-width='2'/><circle cx='16' cy='15' r='3' fill='%233d8bfd'/></svg>">
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar" class="hidden">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#0b1630"/><path d="M16 4l9 4v7c0 6-4 10-9 13-5-3-9-7-9-13V8z" fill="none" stroke="#3d8bfd" stroke-width="2"/><circle cx="16" cy="15" r="3" fill="#3d8bfd"/></svg>
+      <div><strong>WORLD MONITOR</strong><span>security assessment</span></div>
+    </div>
+    <nav>
+      <a href="#/dashboard" data-nav>Dashboard</a>
+      <a href="#/assess/new" data-nav>New Assessment</a>
+      <a href="#/findings" data-nav>Findings</a>
+      <a href="#/history" data-nav>Assessment History</a>
+      <a href="#/reports" data-nav>Reports</a>
+      <a href="#/settings" data-nav>Settings</a>
+    </nav>
+    <div class="sidebar-foot">
+      <span class="pill lab">LAB MODE</span>
+      <button id="logout" class="ghost">Sign out</button>
+    </div>
+  </aside>
+  <main id="main"><section id="view"></section></main>
+</div>
+<div id="toast"></div>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/charts.js"></script>
+<script src="/assets/js/app.js"></script>
+</body>
+</html>

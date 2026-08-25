@@ -1,0 +1,19 @@
+# Runtime (pinned ranges; resolved lock via pip freeze in requirements.lock)
+fastapi>=0.115,<1
+uvicorn[standard]>=0.32,<1
+sqlalchemy>=2.0.46,<3
+pydantic>=2.12,<3
+pydantic-settings>=2.6,<3
+httpx>=0.28,<1
+requests>=2.32,<3
+rich>=13,<16
+typer>=0.15,<1
+PyJWT>=2.10,<3
+fpdf2>=2.8,<3
+
+# Lab application (isolated target — intentionally vulnerable, localhost only)
+flask>=3.1,<4
+
+# Dev / test
+pytest>=8,<9
+email-validator>=2,<3

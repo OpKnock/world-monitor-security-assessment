@@ -1,0 +1,34 @@
+name: world-monitor
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/api.Dockerfile
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      SECRET_KEY: change-me-in-real-deployments
+      LAB_MODE: "true"
+      LAB_APP_URL: http://lab:8080
+    depends_on:
+      - lab
+    volumes:
+      - ../database:/app/database
+      - ../evidence:/app/evidence
+      - ../reports:/app/reports
+
+  lab:
+    build:
+      context: ..
+      dockerfile: docker/lab.Dockerfile
+    # INTENTIONALLY VULNERABLE — publish to loopback only.
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      WM_LAB_PATCH_IDOR: "${WM_LAB_PATCH_IDOR:-0}"
+      WM_LAB_FIX_HEADERS: "${WM_LAB_FIX_HEADERS:-0}"
+
+# NOTE: Docker was not available on the original build host; this compose file
+# is provided for reproducibility and reviewed by inspection. The native path
+# in README (venv + scripts/start_all.ps1) is the verified route.
