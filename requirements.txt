@@ -1,19 +1,27 @@
-# Runtime (pinned ranges; resolved lock via pip freeze in requirements.lock)
-fastapi>=0.115,<1
-uvicorn[standard]>=0.32,<1
-sqlalchemy>=2.0.46,<3
-pydantic>=2.12,<3
-pydantic-settings>=2.6,<3
-httpx>=0.28,<1
-requests>=2.32,<3
-rich>=13,<16
-typer>=0.15,<1
-PyJWT>=2.10,<3
-fpdf2>=2.8,<3
+# World Monitor — Pinned runtime dependencies
+# Install: python -m pip install -r requirements.txt
+# Reproducible lock: pip freeze > requirements.lock (checked in CI)
 
-# Lab application (isolated target — intentionally vulnerable, localhost only)
-flask>=3.1,<4
+# ── Core API ──────────────────────────────────────────────────────────
+fastapi>=0.115,<1         # ASGI framework — tested 0.115.x
+uvicorn[standard]>=0.32,<1  # ASGI server — tested 0.32.x
+sqlalchemy>=2.0.46,<3      # ORM — WAL, pysqlite/postgres portability
+pydantic>=2.12,<3          # Validation — Settings + route models
+pydantic-settings>=2.6,<3  # .env loading
+httpx>=0.28,<1             # HTTP client for scanners + webhook
+requests>=2.32,<3          # SBOM / OSV compatibility
+PyJWT>=2.10,<3             # HS256 only — iss/aud/exp verified
 
-# Dev / test
+# ── CLI & reporting ───────────────────────────────────────────────────
+rich>=13,<16               # Console tables & colors
+typer>=0.15,<1             # CLI framework
+fpdf2>=2.8,<3              # PDF reports — no weasyprint dep
+
+# ── Lab application (isolated target — intentionally vulnerable, localhost only)
+flask>=3.1,<4              # Lab Flask — localhost only, 10 planted vulns
+
+# ── Dev / test ────────────────────────────────────────────────────────
 pytest>=8,<9
-email-validator>=2,<3
+pytest-asyncio>=0.24,<1    # async test support if needed
+email-validator>=2,<3      # Pydantic EmailStr
+python-multipart>=0.0.9    # Form parsing for Flask compat tests

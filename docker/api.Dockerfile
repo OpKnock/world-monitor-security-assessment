@@ -1,11 +1,11 @@
-FROM python:3.14-slim AS gobuilder
+FROM python:3.12-slim AS gobuilder
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl git \
     && rm -rf /var/lib/apt/lists/*
-ENV GOVERSION=1.26.4
+ENV GOVERSION=1.22.5
 RUN curl -fsSL https://go.dev/dl/go${GOVERSION}.linux-amd64.tar.gz | tar -C /usr/local -xz
 ENV PATH="/usr/local/go/bin:${PATH}"
 WORKDIR /src
-COPY candidates/ /candidates/
+COPY _sources/candidates/ /candidates/
 RUN git clone --depth 1 https://github.com/OpKnock/secrets-scanner.git /src/secrets-scanner \
  && git clone --depth 1 https://github.com/OpKnock/sbom-generator-vulnerability-matcher.git /src/bomber \
  || true
@@ -18,7 +18,7 @@ RUN if [ -f /candidates/secrets-scanner/internal/cli/root.go ]; then cp -r /cand
     go build -trimpath -o /out/portia.exe ./cmd/portia || go build -trimpath -o /out/portia ./cmd/portia; \
     cd /src/bomber && go build -trimpath -o /out/bomber.exe ./cmd/bomber || go build -trimpath -o /out/bomber ./cmd/bomber
 
-FROM python:3.14-slim
+FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

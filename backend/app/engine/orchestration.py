@@ -9,6 +9,7 @@ import logging
 import threading
 import traceback
 from datetime import datetime, timezone
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -16,6 +17,7 @@ from sqlalchemy.orm import Session
 from ..config import settings
 
 logger = logging.getLogger(__name__)
+
 from ..db import DB_WRITE_LOCK, worker_session
 from .authorization_gate import (
     AuthorizationError,
@@ -29,12 +31,87 @@ from ..models import Assessment, AuditLog, Finding, ScanRun
 from ..scanners.base import ScanContext
 from ..scanners.registry import load_registry, scanners_for
 
+# Module keys recognized by the platform – keep in sync with scanners.base.AVAILABLE_MODULES
+KNOWN_MODULES = frozenset(
+    {
+        "authentication",
+        "authorization",
+        "api",
+        "input_validation",
+        "headers",
+        "tls",
+        "secrets",
+        "dependencies",
+        "supply_chain",
+        "graphql",
+        "deep_scan",
+        "fuzzing",
+    }
+)
+
+# Modules that require an HTTP target
+HTTP_MODULES = frozenset(
+    {
+        "authentication",
+        "authorization",
+        "api",
+        "input_validation",
+        "graphql",
+        "headers",
+        "tls",
+        "deep_scan",
+        "fuzzing",
+    }
+)
+
+# Modules that require a filesystem source path
+SOURCE_MODULES = frozenset({"secrets", "dependencies", "supply_chain"})
+
+# Per-module target override keys that are meaningful – others are ignored
+OVERRIDE_MODULE_KEYS = frozenset(
+    {
+        "authentication",
+        "authorization",
+        "api",
+        "input_validation",
+        "sqli",
+        "headers",
+        "tls",
+        "graphql",
+        "deep_scan",
+        "fuzzing",
+    }
+)
 
 
-def _audit(db: Session, email: str, action: str, target: str, detail: dict) -> None:
-    db.add(AuditLog(user_email=email or "system", action=action, target=target[:2048], detail=detail))
-    with DB_WRITE_LOCK:
-        db.commit()
+def _audit(
+    db: Session,
+    email: str,
+    action: str,
+    target: str,
+    detail: dict[str, Any],
+    ip_address: str | None = None,
+    user_agent: str | None = None,
+) -> None:
+    """Append an audit log entry; commits immediately under write lock."""
+    try:
+        entry = AuditLog(
+            user_email=(email or "system")[:255],
+            action=action[:64],
+            target=(target or "")[:2048],
+            detail=dict(detail) if isinstance(detail, dict) else {"detail": str(detail)[:4000]},
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+        db.add(entry)
+        with DB_WRITE_LOCK:
+            db.commit()
+    except Exception as exc:
+        logger.warning("Audit log failed for action %s: %s", action, exc)
+        try:
+            db.rollback()
+        except Exception:
+            pass
 
 
 def create_assessment(
@@ -49,41 +126,81 @@ def create_assessment(
 ) -> Assessment:
     """Validate authorization BEFORE anything is created or scanned."""
     assert_authorized_flag(authorized)
+
+    if not isinstance(modules, list) or not modules:
+        raise AuthorizationError("At least one module must be selected")
+
+    # Normalize modules: strip, lower, dedupe preserving order
+    seen: set[str] = set()
+    normalized_modules: list[str] = []
+    for m in modules:
+        if not isinstance(m, str):
+            raise AuthorizationError(f"Invalid module entry: {m!r}")
+        key = m.strip().lower()
+        if not key:
+            continue
+        if key not in seen:
+            seen.add(key)
+            normalized_modules.append(key)
+    modules = normalized_modules
     if not modules:
         raise AuthorizationError("At least one module must be selected")
-    unknown = [m for m in modules if m not in (
-        "authentication", "authorization", "api", "input_validation",
-        "headers", "tls", "secrets", "dependencies",
-        "supply_chain", "graphql", "deep_scan", "fuzzing")]
+
+    unknown = [m for m in modules if m not in KNOWN_MODULES]
     if unknown:
         raise AuthorizationError(f"Unknown modules: {unknown}")
 
-    needs_http = any(m in ("authentication", "authorization", "api", "input_validation" "graphql",
-                           "headers", "tls") for m in modules)
-    needs_source = any(m in ("secrets", "dependencies", "supply_chain") for m in modules)
+    needs_http = any(m in HTTP_MODULES for m in modules)
+    needs_source = any(m in SOURCE_MODULES for m in modules)
 
+    # Target validation
     normalized_target = ""
     if needs_http:
+        if not isinstance(target, str) or not target.strip():
+            raise AuthorizationError("Target URL required for the selected modules")
         normalized_target = validate_http_target(target)
+    else:
+        # Source-only assessments may omit target; if provided still validate
+        if target and target.strip():
+            try:
+                normalized_target = validate_http_target(target)
+            except AuthorizationError:
+                # For source-only mode, allow "(source-only)" sentinel without HTTP target
+                normalized_target = target.strip()[:2048]
+
     if not target and not needs_source:
         raise AuthorizationError("Target URL required for the selected modules")
+    if not target.strip() and needs_http:
+        raise AuthorizationError("Target URL required for the selected modules")
 
-    # per-module overrides are validated through the same gate, then stored
+    # Per-module overrides are validated through the same gate
     safe_overrides: dict[str, str] = {}
     for mod_key, url in (module_targets or {}).items():
-        if url and url.strip() and mod_key in (
-                "authentication", "authorization", "api", "input_validation",
-                "sqli", "headers", "tls"):
-            safe_overrides[mod_key] = validate_http_target(url)
+        if not isinstance(mod_key, str) or not isinstance(url, str):
+            continue
+        mk = mod_key.strip().lower()
+        uv = url.strip()
+        if not uv or mk not in OVERRIDE_MODULE_KEYS:
+            continue
+        # Only allow overrides for modules actually selected (or their aliases)
+        # but still gate-validate even if not selected to avoid storing malicious URLs
+        try:
+            safe_overrides[mk] = validate_http_target(uv)
+        except AuthorizationError as exc:
+            raise AuthorizationError(f"Invalid override target for '{mk}': {exc}") from exc
 
     resolved_source = ""
     if needs_source:
-        resolved_source = validate_source_path(source_path or str(settings.LAB_SOURCE_DIR))
-    elif source_path:
+        src = source_path or str(settings.LAB_SOURCE_DIR)
+        resolved_source = validate_source_path(src)
+    elif source_path and source_path.strip():
         resolved_source = validate_source_path(source_path)
 
+    # Resolve user
+    user_id = _resolve_user_id(db, user_email)
+
     assessment = Assessment(
-        user_id=_resolve_user_id(db, user_email),
+        user_id=user_id,
         target=normalized_target or "(source-only)",
         source_path=resolved_source,
         modules=modules,
@@ -93,41 +210,83 @@ def create_assessment(
         authorization_note=f"LAB_MODE={settings.LAB_MODE}; gate passed {datetime.now(timezone.utc).isoformat()}",
     )
     db.add(assessment)
-    db.flush()
+    try:
+        db.flush()
+    except Exception as exc:
+        db.rollback()
+        raise AuthorizationError(f"Failed to create assessment: {exc}") from exc
+
     for mod in modules:
         db.add(ScanRun(assessment_id=assessment.id, scanner=mod, status="queued"))
-    with DB_WRITE_LOCK:
-        db.commit()
-    _audit(db, user_email, "assessment.created", assessment.target,
-           {"assessment_id": assessment.id, "modules": modules, "authorized": True})
+
+    try:
+        with DB_WRITE_LOCK:
+            db.commit()
+    except Exception as exc:
+        db.rollback()
+        raise IOError(f"Failed to persist assessment: {exc}") from exc
+
+    _audit(
+        db,
+        user_email,
+        "assessment.created",
+        assessment.target,
+        {"assessment_id": assessment.id, "modules": modules, "authorized": True},
+    )
     return assessment
 
 
 def start_assessment_async(assessment_id: str, auth_token: str | None = None) -> None:
-    load_registry()
-    # dedicated daemon thread per assessment: one hung scan can never starve
-    # the others (a shared pool could be exhausted by stuck workers)
-    threading.Thread(
-        target=_run_assessment, args=(assessment_id, auth_token), daemon=True
-    ).start()
+    """Spawn a dedicated daemon thread per assessment."""
+    if not isinstance(assessment_id, str) or not assessment_id.strip():
+        raise ValueError("assessment_id must be a non-empty string")
+    try:
+        load_registry()
+    except Exception as exc:
+        logger.error("Failed to load scanner registry: %s", exc)
+    thread = threading.Thread(
+        target=_run_assessment,
+        args=(assessment_id, auth_token),
+        daemon=True,
+        name=f"assessment-{assessment_id[:8]}",
+    )
+    thread.start()
 
 
 def _run_assessment(assessment_id: str, auth_token: str | None = None) -> None:
-    logger.debug(f"worker enter {assessment_id}")
+    logger.info("Starting assessment %s", assessment_id)
 
-    def _watchdog():
+    def _watchdog() -> None:
         dbw = worker_session()
         try:
             a = dbw.get(Assessment, assessment_id)
             if a is not None and a.status == "running":
                 a.status = "failed"
                 a.error = "watchdog timeout (>10 min)"
-                dbw.commit()
-                logger.warning(f"watchdog failed {assessment_id}")
+                with DB_WRITE_LOCK:
+                    dbw.commit()
+                logger.warning("watchdog failed %s", assessment_id)
+                _audit(dbw, "", "scan.watchdog", a.target, {"assessment_id": assessment_id})
+        except Exception as exc:
+            logger.warning("watchdog error for %s: %s", assessment_id, exc)
+            try:
+                dbw.rollback()
+            except Exception:
+                pass
         finally:
-            dbw.close()
+            try:
+                dbw.close()
+            except Exception:
+                pass
+            # Dispose engine if worker_session created a throwaway engine
+            try:
+                bind = getattr(dbw, "bind", None)
+                if bind is not None:
+                    bind.dispose()
+            except Exception:
+                pass
 
-    watchdog = threading.Timer(600, _watchdog)
+    watchdog = threading.Timer(settings.SCAN_TIMEOUT_SECONDS, _watchdog)
     watchdog.daemon = True
     watchdog.start()
 
@@ -135,101 +294,174 @@ def _run_assessment(assessment_id: str, auth_token: str | None = None) -> None:
     try:
         assessment = db.get(Assessment, assessment_id)
         if assessment is None:
+            logger.warning("Assessment %s not found, aborting run", assessment_id)
             return
         assessment.status = "running"
         assessment.started_at = datetime.now(timezone.utc)
-        with DB_WRITE_LOCK:
-            db.commit()
+        try:
+            with DB_WRITE_LOCK:
+                db.commit()
+        except Exception as exc:
+            logger.error("Failed to mark assessment %s running: %s", assessment_id, exc)
+            db.rollback()
+            return
 
-        store = EvidenceStore(assessment.id)
-        logger.debug(f"evidence store ready")
-        runs = {
-            r.scanner: r for r in db.scalars(
-                select(ScanRun).where(ScanRun.assessment_id == assessment.id)).all()
-        }
-        logger.debug(f"runs loaded: {list(runs)}")
-        # per-module target overrides were gate-validated at creation time
+        try:
+            store = EvidenceStore(assessment.id)
+        except Exception as exc:
+            logger.error("Failed to create evidence store for %s: %s", assessment_id, exc)
+            assessment.status = "failed"
+            assessment.error = f"evidence store init failed: {exc}"
+            assessment.finished_at = datetime.now(timezone.utc)
+            with DB_WRITE_LOCK:
+                db.commit()
+            return
+
+        logger.debug("evidence store ready for %s", assessment_id)
+        try:
+            runs_list = db.scalars(select(ScanRun).where(ScanRun.assessment_id == assessment.id)).all()
+        except Exception as exc:
+            logger.error("Failed to load scan runs for %s: %s", assessment_id, exc)
+            assessment.status = "failed"
+            assessment.error = f"failed to load scan runs: {exc}"
+            assessment.finished_at = datetime.now(timezone.utc)
+            with DB_WRITE_LOCK:
+                db.commit()
+            return
+
+        runs = {r.scanner: r for r in runs_list}
+        logger.info("Loaded %d scan runs for %s: %s", len(runs), assessment_id, list(runs))
+
+        # Per-module target overrides were gate-validated at creation time
         safe_overrides: dict[str, str] = dict(assessment.module_targets or {})
 
-        # resolve one lab demo token per ASSESSMENT (not per module)
+        # Resolve one lab demo token per ASSESSMENT (not per module)
         http_token = auth_token
         if http_token is None and ({"authentication", "authorization"} & set(runs.keys())):
             _tgt = safe_overrides.get("authentication") or assessment.target
             _org = _origin(_tgt)
-            if _org:
-                http_token = _fetch_lab_token_quietly(_org)
+            if _org and _org != "(source-only)":
+                try:
+                    http_token = _fetch_lab_token_quietly(_org)
+                except Exception:
+                    http_token = None
 
         failures = 0
         for module_key, run in runs.items():
-            scanner_instances = scanners_for([module_key])
-            logger.debug(f"{assessment_id} module {module_key} start")
+            try:
+                scanner_instances = scanners_for([module_key])
+            except Exception as exc:
+                logger.error("scanners_for failed for %s: %s", module_key, exc)
+                scanner_instances = []
+            logger.info("Starting module %s with %d scanner(s) for assessment %s", module_key, len(scanner_instances), assessment_id)
             run.status = "running"
-            with DB_WRITE_LOCK:
-                db.commit()
-            logger.debug(f"{assessment_id} module {module_key} status=running committed")
+            run.started_at = datetime.now(timezone.utc)
+            try:
+                with DB_WRITE_LOCK:
+                    db.commit()
+            except Exception as exc:
+                logger.warning("Failed to mark run %s running: %s", module_key, exc)
+                db.rollback()
+            logger.debug("%s module %s status=running committed", assessment_id, module_key)
             started = datetime.now(timezone.utc)
 
             token_for_module = http_token
-            logger.debug(f"{assessment_id} module {module_key} token={'yes' if token_for_module else 'no'}")
+            logger.debug("%s module %s token=%s", assessment_id, module_key, "yes" if token_for_module else "no")
 
-            all_findings = []
+            all_findings: list[Any] = []
             errors: list[str] = []
-            skipped_results: list[object] = []
+            skipped_results: list[Any] = []
             skipped_notes: list[str] = []
-            total_checks = safe_checks = 0
+            total_checks = 0
+            safe_checks = 0
+
             for inst in scanner_instances:
+                # Resolve target for this scanner instance
+                target_for_ctx = (
+                    safe_overrides.get(getattr(inst, "name", ""))
+                    or safe_overrides.get(module_key)
+                    or assessment.target
+                )
                 ctx = ScanContext(
-                    target=(safe_overrides.get(inst.name)
-                            or safe_overrides.get(module_key)
-                            or assessment.target),
-                    source_path=assessment.source_path,
+                    target=target_for_ctx,
+                    source_path=assessment.source_path or "",
                     auth_token=token_for_module,
                     evidence=store,
                     options={},
                 )
-                logger.debug(f"{assessment_id} inst {inst.name} begin")
+                logger.debug("%s inst %s begin target=%s", assessment_id, getattr(inst, "name", "?"), target_for_ctx)
                 try:
                     result = inst.run(ctx)
                 except Exception as exc:  # a broken adapter must never kill the assessment
-                    errors.append(f"{inst.name}: {repr(exc)}\n{traceback.format_exc(limit=3)}")
+                    errors.append(f"{getattr(inst, 'name', '?')}: {repr(exc)}\n{traceback.format_exc(limit=3)}")
+                    logger.warning("Scanner %s failed: %s", getattr(inst, "name", "?"), exc, exc_info=True)
                     continue
-                logger.debug(f"{assessment_id} inst {inst.name} done status={result.status} findings={len(result.findings)}")
+                logger.debug(
+                    "%s inst %s done status=%s findings=%d",
+                    assessment_id,
+                    getattr(inst, "name", "?"),
+                    getattr(result, "status", "?"),
+                    len(getattr(result, "findings", []) or []),
+                )
                 if getattr(result, "status", "") == "skipped":
                     skipped_results.append(result)
                     skipped_notes.extend(getattr(result, "notes", []) or [])
-                all_findings.extend(result.findings)
-                errors.extend(f"{result.scanner}: {e}" for e in result.errors)
-                total_checks += result.checks_total
-                safe_checks += result.checks_safe
-                if result.status == "failed":
-                    errors.append(f"{result.scanner}: failed")
+                    # Also count as not failed
+                    errors.extend(getattr(result, "errors", []) or [])
+                all_findings.extend(getattr(result, "findings", []) or [])
+                errors.extend(f"{getattr(result, 'scanner', '?')}: {e}" for e in getattr(result, "errors", []) or [])
+                total_checks += int(getattr(result, "checks_total", 0) or 0)
+                safe_checks += int(getattr(result, "checks_safe", 0) or 0)
+                if getattr(result, "status", "") == "failed":
+                    errors.append(f"{getattr(result, 'scanner', '?')}: failed")
+
             duration_ms = int((datetime.now(timezone.utc) - started).total_seconds() * 1000)
             raw_path = ""
-            logger.debug(f"{assessment_id} {module_key} post-loop errors={len(errors)}")
+            logger.debug("%s %s post-loop errors=%d findings=%d", assessment_id, module_key, len(errors), len(all_findings))
             if all_findings or errors:
-                doc_path = store.save(
-                    kind="scanner_output",
-                    summary=f"{module_key} combined output",
-                    payload={
-                        "module": module_key,
-                        "findings": [f.model_dump(exclude={"evidence_payloads"}) for f in all_findings],
-                        "errors": errors,
-                        "checks_total": total_checks,
-                        "checks_safe": safe_checks,
-                    },
-                )
-                raw_path = doc_path["path"]
-                logger.debug(f"{assessment_id} {module_key} raw saved")
+                try:
+                    doc_path = store.save(
+                        kind="scanner_output",
+                        summary=f"{module_key} combined output",
+                        payload={
+                            "module": module_key,
+                            "findings": [
+                                f.model_dump(exclude={"evidence_payloads"}) if hasattr(f, "model_dump") else str(f)
+                                for f in all_findings
+                            ],
+                            "errors": errors,
+                            "checks_total": total_checks,
+                            "checks_safe": safe_checks,
+                        },
+                    )
+                    raw_path = doc_path["path"]
+                    logger.debug("%s %s raw saved %s", assessment_id, module_key, raw_path)
+                except Exception as exc:
+                    logger.warning("Failed to save combined output for %s: %s", module_key, exc)
 
-            logger.debug(f"{assessment_id} {module_key} persist call")
-            new_or_updated, merged = persist_raw_findings(db, assessment, run, all_findings)
-            logger.debug(f"{assessment_id} {module_key} persist returned merged={merged}")
+            logger.debug("%s %s persist call", assessment_id, module_key)
+            try:
+                new_or_updated, merged = persist_raw_findings(db, assessment, run, all_findings)
+            except Exception as exc:
+                logger.error("persist_raw_findings failed for %s: %s", module_key, exc, exc_info=True)
+                run.status = "failed"
+                run.error = f"persist failed: {exc}"[:2000]
+                run.duration_ms = duration_ms
+                failures += 1
+                try:
+                    with DB_WRITE_LOCK:
+                        db.commit()
+                except Exception:
+                    db.rollback()
+                continue
+            logger.debug("%s %s persist returned merged=%d", assessment_id, module_key, merged)
             run.duration_ms = duration_ms
             run.findings_count = len(all_findings)
             run.checks_total = total_checks
             run.checks_safe = safe_checks
-            run.raw_output_path = raw_path
-            module_skipped = bool(skipped_results) and len(skipped_results) == len(scanner_instances)
+            run.raw_output_path = raw_path or ""
+            run.finished_at = datetime.now(timezone.utc)
+            module_skipped = bool(skipped_results) and len(skipped_results) == len(scanner_instances) and len(scanner_instances) > 0
             if module_skipped:
                 run.status = "skipped"
                 run.error = "; ".join(skipped_notes)[:500]
@@ -241,121 +473,265 @@ def _run_assessment(assessment_id: str, auth_token: str | None = None) -> None:
                 run.status = "completed"
                 if errors:
                     run.error = "; ".join(errors)[:2000]
-            with DB_WRITE_LOCK:
-                db.commit()
-            logger.debug(f"{assessment_id} {module_key} run committed")
-            _audit(db, "", "scan.finished", assessment.target,
-                   {"scanner": module_key, "status": run.status,
-                    "findings": len(all_findings), "duration_ms": duration_ms})
+            try:
+                with DB_WRITE_LOCK:
+                    db.commit()
+            except Exception as exc:
+                logger.error("Failed to commit run %s: %s", module_key, exc)
+                db.rollback()
+            logger.info("Module %s completed for %s: status=%s findings=%d duration_ms=%d", module_key, assessment_id, run.status, len(all_findings), duration_ms)
+            _audit(
+                db,
+                "",
+                "scan.finished",
+                assessment.target,
+                {"scanner": module_key, "status": run.status, "findings": len(all_findings), "duration_ms": duration_ms},
+            )
 
-        # live alerting: push critical/high summary to a webhook when configured
+        # Live alerting: push critical/high summary to a webhook when configured
         try:
-            _url = settings.ALERT_WEBHOOK_URL
-            if _url and assessment.status == "completed":
+            _url = (settings.ALERT_WEBHOOK_URL or "").strip()
+            # Success means not every module failed
+            is_success = (failures != len(runs) or not runs)
+            if _url and is_success:
                 import httpx as _hx
 
                 crit = db.scalar(
-                    select(Finding.id).where(Finding.assessment_id ==
-                                             assessment.id,
-                                             Finding.severity.in_(
-                                                 ("CRITICAL", "HIGH")))
+                    select(Finding.id).where(
+                        Finding.assessment_id == assessment.id,
+                        Finding.severity.in_(("CRITICAL", "HIGH")),
+                    )
                 )
-                if crit:
-                    n = db.scalars(
-                        select(Finding.id).where(Finding.assessment_id ==
-                                                 assessment.id)).all()
-                    _hx.post(_url, json={
-                        "text": f"[World Monitor] {len(n)} finding(s), "
-                                f"incl. CRITICAL/HIGH, on {assessment.target}"},
-                        timeout=8.0)
-                    logger.info("webhook alert sent")
-        except Exception:
-            logger.debug("webhook alert failed", exc_info=True)
+                if crit is not None:
+                    all_ids = db.scalars(select(Finding.id).where(Finding.assessment_id == assessment.id)).all()
+                    try:
+                        _hx.post(
+                            _url,
+                            json={
+                                "text": f"[World Monitor] {len(all_ids)} finding(s), "
+                                f"incl. CRITICAL/HIGH, on {assessment.target}"
+                            },
+                            timeout=settings.ALERT_WEBHOOK_TIMEOUT,
+                        )
+                        logger.info("webhook alert sent for %s", assessment_id)
+                    except Exception as exc:
+                        logger.debug("webhook POST failed for %s: %s", assessment_id, exc)
 
-        assessment.status = "failed" if failures == len(runs) and runs else "completed"
-        assessment.finished_at = datetime.now(timezone.utc)
-        with DB_WRITE_LOCK:
-            db.commit()
-    except Exception as exc:  # never leave an assessment stuck in 'running'
-        try:
+        except Exception:
+            logger.debug("webhook alert failed for %s", assessment_id, exc_info=True)
+
+        # Determine final assessment status – skipped modules are not failures
+        non_skipped_runs = [r for r in runs.values() if r.status != "skipped"]
+        if not runs:
+            assessment.status = "completed"
+        elif non_skipped_runs and failures == len(non_skipped_runs):
             assessment.status = "failed"
-            assessment.error = f"{repr(exc)}\n{traceback.format_exc(limit=5)}"[:4000]
-            assessment.finished_at = datetime.now(timezone.utc)
+        elif failures == len(runs) and runs:
+            # All runs either failed or skipped – if any skipped, consider completed
+            if any(r.status == "skipped" for r in runs.values()):
+                assessment.status = "completed"
+            else:
+                assessment.status = "failed"
+        else:
+            assessment.status = "completed"
+        assessment.finished_at = datetime.now(timezone.utc)
+        assessment.total_duration_ms = sum(r.duration_ms for r in runs.values())
+        assessment.total_findings = sum(r.findings_count for r in runs.values())
+        try:
             with DB_WRITE_LOCK:
                 db.commit()
+        except Exception as exc:
+            logger.error("Failed to commit final assessment status for %s: %s", assessment_id, exc)
+            db.rollback()
+        logger.info("Assessment %s completed: status=%s total_findings=%d total_duration_ms=%d",
+                    assessment_id, assessment.status, assessment.total_findings, assessment.total_duration_ms)
+    except Exception as exc:  # never leave an assessment stuck in 'running'
+        logger.error("Assessment %s crashed: %s", assessment_id, exc, exc_info=True)
+        try:
+            # Re-fetch assessment in case session is stale
+            try:
+                assessment = db.get(Assessment, assessment_id)
+            except Exception:
+                assessment = None
+            if assessment is not None:
+                assessment.status = "failed"
+                assessment.error = f"{repr(exc)}\n{traceback.format_exc(limit=5)}"[:4000]
+                assessment.finished_at = datetime.now(timezone.utc)
+                with DB_WRITE_LOCK:
+                    db.commit()
         except Exception:
-            pass
+            try:
+                db.rollback()
+            except Exception:
+                pass
     finally:
         watchdog.cancel()
-        db.close()
+        try:
+            db.close()
+        except Exception:
+            pass
+        try:
+            bind = getattr(db, "bind", None)
+            if bind is not None:
+                bind.dispose()
+        except Exception:
+            pass
 
 
-def retest_finding(db: Session, finding_id: str, user_email: str) -> dict:
+def retest_finding(db: Session, finding_id: str, user_email: str) -> dict[str, Any]:
     """Re-run only the check behind a finding; compare fingerprints (spec §35)."""
+    if not isinstance(finding_id, str) or not finding_id.strip():
+        raise ValueError("finding_id must be a non-empty string")
     finding = db.get(Finding, finding_id)
     if finding is None:
         raise ValueError("Finding not found")
     assessment = db.get(Assessment, finding.assessment_id)
+    if assessment is None:
+        raise ValueError("Assessment for finding not found")
+    # Authorization – operator must be analyst; flag is implicitly true for retest
     assert_authorized_flag(True)
 
-    check_prefix = finding.check_id.split(".", 1)[0]
+    check_prefix = finding.check_id.split(".", 1)[0] if finding.check_id else ""
     module_key = {
         "auth": "authentication",
         "idor": "authorization",
         "rate_limit": "api",
         "sqli": "input_validation",
         "input_validation": "input_validation",
+        "headers": "headers",
+        "tls": "tls",
+        "secrets": "secrets",
+        "supply_chain": "supply_chain",
+        "dependencies": "dependencies",
+        "graphql": "graphql",
+        "deep_scan": "deep_scan",
+        "fuzzing": "fuzzing",
+        "privacy": "secrets",
     }.get(check_prefix, finding.scanner)
 
     load_registry()
     instances = scanners_for([module_key])
     if not instances:
-        raise ValueError(f"No scanner available for module '{finding.scanner}'")
+        # Fallback try finding.scanner directly as module key
+        instances = scanners_for([finding.scanner])
+    if not instances:
+        raise ValueError(f"No scanner available for module '{finding.scanner}' / '{module_key}'")
 
-    store = EvidenceStore(assessment.id)
+    try:
+        store = EvidenceStore(assessment.id)
+    except Exception as exc:
+        raise IOError(f"Failed to create evidence store: {exc}") from exc
+
     stored_overrides = dict(assessment.module_targets or {})
-    ctx = ScanContext(
-        target=(stored_overrides.get(module_key)
-                or stored_overrides.get(finding.scanner)
-                or finding.target),
-        source_path=assessment.source_path,
-        auth_token=(_fetch_lab_token_quietly(_origin(finding.target))
-                    if check_prefix in ("auth", "idor") else None),
-        evidence=store)
-    still_present = False
-    retest_docs = []
-    for inst in instances:
-        result = inst.run(ctx)
-        for f in result.findings:
-            fp = fingerprint_of(f.scan_target or ctx.target,
-                                f.category, f.check_id, f.affected_component)
-            if fp == finding.fingerprint:
-                still_present = True
-        retest_docs.append(store.save(
-            kind="scanner_output",
-            summary=f"retest {inst.name} -> {'STILL_PRESENT' if still_present else 'checked'}",
-            payload={"retest": True, "scanner": inst.name,
-                     "findings_seen": [f.check_id for f in result.findings]},
-        ))
+    # Resolve target for retest – prefer stored override, then finding target, then assessment target
+    target_for_retest = (
+        stored_overrides.get(module_key)
+        or stored_overrides.get(finding.scanner)
+        or (finding.target if finding.target and finding.target != "(source-only)" else "")
+        or assessment.target
+    )
+    if not target_for_retest or target_for_retest == "(source-only)":
+        # For source-based findings, use source_path
+        target_for_retest = assessment.target if assessment.target != "(source-only)" else "http://127.0.0.1/"
 
-    finding.retest_count += 1
+    # Token for auth-gated retests
+    token: str | None = None
+    if check_prefix in ("auth", "idor"):
+        origin = _origin(target_for_retest)
+        if origin and origin != "(source-only)":
+            try:
+                token = _fetch_lab_token_quietly(origin)
+            except Exception:
+                token = None
+
+    ctx = ScanContext(
+        target=target_for_retest,
+        source_path=assessment.source_path or "",
+        auth_token=token,
+        evidence=store,
+        options={},
+    )
+    still_present = False
+    retest_docs: list[dict[str, str]] = []
+    for inst in instances:
+        try:
+            result = inst.run(ctx)
+        except Exception as exc:
+            logger.warning("Retest scanner %s failed: %s", getattr(inst, "name", "?"), exc)
+            retest_docs.append(
+                store.save(
+                    kind="scanner_output",
+                    summary=f"retest {getattr(inst, 'name', '?')} error",
+                    payload={"retest": True, "scanner": getattr(inst, "name", "?"), "error": repr(exc)},
+                )
+            )
+            continue
+        # Compare fingerprints of findings seen during retest with original
+        for f in getattr(result, "findings", []) or []:
+            try:
+                fp = fingerprint_of(
+                    getattr(f, "scan_target", None) or ctx.target,
+                    getattr(f, "category", ""),
+                    getattr(f, "check_id", ""),
+                    getattr(f, "affected_component", ""),
+                )
+                if fp == finding.fingerprint:
+                    still_present = True
+                    break
+            except Exception:
+                continue
+        retest_docs.append(
+            store.save(
+                kind="scanner_output",
+                summary=f"retest {getattr(inst, 'name', '?')} -> {'STILL_PRESENT' if still_present else 'checked'}",
+                payload={
+                    "retest": True,
+                    "scanner": getattr(inst, "name", "?"),
+                    "findings_seen": [getattr(f, "check_id", "?") for f in getattr(result, "findings", []) or []],
+                },
+            )
+        )
+        if still_present:
+            break
+
+    finding.retest_count = int(finding.retest_count or 0) + 1
     finding.retested_at = datetime.now(timezone.utc)
     finding.retest_status = "STILL_PRESENT" if still_present else "FIXED"
     finding.status = "CONFIRMED" if still_present else "RETESTED"
-    finding.meta = {**(finding.meta or {}), "retest_evidence": [d["path"] for d in retest_docs]}
-    with DB_WRITE_LOCK:
-        db.commit()
-    _audit(db, user_email, "retest.executed", finding.target,
-           {"finding_id": finding.id, "result": finding.retest_status})
-    return {"finding_id": finding.id, "retest_status": finding.retest_status,
-            "evidence": [d["path"] for d in retest_docs]}
+    # Preserve existing meta and append retest evidence paths
+    base_meta = dict(finding.meta or {})
+    base_meta["retest_evidence"] = [d["path"] for d in retest_docs]
+    base_meta["retest_at"] = finding.retested_at.isoformat()
+    finding.meta = base_meta
+    try:
+        with DB_WRITE_LOCK:
+            db.commit()
+    except Exception as exc:
+        db.rollback()
+        raise IOError(f"Failed to persist retest result: {exc}") from exc
+
+    _audit(
+        db,
+        user_email,
+        "retest.executed",
+        finding.target,
+        {"finding_id": finding.id, "result": finding.retest_status},
+    )
+    return {"finding_id": finding.id, "retest_status": finding.retest_status, "evidence": [d["path"] for d in retest_docs]}
 
 
 def fingerprint_of(target: str, category: str, check_id: str, component: str) -> str:
+    """Stable fingerprint helper for retest comparison."""
     import hashlib
 
-    basis = "|".join([target.rstrip("/"), category, check_id, component])
-    return hashlib.sha1(basis.encode()).hexdigest()  # noqa: S324
+    # Reuse same normalization as findings.fingerprint_for
+    try:
+        from .findings import fingerprint_for as _fp
+
+        return _fp(target, category, check_id, component)
+    except Exception:
+        basis = "|".join([target.rstrip("/") if isinstance(target, str) else str(target), category, check_id, component])
+        return hashlib.sha1(basis.encode("utf-8")).hexdigest()  # noqa: S324
 
 
 def _fetch_lab_token_quietly(base_url: str) -> str | None:
@@ -365,32 +741,68 @@ def _fetch_lab_token_quietly(base_url: str) -> str | None:
     design (they are printed on its landing page). This exists purely so the
     platform can exercise *authenticated* checks without manual copy-paste.
     """
+    if not isinstance(base_url, str) or not base_url.strip():
+        return None
+    # Sanitize base_url
+    base = base_url.strip().rstrip("/")
+    if not base.lower().startswith(("http://", "https://")):
+        return None
     import httpx
 
     try:
         resp = httpx.post(
-            f"{base_url.rstrip('/')}/login",
+            f"{base}/login",
             json={"username": "alice", "password": "user123"},
             timeout=5.0,
         )
         if resp.status_code == 200:
-            return resp.json().get("access_token")
+            try:
+                data = resp.json()
+                tok = data.get("access_token")
+                if isinstance(tok, str) and tok.strip():
+                    return tok.strip()
+            except Exception:
+                return None
     except Exception:
         pass
     return None
 
 
 def _origin(url: str) -> str:
+    """Extract scheme://host[:port] from a URL, or return empty on failure."""
+    if not isinstance(url, str) or not url.strip():
+        return ""
+    if url.strip() == "(source-only)":
+        return ""
     from urllib.parse import urlsplit
 
-    parts = urlsplit(url)
-    return f"{parts.scheme}://{parts.netloc}"
+    try:
+        parts = urlsplit(url.strip())
+        if not parts.scheme or not parts.netloc:
+            return ""
+        return f"{parts.scheme.lower()}://{parts.netloc.lower()}"
+    except Exception:
+        return ""
 
 
 def _resolve_user_id(db: Session, email: str) -> str:
+    """Look up the authenticated user's DB id or raise AuthorizationError."""
+    if not isinstance(email, str) or not email.strip():
+        raise AuthorizationError("Authenticated user required")
     from ..models import User
 
-    user = db.scalar(select(User).where(User.email == email))
+    try:
+        user = db.scalar(select(User).where(User.email == email.strip()))
+    except Exception as exc:
+        raise AuthorizationError(f"User lookup failed: {exc}") from exc
     if user is None:
         raise AuthorizationError("Authenticated user required")
     return user.id
+
+
+__all__ = [
+    "create_assessment",
+    "start_assessment_async",
+    "retest_finding",
+    "fingerprint_of",
+]

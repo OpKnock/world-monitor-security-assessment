@@ -1,8 +1,10 @@
 """Assessment / findings / retest routes."""
 import json
+import logging
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
@@ -13,20 +15,69 @@ from ..engine.orchestration import create_assessment, retest_finding, start_asse
 from ..models import Assessment, Evidence, Finding, ScanRun
 from .deps import get_current_user, require_role
 from .rate_limit import enforce_rate_limit
-from fastapi import Request
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/assessments", tags=["assessments"])
 
 
 class NewAssessment(BaseModel):
-    target: str = ""
-    modules: list[str] = Field(min_length=1)
+    target: str = Field(default="", max_length=2048)
+    modules: list[str] = Field(min_length=1, max_length=20)
     authorized: bool = False
-    source_path: str | None = None
+    source_path: str | None = Field(default=None, max_length=2048)
     # optional lab demo token for authenticated checks; never persisted
-    auth_token: str | None = None
+    auth_token: str | None = Field(default=None, max_length=2048)
     # optional per-module target overrides, e.g. {"authorization": ".../api/reports"}
     module_targets: dict[str, str] = Field(default_factory=dict)
+
+    @field_validator("modules", mode="before")
+    @classmethod
+    def validate_modules(cls, v: list[str]) -> list[str]:
+        if not v:
+            raise ValueError("At least one module must be selected")
+        # Deduplicate while preserving order
+        seen = set()
+        result = []
+        for m in v:
+            if not isinstance(m, str):
+                raise ValueError(f"Invalid module entry: {m!r}")
+            key = m.strip().lower()
+            if key and key not in seen:
+                seen.add(key)
+                result.append(key)
+        if not result:
+            raise ValueError("At least one module must be selected")
+        return result
+
+    @field_validator("target", mode="before")
+    @classmethod
+    def validate_target(cls, v: str) -> str:
+        if not isinstance(v, str):
+            return ""
+        if v:
+            v = v.strip().rstrip("/")
+            if not (v.startswith("http://") or v.startswith("https://")):
+                raise ValueError("Target must start with http:// or https://")
+        return v
+
+    @field_validator("module_targets", mode="before")
+    @classmethod
+    def validate_module_targets(cls, v: object) -> dict[str, str]:
+        if not v:
+            return {}
+        if not isinstance(v, dict):
+            return {}
+        result = {}
+        for k, url in v.items():
+            if not isinstance(k, str) or not isinstance(url, str):
+                continue
+            mk = k.strip().lower()
+            uv = url.strip().rstrip("/")
+            if not uv or not (uv.startswith("http://") or uv.startswith("https://")):
+                continue
+            result[mk] = uv
+        return result
 
 
 @router.post("", status_code=201)
@@ -54,8 +105,18 @@ def create(
 
 
 @router.get("")
-def list_assessments(db: Session = Depends(get_db), user=Depends(get_current_user)):
-    rows = db.scalars(select(Assessment).order_by(Assessment.created_at.desc()).limit(50)).all()
+def list_assessments(
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    status: str | None = Query(None),
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    q = select(Assessment).order_by(Assessment.created_at.desc())
+    if status:
+        q = q.where(Assessment.status == status.lower())
+    q = q.limit(limit).offset(offset)
+    rows = db.scalars(q).all()
     return [_assessment_summary(a) for a in rows]
 
 
@@ -69,6 +130,9 @@ def get_assessment(assessment_id: str, db: Session = Depends(get_db), user=Depen
 
 @router.get("/{assessment_id}/findings")
 def assessment_findings(assessment_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)):
+    assessment = db.get(Assessment, assessment_id)
+    if assessment is None:
+        raise HTTPException(404, detail="assessment not found")
     rows = db.scalars(
         select(Finding).where(Finding.assessment_id == assessment_id).order_by(Finding.severity)
     ).all()
@@ -77,19 +141,22 @@ def assessment_findings(assessment_id: str, db: Session = Depends(get_db), user=
 
 @router.get("/-/findings")
 def all_findings(
-    severity: str | None = None,
-    category: str | None = None,
-    status: str | None = None,
+    severity: str | None = Query(None),
+    category: str | None = Query(None),
+    status: str | None = Query(None),
+    limit: int = Query(300, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     user=Depends(get_current_user),
 ):
-    q = select(Finding).order_by(Finding.created_at.desc()).limit(300)
+    q = select(Finding).order_by(Finding.created_at.desc())
     if severity:
         q = q.where(Finding.severity == severity.upper())
     if category:
         q = q.where(Finding.category == category.upper())
     if status:
         q = q.where(Finding.status == status.upper())
+    q = q.limit(limit).offset(offset)
     return [_finding_dict(f) for f in db.scalars(q).all()]
 
 

@@ -27,12 +27,12 @@ class LoginRequest(BaseModel):
 @router.post("/register", status_code=201)
 def register(body: RegisterRequest, request: Request, db: Session = Depends(get_db)):
     enforce_rate_limit(request, settings.AUTH_RATE_LIMIT_PER_MINUTE)
-    exists = db.scalar(select(User).where(User.email == body.email))
+    exists = db.scalar(select(User).where(User.email == body.email.lower().lower()))
     if exists:
         raise HTTPException(409, detail="email already registered")
     is_first_user = db.scalar(select(User).limit(1)) is None
     role = "admin" if is_first_user else "viewer"
-    user = User(email=str(body.email), password_hash=hash_password(body.password), role=role)
+    user = User(email=str(body.email).lower(), password_hash=hash_password(body.password), role=role)
     db.add(user)
     db.commit()
     db.add(AuditLog(user_email=user.email, action="auth.register", target="", detail={"role": role}))
@@ -44,7 +44,7 @@ def register(body: RegisterRequest, request: Request, db: Session = Depends(get_
 @router.post("/login")
 def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
     enforce_rate_limit(request, settings.AUTH_RATE_LIMIT_PER_MINUTE)
-    user = db.scalar(select(User).where(User.email == body.email))
+    user = db.scalar(select(User).where(User.email == body.email.lower()))
     ok = verify_password_timing_safe(body.password, user.password_hash if user else None)
     if not ok or not user or not user.is_active:
         raise HTTPException(401, detail="invalid credentials")

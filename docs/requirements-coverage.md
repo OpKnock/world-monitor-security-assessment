@@ -1,6 +1,6 @@
 # Requirement Coverage Mapping
 
-| # | SIH requirement | Platform feature (file/route) | Verified by |
+| # | Platform requirement | Platform feature (file/route) | Verified by |
 |---|---|---|---|
 | 1 | Authentication & session management testing | `authentication` module — missing-auth, JWT none/sig, invalid-token acceptance; cookie-flag audit in headers adapter | e2e test: JWT none-alg CRITICAL detected |
 | 2 | Authorization & access control | `authorization` module (IDOR/BOLA) + lab's broken admin route | e2e: numeric ID enumeration HIGH |
@@ -34,5 +34,5 @@ stored · [x] Duplicates handled (fingerprint merge) · [x] CVSS calculated ·
 results · [x] Remediation attached · [x] Controlled PoC in lab · [x] PDF report ·
 [x] Retesting works · [x] CLI works · [x] Tests pass (38) · [x] Docker files
 provided (compose validated logically; daemon unavailable on build host — see
-deployment notes) · [x] SIH mapping documented · [x] No arbitrary-target
+deployment notes) · [x] Requirements mapping documented · [x] No arbitrary-target
 exploitation by default.

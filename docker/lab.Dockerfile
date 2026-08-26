@@ -1,5 +1,7 @@
 FROM python:3.14-slim
 WORKDIR /lab
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir flask gunicorn
 COPY lab/vulnerable-world-monitor/ .
 ENV WM_LAB_PORT=8080 PYTHONUNBUFFERED=1
 # INTENTIONALLY VULNERABLE — must never be published beyond loopback.

@@ -41,7 +41,6 @@ class DeepScanModule(ScannerModule):
         except Exception as exc:
             return ScanResult(scanner=self.name, status="failed", errors=[repr(exc)])
         import sys as _s
-        print('[zdv-dbg]', getattr(result, 'errors', None), getattr(result, 'by_plugin', None), len(getattr(result, 'findings', [])), file=_s.stderr)
 
         findings: list[RawFinding] = []
         safe = 0

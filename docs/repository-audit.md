@@ -17,7 +17,7 @@
 
 ## Master audit table
 
-| # | Repository | Language | Purpose (verified in code) | SIH requirement served | Input | Output | Dependencies | Decision | Integration method |
+| # | Repository | Language | Purpose (verified in code) | Platform requirement served | Input | Output | Dependencies | Decision | Integration method |
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | api-security-scanner | Python 3.13+/FastAPI + React | OWASP API Top-10 scanner app (auth, IDOR, rate-limit, SQLi scanners) + dashboard | Authentication, Authorization, Input validation, API security | `ScanRequest{target_url, auth_token, tests_to_run}` | Per-test result dict w/ evidence JSON | fastapi/sqlalchemy/requests; **Postgres required** | **KEEP-INTEGRATE (scanner modules only)** — web layer DROPPED (see notes) | Vendored scanner classes behind adapter; Postgres-specific config shimmed out |
 | 2 | http-headers-scanner | Python ≥3.13 single file | Grades 6 security headers (HSTS, CSP, XCTO, XFO, Referrer-Policy, Permissions-Policy), A–F score | Client-side security controls | URL | Rich terminal table + `ScanReport` dataclass (**no JSON mode**) | httpx, rich | **KEEP-INTEGRATE** | Vendored as library; adapter serializes dataclasses to common Finding format; extended with Set-Cookie flag checks |
