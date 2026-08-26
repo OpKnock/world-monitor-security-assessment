@@ -1,0 +1,3 @@
+[submodule "targets/real-world-monitor"]
+	path = targets/real-world-monitor
+	url = https://github.com/koala73/worldmonitor.git
