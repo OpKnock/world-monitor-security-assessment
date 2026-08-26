@@ -1,4 +1,4 @@
-# World Monitor \u2014 Security Assessment Platform
+# World Monitor Security Assessment Platform
 
 A unified, localhost-only security assessment platform that scans an intentionally vulnerable lab application and the real World Monitor codebase, normalizes results into one finding format, scores them with CVSS v3.1, stores sanitized evidence, explains business impact, recommends remediation, supports **retest-until-FIXED**, and generates professional PDF / JSON / Markdown / CSV reports.
 
