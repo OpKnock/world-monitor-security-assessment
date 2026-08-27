@@ -15,7 +15,7 @@ PyJWT>=2.10,<3             # HS256 only — iss/aud/exp verified
 # ── CLI & reporting ───────────────────────────────────────────────────
 rich>=13,<16               # Console tables & colors
 typer>=0.15,<1             # CLI framework
-fpdf2>=2.8,<3              # PDF reports — no weasyprint dep
+fpdf2>=2.8.8,<3              # PDF reports — no weasyprint dep
 
 # ── Lab application (isolated target — intentionally vulnerable, localhost only)
 flask>=3.1,<4              # Lab Flask — localhost only, 10 planted vulns
