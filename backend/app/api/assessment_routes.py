@@ -110,7 +110,7 @@ def list_assessments(
     offset: int = Query(0, ge=0),
     status: str | None = Query(None),
     db: Session = Depends(get_db),
-    user=Depends(get_current_user),
+    user=Depends(require_role("analyst")),
 ):
     q = select(Assessment).order_by(Assessment.created_at.desc())
     if status:
@@ -121,7 +121,7 @@ def list_assessments(
 
 
 @router.get("/{assessment_id}")
-def get_assessment(assessment_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)):
+def get_assessment(assessment_id: str, db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
     assessment = db.get(Assessment, assessment_id)
     if assessment is None:
         raise HTTPException(404, detail="assessment not found")
@@ -129,7 +129,7 @@ def get_assessment(assessment_id: str, db: Session = Depends(get_db), user=Depen
 
 
 @router.get("/{assessment_id}/findings")
-def assessment_findings(assessment_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)):
+def assessment_findings(assessment_id: str, db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
     assessment = db.get(Assessment, assessment_id)
     if assessment is None:
         raise HTTPException(404, detail="assessment not found")
@@ -147,7 +147,7 @@ def all_findings(
     limit: int = Query(300, ge=1, le=1000),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    user=Depends(get_current_user),
+    user=Depends(require_role("analyst")),
 ):
     q = select(Finding).order_by(Finding.created_at.desc())
     if severity:
@@ -161,8 +161,7 @@ def all_findings(
 
 
 @router.get("/findings/{finding_id}")
-def get_single_finding(finding_id: str, db: Session = Depends(get_db),
-                       user=Depends(get_current_user)):
+def get_single_finding(finding_id: str, db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
     finding = db.get(Finding, finding_id)
     if finding is None:
         raise HTTPException(404, detail="finding not found")
@@ -186,7 +185,7 @@ def retest(
 
 
 @router.get("/findings/{finding_id}/evidence")
-def finding_evidence(finding_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)):
+def finding_evidence(finding_id: str, db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
     finding = db.get(Finding, finding_id)
     if finding is None:
         raise HTTPException(404, detail="finding not found")

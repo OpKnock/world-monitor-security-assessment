@@ -133,6 +133,7 @@ def create_access_token(email: str, role: str) -> str:
         * ``exp`` — expiry (``iat`` + ``ACCESS_TOKEN_EXPIRE_MINUTES``)
         * ``iss`` — issuer (``world-monitor``)
         * ``jti`` — unique token id (prevents replay correlation)
+        * ``aud`` — audience (``world-monitor-api``)
     """
     if not email or not isinstance(email, str):
         raise ValueError("email must be a non-empty string")
@@ -145,6 +146,7 @@ def create_access_token(email: str, role: str) -> str:
         "iat": now,
         "exp": now + int(settings.ACCESS_TOKEN_EXPIRE_MINUTES) * 60,
         "iss": _JWT_ISSUER,
+        "aud": settings.JWT_AUDIENCE if getattr(settings, "JWT_AUDIENCE", None) else None,
         "jti": uuid.uuid4().hex,
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=_JWT_ALGORITHM)
@@ -158,6 +160,7 @@ def decode_token(token: str) -> dict[str, Any] | None:
         * Valid signature against :attr:`settings.SECRET_KEY`
         * ``exp`` not in the past (with 10s leeway for clock skew)
         * ``iss`` == ``world-monitor``
+        * ``aud`` == ``world-monitor-api`` (if configured)
 
     Any :class:`jwt.PyJWTError` (including expiry / issuer mismatch) results
     in ``None`` rather than an exception so callers can map it uniformly to
@@ -175,8 +178,9 @@ def decode_token(token: str) -> dict[str, Any] | None:
             settings.SECRET_KEY,
             algorithms=[_JWT_ALGORITHM],
             issuer=_JWT_ISSUER,
+            audience=settings.JWT_AUDIENCE if getattr(settings, "JWT_AUDIENCE", None) else None,
             leeway=10,
-            options={"require": ["exp", "iat", "iss", "sub"]},
+            options={"require": ["exp", "iat", "iss", "sub", "aud"]},
         )
         return payload
     except jwt.PyJWTError:

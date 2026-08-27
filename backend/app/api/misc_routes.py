@@ -52,7 +52,7 @@ def dashboard(db: Session = Depends(get_db), user=Depends(get_current_user)):
 
 
 @router.get("/scanners")
-def scanners_meta():
+def scanners_meta(user=Depends(get_current_user)):
     return {
         "modules": [
             {"key": key, **meta, "available": True}

@@ -108,8 +108,8 @@ def validate_http_target(target: str) -> str:
     Validation order:
       1. Type / length / scheme / userinfo / hostname / port checks
       2. Explicit ALLOWED_TARGETS prefix allow-list (exact or slash-boundary)
-      3. LAB_MODE private/loopback DNS gate
-      4. Cloud metadata hostname block
+      2. LAB_MODE private/loopback DNS gate
+      3. Cloud metadata hostname block
     """
     if not isinstance(target, str):
         raise AuthorizationError("Target must be a string URL")
@@ -202,6 +202,63 @@ def validate_http_target(target: str) -> str:
     raise AuthorizationError(
         "Authorization failed: enable LAB_MODE or add the target to ALLOWED_TARGETS"
     )
+
+
+def resolve_target_ips(host: str) -> list[str]:
+    """Resolve hostname to list of IPs at scan time. Returns list of IP strings.
+    
+    Raises AuthorizationError if resolution fails or any IP is not allowed in LAB_MODE.
+    """
+    if not isinstance(host, str) or not host.strip():
+        raise AuthorizationError("Host must be a non-empty string")
+    
+    host = host.strip().lower()
+    
+    # Block metadata endpoints before DNS
+    if host in _BLOCKED_HOSTNAMES:
+        raise AuthorizationError("Cloud metadata endpoints are never valid scan targets")
+    if host == "169.254.169.254":
+        raise AuthorizationError("Cloud metadata endpoints are never valid scan targets")
+    
+    try:
+        infos = socket.getaddrinfo(host, None, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM)
+    except socket.gaierror as exc:
+        raise AuthorizationError(f"Cannot resolve target host '{host}': {exc}") from exc
+    
+    if not infos:
+        raise AuthorizationError(f"Cannot resolve target host '{host}': no addresses")
+    
+    ips: list[str] = []
+    for info in infos:
+        sockaddr = info[4]
+        ip_str = sockaddr[0]
+        ip_str = str(ip_str).split("%")[0]
+        
+        # Fast path: metadata IP literal
+        if ip_str == "169.254.169.254":
+            raise AuthorizationError("Cloud metadata endpoints are never valid scan targets")
+        
+        # Check link-local network directly
+        try:
+            ip_obj = ipaddress.ip_address(ip_str)
+            if ip_obj in _LINK_LOCAL_NET:
+                raise AuthorizationError(
+                    f"LAB_MODE permits only localhost/private-lab targets; "
+                    f"resolved IP {ip_str} is link-local"
+                )
+        except ValueError:
+            pass
+        if not _is_loopback_or_private(ip_str):
+            raise AuthorizationError(
+                f"LAB_MODE permits only localhost/private-lab targets; "
+                f"resolved IP {ip_str} is public"
+            )
+        ips.append(ip_str)
+    
+    if not ips:
+        raise AuthorizationError(f"Cannot resolve target host: no valid addresses")
+    
+    return ips
 
 
 # ---------------------------------------------------------------------------

@@ -32,4 +32,7 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", $appCmd -WorkingDi
 Write-Host ""
 Write-Host "  Platform : http://127.0.0.1:8000"
 Write-Host "  Lab      : http://127.0.0.1:8080   (INTENTIONALLY VULNERABLE - localhost only)"
-Write-Host "  Login    : admin@example.com / ChangeMe_Admin_2026!"
+Write-Host "  Login    : admin@example.com / <your-admin-password>"
+Write-Host ""
+Write-Host "WARNING: Change default passwords in .env before any network exposure!"
+Write-Host "  ADMIN_PASSWORD and ANALYST_PASSWORD should be strong unique values."

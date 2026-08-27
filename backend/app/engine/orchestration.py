@@ -186,7 +186,7 @@ def create_assessment(
         # but still gate-validate even if not selected to avoid storing malicious URLs
         try:
             safe_overrides[mk] = validate_http_target(uv)
-        except AuthorizationError as exc:
+        except AuthorizationError as excxc:
             raise AuthorizationError(f"Invalid override target for '{mk}': {exc}") from exc
 
     resolved_source = ""
