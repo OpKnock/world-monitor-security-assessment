@@ -22,7 +22,7 @@ flask>=3.1,<4              # Lab Flask — localhost only, 10 planted vulns
 
 # ── Dev / test ────────────────────────────────────────────────────────
 pytest>=9.0.3,<10
-pytest-asyncio>=0.24,<1    # async test support if needed
+pytest-asyncio>=0.24       # async test support if needed (allow 1.x for pytest 9)
 pip-audit>=2.10,<3       # dependency vulnerability audit for CI/release checks
 email-validator>=2,<3      # Pydantic EmailStr
 python-multipart>=0.0.9    # Form parsing for Flask compat tests
