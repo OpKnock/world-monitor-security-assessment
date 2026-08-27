@@ -124,6 +124,7 @@ class AuthScanner(BaseScanner):
             response = session_without_auth.get(
                 self.target_url,
                 timeout = settings.SCANNER_CONNECTION_TIMEOUT,
+                allow_redirects = False,
             )
 
             if response.status_code == 200:

@@ -5,11 +5,9 @@ Every run is gated by the authorization gate and audit-logged.
 """
 from __future__ import annotations
 
-from contextlib import contextmanager
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import logging
-import socket
 import threading
 import traceback
 from typing import Any
@@ -31,6 +29,7 @@ from .authorization_gate import (
     validate_http_target,
     validate_source_path,
 )
+from .dns_pinning import pin_target_dns
 from .evidence import EvidenceStore
 from .findings import persist_raw_findings
 from ..models import Assessment, AuditLog, Finding, ScanRun
@@ -41,58 +40,6 @@ from ..scanners.registry import load_registry, scanners_for
 _ASSESSMENT_EXECUTOR: ThreadPoolExecutor | None = None
 _ASSESSMENT_EXECUTOR_LOCK = threading.Lock()
 _ASSESSMENT_QUEUE_CAPACITY: threading.BoundedSemaphore | None = None
-_DNS_PIN_LOCK = threading.Lock()
-_DNS_PIN_INSTALLED = False
-_DNS_PIN_TLS = threading.local()
-_ORIGINAL_GETADDRINFO = socket.getaddrinfo
-
-
-def _pinned_getaddrinfo(host: Any, port: Any, *args: Any, **kwargs: Any) -> list[tuple]:
-    """Resolve a scanner's pinned hostname to its validated addresses."""
-    pin = getattr(_DNS_PIN_TLS, "pin", None)
-    normalized_host = str(host).rstrip(".").lower() if host is not None else ""
-    if pin is None or normalized_host != pin[0]:
-        return _ORIGINAL_GETADDRINFO(host, port, *args, **kwargs)
-    results: list[tuple] = []
-    for ip in pin[1]:
-        # Ask the original resolver for the correct sockaddr shape, family,
-        # and requested stream/datagram flags, but never resolve the hostname.
-        results.extend(_ORIGINAL_GETADDRINFO(ip, port, *args, **kwargs))
-    if not results:
-        raise socket.gaierror(socket.EAI_NONAME, "pinned host has no addresses")
-    return results
-
-
-def _install_dns_pin_resolver() -> None:
-    global _DNS_PIN_INSTALLED
-    if _DNS_PIN_INSTALLED:
-        return
-    with _DNS_PIN_LOCK:
-        if not _DNS_PIN_INSTALLED:
-            socket.getaddrinfo = _pinned_getaddrinfo
-            _DNS_PIN_INSTALLED = True
-
-
-@contextmanager
-def _pin_target_dns(target: str, ips: list[str]):
-    """Pin hostname resolution for one scanner invocation on this thread."""
-    host = urlparse(target).hostname if target else None
-    if not host or not ips:
-        yield
-        return
-    _install_dns_pin_resolver()
-    previous = getattr(_DNS_PIN_TLS, "pin", None)
-    _DNS_PIN_TLS.pin = (host.rstrip(".").lower(), tuple(ips))
-    try:
-        yield
-    finally:
-        if previous is None:
-            try:
-                del _DNS_PIN_TLS.pin
-            except AttributeError:
-                pass
-        else:
-            _DNS_PIN_TLS.pin = previous
 
 
 def _revalidate_scan_target(target: str) -> tuple[str, dict[str, Any]]:
@@ -511,7 +458,7 @@ def _run_assessment(assessment_id: str, auth_token: str | None = None) -> None:
                 )
                 logger.debug("%s inst %s begin target=%s", assessment_id, getattr(inst, "name", "?"), target_for_ctx)
                 try:
-                    with _pin_target_dns(target_for_ctx, target_options.get("resolved_ips", [])):
+                    with pin_target_dns(target_for_ctx, target_options.get("resolved_ips", [])):
                         result = inst.run(ctx)
                 except Exception as exc:  # a broken adapter must never kill the assessment
                     errors.append(f"{getattr(inst, 'name', '?')}: {repr(exc)}\n{traceback.format_exc(limit=3)}")
@@ -786,7 +733,7 @@ def retest_finding(db: Session, finding_id: str, user_email: str) -> dict[str, A
     retest_docs: list[dict[str, str]] = []
     for inst in instances:
         try:
-            with _pin_target_dns(target_for_retest, target_options.get("resolved_ips", [])):
+            with pin_target_dns(target_for_retest, target_options.get("resolved_ips", [])):
                 result = inst.run(ctx)
         except Exception as exc:
             unsuccessful_scanners += 1

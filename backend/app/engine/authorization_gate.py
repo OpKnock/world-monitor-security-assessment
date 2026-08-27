@@ -193,13 +193,14 @@ def validate_http_target(target: str) -> str:
             # Check link-local network directly
             try:
                 ip_obj = ipaddress.ip_address(ip_str)
-                if ip_obj in _LINK_LOCAL_NET:
+            except ValueError:
+                pass
+            else:
+                if ip_obj in _LINK_LOCAL_NET or ip_obj.is_link_local:
                     raise AuthorizationError(
                         f"LAB_MODE permits only localhost/private-lab targets; "
                         f"'{host}' resolves to link-local address {ip_str}"
                     )
-            except ValueError:
-                pass
             if not _is_loopback_or_private(ip_str):
                 raise AuthorizationError(
                     f"LAB_MODE permits only localhost/private-lab targets; "
@@ -255,6 +256,9 @@ def resolve_target_ips(host: str, *, allow_public: bool = False) -> list[str]:
         # Check link-local network directly
         try:
             ip_obj = ipaddress.ip_address(ip_str)
+        except ValueError:
+            pass
+        else:
             # Keep link-local and other non-routable special ranges blocked
             # even for an explicitly allow-listed public target.
             if (
@@ -267,8 +271,6 @@ def resolve_target_ips(host: str, *, allow_public: bool = False) -> list[str]:
                 raise AuthorizationError(
                     f"Resolved target IP {ip_str} is a blocked special-purpose address"
                 )
-        except ValueError:
-            pass
         if not allow_public and settings.LAB_MODE and not _is_loopback_or_private(ip_str):
             raise AuthorizationError(
                 f"LAB_MODE permits only localhost/private-lab targets; "

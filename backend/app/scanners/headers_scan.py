@@ -192,7 +192,7 @@ class ClientSecurityHeadersModule(ScannerModule):
                 extra_headers["Authorization"] = f"Bearer {ctx.auth_token}"
             resp = httpx.get(
                 ctx.target,
-                follow_redirects=True,
+                follow_redirects=False,
                 timeout=timeout,
                 headers=extra_headers,
             )

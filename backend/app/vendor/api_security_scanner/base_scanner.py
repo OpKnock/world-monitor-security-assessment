@@ -134,6 +134,9 @@ class BaseScanner(ABC):
             "timeout",
             settings.SCANNER_CONNECTION_TIMEOUT
         )
+        # Do not follow redirects from an authorized endpoint. A Location
+        # header can otherwise send the scanner outside the authorization gate.
+        kwargs.setdefault("allow_redirects", False)
 
         while retry_count <= settings.DEFAULT_RETRY_COUNT:
             try:

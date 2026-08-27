@@ -64,7 +64,7 @@ class GraphqlModule(ScannerModule):
             try:
                 # Explicit JSON content-type — some GraphQL servers reject
                 # form-encoded bodies.
-                r = session.post(url, json=INTROSPECTION_QUERY, timeout=timeout)
+                r = session.post(url, json=INTROSPECTION_QUERY, timeout=timeout, allow_redirects=False)
             except requests.RequestException as exc:
                 logger.debug("GraphQL probe %s failed: %s", url, exc)
                 continue

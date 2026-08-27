@@ -457,13 +457,12 @@ def scan(
         On DNS failure, connection refusal, timeout, etc. The CLI
         catches these to print a clean error message
     """
-    # follow_redirects=True means http://example.com → https://example.com
-    # is followed automatically. We grade the FINAL URL, not the first
-    # one, because that is the one users actually see
+    # Redirects are intentionally not followed. The authorization gate pins
+    # the requested host; following Location could escape that scope.
     response = httpx.get(
         url,
         timeout = timeout,
-        follow_redirects = True,
+        follow_redirects = False,
         headers = {"User-Agent": user_agent},
     )
 

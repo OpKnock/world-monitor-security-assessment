@@ -93,7 +93,12 @@ class FuzzingModule(ScannerModule):
         from concurrent.futures import TimeoutError as _FuturesTimeout
 
         def _do_fuzz():
-            return Fuzzer().fuzz(target, corpus=corpus, iterations=60)
+            # The fuzzer's timeout worker is a child thread, so propagate the
+            # assessment's validated DNS pin explicitly into that thread.
+            from ..engine.dns_pinning import pin_target_dns
+
+            with pin_target_dns(ctx.target, list(ctx.options.get("resolved_ips", []))):
+                return Fuzzer().fuzz(target, corpus=corpus, iterations=60)
 
         try:
             with ThreadPoolExecutor(max_workers=1) as _pool:

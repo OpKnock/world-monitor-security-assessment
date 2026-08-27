@@ -228,7 +228,7 @@ class ReflectedXssModule(ScannerModule):
                 sep = "&" if "?" in ctx.target else "?"
                 url = f"{ctx.target}{sep}{urlencode({param: payload})}"
                 try:
-                    resp = session.get(url, timeout=timeout_canary)
+                    resp = session.get(url, timeout=timeout_canary, allow_redirects=False)
                 except Exception as exc:
                     errors.append(f"canary probe {param}: {repr(exc)}")
                     continue
@@ -274,7 +274,7 @@ class ReflectedXssModule(ScannerModule):
             else:
                 probe_url = origin.rstrip("/") + path
             try:
-                rr = session.get(probe_url, timeout=timeout_csrf)
+                rr = session.get(probe_url, timeout=timeout_csrf, allow_redirects=False)
                 html = (rr.text or "").lower()
                 has_form = "<form" in html
                 if has_form:
@@ -327,7 +327,7 @@ class ReflectedXssModule(ScannerModule):
         verbose_error: str | None = None
         try:
             probe_url = ctx.target + ("&" if "?" in ctx.target else "?") + "q='"
-            resp = session.get(probe_url, timeout=timeout_canary)
+            resp = session.get(probe_url, timeout=timeout_canary, allow_redirects=False)
             body = (resp.text or "").lower()
             for marker in ("traceback", "sql syntax", "sqlite3.", "exception", "stack trace", "syntax error", "unterminated", "you have an error in your sql"):
                 if marker in body:
