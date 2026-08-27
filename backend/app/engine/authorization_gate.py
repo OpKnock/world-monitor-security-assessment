@@ -319,6 +319,10 @@ def validate_source_path(path: str) -> str:
     if len(stripped) > 4096:
         raise AuthorizationError("Source path exceeds maximum length")
 
+    # Reject Windows absolute drive paths on any OS (e.g. C:/Windows/System32 on Linux CI)
+    if re.match(r"^[a-zA-Z]:[\\/]", stripped):
+        raise AuthorizationError(f"Source path '{stripped}' is outside authorized scope")
+
     # Reject obvious traversal attempts early (informative message)
     # but rely on resolve() for the authoritative check.
     if re.search(r"(^|[\\/])\.\.(?:[\\/]|$)", stripped):
