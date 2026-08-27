@@ -17,6 +17,11 @@ powershell -ExecutionPolicy Bypass -File scripts\start_all.ps1 -PatchIdor   # wi
 
 For production-grade serving on Linux, replace `uvicorn` with `gunicorn -k uvicorn.workers.UvicornWorker backend.main:app` or `waitress`; both read the same `backend.main:app`.
 
+The API has been smoke-tested with two Uvicorn workers (`--workers 2`) and
+`GET /api/health` returns healthy responses from both processes. Assessment
+execution is bounded per process; use a shared queue/rate-limit service when
+running multiple replicas behind a load balancer.
+
 ## B. Docker Compose
 
 `docker/docker-compose.yml` defines two services:
@@ -54,7 +59,7 @@ All configuration is environment-driven (`.env`, see `.env.example`). Never comm
 | `LAB_SOURCE_DIR` | `lab/vulnerable-world-monitor` | Default filesystem scope for `secrets` / `dependencies` / `supply_chain` |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | `admin@example.com` / `admin` | Bootstrap admin account (password synced on every boot) |
 | `ANALYST_EMAIL` / `ANALYST_PASSWORD` | `analyst@example.com` / `admin` | Bootstrap analyst account |
-| `MAX_SCAN_WORKERS` | `4` | Reserved for future pool sizing |
+| `MAX_SCAN_WORKERS` | `4` | Maximum concurrent assessment workers per process |
 | `API_RATE_LIMIT_PER_MINUTE` | `600` | General rate limit |
 | `AUTH_RATE_LIMIT_PER_MINUTE` | `30` | Auth endpoint rate limit |
 

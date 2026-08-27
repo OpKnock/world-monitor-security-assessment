@@ -21,7 +21,10 @@ fpdf2>=2.8,<3              # PDF reports — no weasyprint dep
 flask>=3.1,<4              # Lab Flask — localhost only, 10 planted vulns
 
 # ── Dev / test ────────────────────────────────────────────────────────
-pytest>=8,<9
+pytest>=9.0.3,<10
 pytest-asyncio>=0.24,<1    # async test support if needed
+pip-audit>=2.10,<3       # dependency vulnerability audit for CI/release checks
 email-validator>=2,<3      # Pydantic EmailStr
 python-multipart>=0.0.9    # Form parsing for Flask compat tests
+starlette>=1.3,<2         # Patched Starlette line used by current FastAPI
+httpx2>=2.12,<3           # Starlette TestClient transport
