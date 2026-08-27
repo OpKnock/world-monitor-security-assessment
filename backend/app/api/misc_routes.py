@@ -17,7 +17,7 @@ router = APIRouter(tags=["misc"])
 
 
 @router.get("/dashboard")
-def dashboard(db: Session = Depends(get_db), user=Depends(get_current_user)):
+def dashboard(db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
     sev_rows = db.execute(
         select(Finding.severity, func.count(Finding.id)).group_by(Finding.severity)
     ).all()
@@ -52,7 +52,7 @@ def dashboard(db: Session = Depends(get_db), user=Depends(get_current_user)):
 
 
 @router.get("/scanners")
-def scanners_meta(user=Depends(get_current_user)):
+def scanners_meta(user=Depends(require_role("analyst"))):
     return {
         "modules": [
             {"key": key, **meta, "available": True}
@@ -84,14 +84,14 @@ def create_report(
 
 
 @router.get("/reports/assessment/{assessment_id}")
-def list_reports(assessment_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)):
+def list_reports(assessment_id: str, db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
     rows = db.scalars(select(Report).where(Report.assessment_id == assessment_id)).all()
     return [{"id": r.id, "format": r.format, "created_at": r.created_at.isoformat(),
              "download": f"/api/reports/{r.id}/download"} for r in rows]
 
 
 @router.get("/reports/{report_id}/download")
-def download_report(report_id: str, db: Session = Depends(get_db), user=Depends(get_current_user)):
+def download_report(report_id: str, db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
     from pathlib import Path
 
     report = db.get(Report, report_id)
@@ -135,7 +135,7 @@ def audit_logs(db: Session = Depends(get_db), user=Depends(require_role("admin")
 
 
 @router.get("/settings")
-def platform_settings(user=Depends(get_current_user)):
+def platform_settings(user=Depends(require_role("analyst"))):
     return {
         "app": settings.APP_NAME,
         "version": settings.VERSION,

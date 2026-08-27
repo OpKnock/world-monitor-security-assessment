@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 import threading
 import traceback
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Any
 
@@ -30,6 +31,21 @@ from .findings import persist_raw_findings
 from ..models import Assessment, AuditLog, Finding, ScanRun
 from ..scanners.base import ScanContext
 from ..scanners.registry import load_registry, scanners_for
+
+# Thread pool for assessment execution (enforces MAX_SCAN_WORKERS)
+_ASSESSMENT_EXECUTOR: ThreadPoolExecutor | None = None
+_ASSESSMENT_EXECUTOR_LOCK = threading.Lock()
+
+
+def _get_assessment_executor() -> ThreadPoolExecutor:
+    """Get or create the thread pool executor for assessments."""
+    global _ASSESSMENT_EXECUTOR
+    with _ASSESSMENT_EXECUTOR_LOCK:
+        if _ASSESSMENT_EXECUTOR is None:
+            max_workers = max(1, settings.MAX_SCAN_WORKERS)
+            _ASSESSMENT_EXECUTOR = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="assessment-")
+        return _ASSESSMENT_EXECUTOR
+
 
 # Module keys recognized by the platform – keep in sync with scanners.base.AVAILABLE_MODULES
 KNOWN_MODULES = frozenset(
@@ -186,7 +202,7 @@ def create_assessment(
         # but still gate-validate even if not selected to avoid storing malicious URLs
         try:
             safe_overrides[mk] = validate_http_target(uv)
-        except AuthorizationError as excxc:
+        except AuthorizationError as exc:
             raise AuthorizationError(f"Invalid override target for '{mk}': {exc}") from exc
 
     resolved_source = ""
@@ -237,20 +253,15 @@ def create_assessment(
 
 
 def start_assessment_async(assessment_id: str, auth_token: str | None = None) -> None:
-    """Spawn a dedicated daemon thread per assessment."""
+    """Submit assessment to bounded thread pool (MAX_SCAN_WORKERS)."""
     if not isinstance(assessment_id, str) or not assessment_id.strip():
         raise ValueError("assessment_id must be a non-empty string")
     try:
         load_registry()
     except Exception as exc:
         logger.error("Failed to load scanner registry: %s", exc)
-    thread = threading.Thread(
-        target=_run_assessment,
-        args=(assessment_id, auth_token),
-        daemon=True,
-        name=f"assessment-{assessment_id[:8]}",
-    )
-    thread.start()
+    executor = _get_assessment_executor()
+    executor.submit(_run_assessment, assessment_id, auth_token)
 
 
 def _run_assessment(assessment_id: str, auth_token: str | None = None) -> None:
@@ -382,6 +393,32 @@ def _run_assessment(assessment_id: str, auth_token: str | None = None) -> None:
                     or safe_overrides.get(module_key)
                     or assessment.target
                 )
+                # ---- DNS rebinding protection: re-resolve at scan time (LAB_MODE) ----
+                if settings.LAB_MODE:
+                    try:
+                        from urllib.parse import urlparse
+
+                        from ..engine.authorization_gate import resolve_target_ips
+
+                        _parsed = urlparse(target_for_ctx)
+                        _host = _parsed.hostname
+                        if _host:
+                            _ips = resolve_target_ips(_host)
+                            # Pin to first validated IP to avoid TOCTOU between check and connect
+                            # Preserve port/path/query/fragment but replace hostname with IP
+                            _port = f":{_parsed.port}" if _parsed.port else ""
+                            _path = _parsed.path or ""
+                            _query = f"?{_parsed.query}" if _parsed.query else ""
+                            _frag = f"#{_parsed.fragment}" if _parsed.fragment else ""
+                            target_for_ctx = f"{_parsed.scheme}://{_ips[0]}{_port}{_path}{_query}{_frag}"
+                    except AuthorizationError as exc:
+                        logger.error("DNS re-validation failed for %s: %s", target_for_ctx, exc)
+                        errors.append(f"{getattr(inst, 'name', '?')}: DNS re-validation failed: {exc}")
+                        continue
+                    except Exception as exc:
+                        logger.error("DNS re-validation error for %s: %s", target_for_ctx, exc)
+                        errors.append(f"{getattr(inst, 'name', '?')}: DNS re-validation error: {exc}")
+                        continue
                 ctx = ScanContext(
                     target=target_for_ctx,
                     source_path=assessment.source_path or "",
@@ -652,10 +689,12 @@ def retest_finding(db: Session, finding_id: str, user_email: str) -> dict[str, A
         options={},
     )
     still_present = False
+    scanner_succeeded = False
     retest_docs: list[dict[str, str]] = []
     for inst in instances:
         try:
             result = inst.run(ctx)
+            scanner_succeeded = True
         except Exception as exc:
             logger.warning("Retest scanner %s failed: %s", getattr(inst, "name", "?"), exc)
             retest_docs.append(
@@ -696,8 +735,12 @@ def retest_finding(db: Session, finding_id: str, user_email: str) -> dict[str, A
 
     finding.retest_count = int(finding.retest_count or 0) + 1
     finding.retested_at = datetime.now(timezone.utc)
-    finding.retest_status = "STILL_PRESENT" if still_present else "FIXED"
-    finding.status = "CONFIRMED" if still_present else "RETESTED"
+    if not scanner_succeeded:
+        finding.retest_status = "INCONCLUSIVE"
+        finding.status = "OPEN"
+    else:
+        finding.retest_status = "STILL_PRESENT" if still_present else "FIXED"
+        finding.status = "CONFIRMED" if still_present else "RETESTED"
     # Preserve existing meta and append retest evidence paths
     base_meta = dict(finding.meta or {})
     base_meta["retest_evidence"] = [d["path"] for d in retest_docs]
