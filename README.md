@@ -136,6 +136,8 @@ npm run dev -- --port 3000 --host 127.0.0.1
 | Go build fails | Ensure Go 1.21+, check `GOPATH`/`GOMODULE` |
 | Port 8000/8080 in use | Kill process: `netstat -ano | findstr :8000` -> `taskkill /PID <pid> /F` |
 | Tests fail | Run from repo root with venv active |
+| Login "invalid credentials" | You didn't copy `.env.example` → `.env`; default is `admin@example.com` / `ChangeMe_Use_Strong_Password_Here` |
+| `.venv\sripts\activate` fails | Typo — it's **Scripts** (capital S), not `sripts` |
 
 ---
 
@@ -231,31 +233,34 @@ npm run dev -- --port 3000 --host 127.0.0.1
 
 ---
 
-## Quick Start
+## Quick Start (Fresh Clone — Copy/Paste This)
 
 ```bash
-# 1. Clone & Submodule
-git clone https://github.com/<your-org>/world-monitor-security-assessment.git
+# 1. Clone & Submodule (do NOT use "Download ZIP")
+git clone --recurse-submodules https://github.com/OpKnock/world-monitor-security-assessment.git
 cd world-monitor-security-assessment
-git submodule update --init --recursive
 
 # 2. Python venv + deps
 python -m venv .venv
-.venv\Scripts\activate          # Windows
+.venv\Scripts\activate          # Windows (NOTE: Scripts NOT sripts)
 source .venv/bin/activate       # Mac/Linux
 .venv\Scripts\pip install -r requirements.txt
 
-# 3. Build Go binaries (required for secrets/deps/supply_chain)
+# 3. Build Go binaries (required for secrets/deps/supply_chain scanners)
 powershell -ExecutionPolicy Bypass -File scripts\build_go_tools.ps1
 # Mac/Linux: chmod +x scripts/build_go_tools.sh && ./scripts/build_go_tools.sh
 
 # 4. Verify binaries
 ls bin/  # portia.exe, bomber.exe, chainscanner.exe
 
-# 5. Configure environment
+# 5. CRITICAL: Configure environment BEFORE starting
 copy .env.example .env   # Windows
 cp .env.example .env     # Mac/Linux
+# EDIT .env if you want custom passwords, but defaults work for demo
 ```
+
+**Default login after step 5:** `admin@example.com` / `ChangeMe_Use_Strong_Password_Here`  
+*(override via `ADMIN_PASSWORD` in `.env`)*
 
 ---
 
@@ -363,7 +368,7 @@ world-monitor-security-assessment/
 ## Quick Commands Reference
 
 ```bash
-# Activate venv
+# Activate venv (NOTE: Scripts NOT sripts)
 .venv\Scripts\activate          # Windows
 source .venv/bin/activate       # Mac/Linux
 
