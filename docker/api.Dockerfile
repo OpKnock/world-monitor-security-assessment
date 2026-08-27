@@ -21,7 +21,9 @@ RUN if [ -f /candidates/secrets-scanner/internal/cli/root.go ]; then cp -r /cand
 FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/* && \
+    adduser --disabled-password --gecos '' appuser && chown -R appuser /app
 COPY backend ./backend
 COPY frontend ./frontend
 COPY cli ./cli
@@ -29,7 +31,10 @@ COPY lab ./lab
 COPY scripts ./scripts
 COPY NOTICE.md README.md ./
 COPY --from=gobuilder /out/ /app/bin/
+RUN chown -R appuser /app/bin && chmod +x /app/bin/*
 ENV SECRETS_SCANNER_BIN=/app/bin/portia SBOM_SCANNER_BIN=/app/bin/bomber \
     PYTHONUNBUFFERED=1
 EXPOSE 8000
+USER appuser
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -fsS http://localhost:8000/api/health || exit 1
 CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
