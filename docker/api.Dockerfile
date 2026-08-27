@@ -5,13 +5,10 @@ ENV GOVERSION=1.22.5
 RUN curl -fsSL https://go.dev/dl/go${GOVERSION}.linux-amd64.tar.gz | tar -C /usr/local -xz
 ENV PATH="/usr/local/go/bin:${PATH}"
 WORKDIR /src
-COPY _sources/candidates/ /candidates/
 RUN git clone --depth 1 https://github.com/OpKnock/secrets-scanner.git /src/secrets-scanner \
- && git clone --depth 1 https://github.com/OpKnock/sbom-generator-vulnerability-matcher.git /src/bomber \
- || true
+ && git clone --depth 1 https://github.com/OpKnock/sbom-generator-vulnerability-matcher.git /src/bomber
 # apply the documented nil-context patch if not already applied
-RUN if [ -f /candidates/secrets-scanner/internal/cli/root.go ]; then cp -r /candidates/secrets-scanner /src/secrets-scanner; fi; \
-    cd /src/secrets-scanner && \
+RUN cd /src/secrets-scanner && \
     grep -q "context.Background()" internal/cli/root.go || \
     (sed -i 's/rootCmd.Context()/context.Background()/' internal/cli/root.go && \
      sed -i 's/^import (/import (\n\t"context"/' internal/cli/root.go) && \
