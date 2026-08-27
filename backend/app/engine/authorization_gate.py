@@ -90,6 +90,24 @@ def _allowed_targets() -> list[str]:
     return out
 
 
+def is_explicitly_allowed_target(target: str) -> bool:
+    """Return whether *target* matches an explicit ALLOWED_TARGETS entry."""
+    if not isinstance(target, str) or not target.strip():
+        return False
+    try:
+        normalized = _normalize_target_url(target.strip())
+    except Exception:
+        return False
+    for allowed in _allowed_targets():
+        try:
+            allowed_norm = _normalize_target_url(allowed) if "://" in allowed else allowed.rstrip("/")
+        except Exception:
+            allowed_norm = allowed.rstrip("/")
+        if normalized == allowed_norm or normalized.startswith(allowed_norm + "/"):
+            return True
+    return False
+
+
 def _normalize_target_url(target: str) -> str:
     """Return scheme://host[:port]/path without trailing slash for comparison."""
     parsed = urlparse(target)
@@ -152,14 +170,8 @@ def validate_http_target(target: str) -> str:
     normalized = _normalize_target_url(stripped)
 
     # Explicit allow-list bypasses LAB_MODE DNS gate but still requires valid scheme/host
-    for allowed in _allowed_targets():
-        # Normalize allowed entry the same way if it looks like a URL; otherwise compare raw.
-        try:
-            allowed_norm = _normalize_target_url(allowed) if "://" in allowed else allowed.rstrip("/")
-        except Exception:
-            allowed_norm = allowed.rstrip("/")
-        if normalized == allowed_norm or normalized.startswith(allowed_norm + "/"):
-            return stripped
+    if is_explicitly_allowed_target(stripped):
+        return stripped
 
     if settings.LAB_MODE:
         # DNS gate – every resolved address must be loopback/private
@@ -204,10 +216,12 @@ def validate_http_target(target: str) -> str:
     )
 
 
-def resolve_target_ips(host: str) -> list[str]:
+def resolve_target_ips(host: str, *, allow_public: bool = False) -> list[str]:
     """Resolve hostname to list of IPs at scan time. Returns list of IP strings.
     
     Raises AuthorizationError if resolution fails or any IP is not allowed in LAB_MODE.
+    ``allow_public`` is reserved for an explicit ``ALLOWED_TARGETS`` entry; the
+    metadata and link-local blocks still apply in that mode.
     """
     if not isinstance(host, str) or not host.strip():
         raise AuthorizationError("Host must be a non-empty string")
@@ -241,14 +255,21 @@ def resolve_target_ips(host: str) -> list[str]:
         # Check link-local network directly
         try:
             ip_obj = ipaddress.ip_address(ip_str)
-            if ip_obj in _LINK_LOCAL_NET:
+            # Keep link-local and other non-routable special ranges blocked
+            # even for an explicitly allow-listed public target.
+            if (
+                ip_obj.is_link_local
+                or ip_obj in _LINK_LOCAL_NET
+                or ip_obj.is_multicast
+                or ip_obj.is_unspecified
+                or ip_obj.is_reserved
+            ):
                 raise AuthorizationError(
-                    f"LAB_MODE permits only localhost/private-lab targets; "
-                    f"resolved IP {ip_str} is link-local"
+                    f"Resolved target IP {ip_str} is a blocked special-purpose address"
                 )
         except ValueError:
             pass
-        if not _is_loopback_or_private(ip_str):
+        if not allow_public and settings.LAB_MODE and not _is_loopback_or_private(ip_str):
             raise AuthorizationError(
                 f"LAB_MODE permits only localhost/private-lab targets; "
                 f"resolved IP {ip_str} is public"
@@ -356,6 +377,8 @@ def assert_authorized_flag(authorized: bool) -> None:
 __all__ = [
     "AuthorizationError",
     "validate_http_target",
+    "is_explicitly_allowed_target",
+    "resolve_target_ips",
     "validate_source_path",
     "assert_authorized_flag",
 ]

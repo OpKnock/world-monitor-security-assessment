@@ -100,7 +100,15 @@ def create(
         )
     except AuthorizationError as exc:
         raise HTTPException(403, detail=str(exc)) from exc
-    start_assessment_async(assessment.id, auth_token=body.auth_token)
+    try:
+        start_assessment_async(assessment.id, auth_token=body.auth_token)
+    except RuntimeError as exc:
+        # Do not leave work permanently queued when the bounded executor is
+        # saturated; return a retryable response to the caller.
+        assessment.status = "failed"
+        assessment.error = str(exc)
+        db.commit()
+        raise HTTPException(503, detail=str(exc), headers={"Retry-After": "5"}) from exc
     return _assessment_dict(db, assessment)
 
 

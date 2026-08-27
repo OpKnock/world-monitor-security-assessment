@@ -14,7 +14,7 @@ Design goals
   loud if forgotten, so findings are never orphaned.
 * **Thread-safe registry** — ``register`` / ``scanners_for`` are guarded
   by a lock so ``load_registry`` is safe under the orchestration engine's
-  thread-per-assessment model.
+  bounded worker pool.
 * **Stable module keys** — ``AVAILABLE_MODULES`` is the single source of
   truth for the ``/api/scanners`` endpoint and for orchestration
   validation.  Keys are never renamed.
@@ -166,7 +166,7 @@ class ScannerModule(ABC):
 REGISTRY: dict[str, list[ScannerModule]] = {}
 _REGISTRY_LOCK = threading.Lock()
 # Guard for idempotent load_registry() — also protects concurrent first-load
-# under the orchestration engine's thread-per-assessment model.
+# under the orchestration engine's bounded worker pool.
 _REGISTRY_LOADED = False
 
 

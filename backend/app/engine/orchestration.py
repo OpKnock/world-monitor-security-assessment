@@ -5,12 +5,15 @@ Every run is gated by the authorization gate and audit-logged.
 """
 from __future__ import annotations
 
-import logging
-import threading
-import traceback
+from contextlib import contextmanager
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
+import logging
+import socket
+import threading
+import traceback
 from typing import Any
+from urllib.parse import urlparse
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -23,6 +26,8 @@ from ..db import DB_WRITE_LOCK, worker_session
 from .authorization_gate import (
     AuthorizationError,
     assert_authorized_flag,
+    is_explicitly_allowed_target,
+    resolve_target_ips,
     validate_http_target,
     validate_source_path,
 )
@@ -35,15 +40,89 @@ from ..scanners.registry import load_registry, scanners_for
 # Thread pool for assessment execution (enforces MAX_SCAN_WORKERS)
 _ASSESSMENT_EXECUTOR: ThreadPoolExecutor | None = None
 _ASSESSMENT_EXECUTOR_LOCK = threading.Lock()
+_ASSESSMENT_QUEUE_CAPACITY: threading.BoundedSemaphore | None = None
+_DNS_PIN_LOCK = threading.Lock()
+_DNS_PIN_INSTALLED = False
+_DNS_PIN_TLS = threading.local()
+_ORIGINAL_GETADDRINFO = socket.getaddrinfo
+
+
+def _pinned_getaddrinfo(host: Any, port: Any, *args: Any, **kwargs: Any) -> list[tuple]:
+    """Resolve a scanner's pinned hostname to its validated addresses."""
+    pin = getattr(_DNS_PIN_TLS, "pin", None)
+    normalized_host = str(host).rstrip(".").lower() if host is not None else ""
+    if pin is None or normalized_host != pin[0]:
+        return _ORIGINAL_GETADDRINFO(host, port, *args, **kwargs)
+    results: list[tuple] = []
+    for ip in pin[1]:
+        # Ask the original resolver for the correct sockaddr shape, family,
+        # and requested stream/datagram flags, but never resolve the hostname.
+        results.extend(_ORIGINAL_GETADDRINFO(ip, port, *args, **kwargs))
+    if not results:
+        raise socket.gaierror(socket.EAI_NONAME, "pinned host has no addresses")
+    return results
+
+
+def _install_dns_pin_resolver() -> None:
+    global _DNS_PIN_INSTALLED
+    if _DNS_PIN_INSTALLED:
+        return
+    with _DNS_PIN_LOCK:
+        if not _DNS_PIN_INSTALLED:
+            socket.getaddrinfo = _pinned_getaddrinfo
+            _DNS_PIN_INSTALLED = True
+
+
+@contextmanager
+def _pin_target_dns(target: str, ips: list[str]):
+    """Pin hostname resolution for one scanner invocation on this thread."""
+    host = urlparse(target).hostname if target else None
+    if not host or not ips:
+        yield
+        return
+    _install_dns_pin_resolver()
+    previous = getattr(_DNS_PIN_TLS, "pin", None)
+    _DNS_PIN_TLS.pin = (host.rstrip(".").lower(), tuple(ips))
+    try:
+        yield
+    finally:
+        if previous is None:
+            try:
+                del _DNS_PIN_TLS.pin
+            except AttributeError:
+                pass
+        else:
+            _DNS_PIN_TLS.pin = previous
+
+
+def _revalidate_scan_target(target: str) -> tuple[str, dict[str, Any]]:
+    """Re-check DNS immediately before a scanner makes network requests.
+
+    The original hostname is deliberately retained. Replacing it with an IP
+    breaks HTTPS certificate/SNI validation and virtual-host routing. The
+    orchestration layer pins ``getaddrinfo`` for the scanner's thread so the
+    URL keeps its hostname while connections use these validated addresses.
+    """
+    if not settings.LAB_MODE or not target or target == "(source-only)":
+        return target, {}
+    parsed = urlparse(target)
+    host = parsed.hostname
+    if not host:
+        return target, {}
+    ips = resolve_target_ips(host, allow_public=is_explicitly_allowed_target(target))
+    return target, {"resolved_host": host, "resolved_ips": ips}
 
 
 def _get_assessment_executor() -> ThreadPoolExecutor:
     """Get or create the thread pool executor for assessments."""
-    global _ASSESSMENT_EXECUTOR
+    global _ASSESSMENT_EXECUTOR, _ASSESSMENT_QUEUE_CAPACITY
     with _ASSESSMENT_EXECUTOR_LOCK:
         if _ASSESSMENT_EXECUTOR is None:
             max_workers = max(1, settings.MAX_SCAN_WORKERS)
             _ASSESSMENT_EXECUTOR = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="assessment-")
+            # Bound both active and queued work. A small queue absorbs normal
+            # bursts without allowing unbounded memory growth under load.
+            _ASSESSMENT_QUEUE_CAPACITY = threading.BoundedSemaphore(max_workers * 2)
         return _ASSESSMENT_EXECUTOR
 
 
@@ -261,7 +340,23 @@ def start_assessment_async(assessment_id: str, auth_token: str | None = None) ->
     except Exception as exc:
         logger.error("Failed to load scanner registry: %s", exc)
     executor = _get_assessment_executor()
-    executor.submit(_run_assessment, assessment_id, auth_token)
+    capacity = _ASSESSMENT_QUEUE_CAPACITY
+    if capacity is None or not capacity.acquire(blocking=False):
+        raise RuntimeError("assessment queue is full; retry after active scans finish")
+    try:
+        executor.submit(_run_assessment_with_capacity, assessment_id, auth_token)
+    except Exception:
+        capacity.release()
+        raise
+
+
+def _run_assessment_with_capacity(assessment_id: str, auth_token: str | None = None) -> None:
+    """Run one assessment and release its active/queued capacity slot."""
+    try:
+        _run_assessment(assessment_id, auth_token)
+    finally:
+        if _ASSESSMENT_QUEUE_CAPACITY is not None:
+            _ASSESSMENT_QUEUE_CAPACITY.release()
 
 
 def _run_assessment(assessment_id: str, auth_token: str | None = None) -> None:
@@ -396,21 +491,7 @@ def _run_assessment(assessment_id: str, auth_token: str | None = None) -> None:
                 # ---- DNS rebinding protection: re-resolve at scan time (LAB_MODE) ----
                 if settings.LAB_MODE:
                     try:
-                        from urllib.parse import urlparse
-
-                        from ..engine.authorization_gate import resolve_target_ips
-
-                        _parsed = urlparse(target_for_ctx)
-                        _host = _parsed.hostname
-                        if _host:
-                            _ips = resolve_target_ips(_host)
-                            # Pin to first validated IP to avoid TOCTOU between check and connect
-                            # Preserve port/path/query/fragment but replace hostname with IP
-                            _port = f":{_parsed.port}" if _parsed.port else ""
-                            _path = _parsed.path or ""
-                            _query = f"?{_parsed.query}" if _parsed.query else ""
-                            _frag = f"#{_parsed.fragment}" if _parsed.fragment else ""
-                            target_for_ctx = f"{_parsed.scheme}://{_ips[0]}{_port}{_path}{_query}{_frag}"
+                        target_for_ctx, target_options = _revalidate_scan_target(target_for_ctx)
                     except AuthorizationError as exc:
                         logger.error("DNS re-validation failed for %s: %s", target_for_ctx, exc)
                         errors.append(f"{getattr(inst, 'name', '?')}: DNS re-validation failed: {exc}")
@@ -419,16 +500,19 @@ def _run_assessment(assessment_id: str, auth_token: str | None = None) -> None:
                         logger.error("DNS re-validation error for %s: %s", target_for_ctx, exc)
                         errors.append(f"{getattr(inst, 'name', '?')}: DNS re-validation error: {exc}")
                         continue
+                else:
+                    target_options = {}
                 ctx = ScanContext(
                     target=target_for_ctx,
                     source_path=assessment.source_path or "",
                     auth_token=token_for_module,
                     evidence=store,
-                    options={},
+                    options=target_options,
                 )
                 logger.debug("%s inst %s begin target=%s", assessment_id, getattr(inst, "name", "?"), target_for_ctx)
                 try:
-                    result = inst.run(ctx)
+                    with _pin_target_dns(target_for_ctx, target_options.get("resolved_ips", [])):
+                        result = inst.run(ctx)
                 except Exception as exc:  # a broken adapter must never kill the assessment
                     errors.append(f"{getattr(inst, 'name', '?')}: {repr(exc)}\n{traceback.format_exc(limit=3)}")
                     logger.warning("Scanner %s failed: %s", getattr(inst, "name", "?"), exc, exc_info=True)
@@ -671,6 +755,14 @@ def retest_finding(db: Session, finding_id: str, user_email: str) -> dict[str, A
         # For source-based findings, use source_path
         target_for_retest = assessment.target if assessment.target != "(source-only)" else "http://127.0.0.1/"
 
+    # Revalidate DNS immediately before any retest network activity. Keep the
+    # hostname in the URL so HTTPS SNI/certificate and virtual-host routing
+    # remain correct.
+    try:
+        target_for_retest, target_options = _revalidate_scan_target(target_for_retest)
+    except AuthorizationError as exc:
+        raise AuthorizationError(f"Retest target failed DNS re-validation: {exc}") from exc
+
     # Token for auth-gated retests
     token: str | None = None
     if check_prefix in ("auth", "idor"):
@@ -686,16 +778,18 @@ def retest_finding(db: Session, finding_id: str, user_email: str) -> dict[str, A
         source_path=assessment.source_path or "",
         auth_token=token,
         evidence=store,
-        options={},
+        options=target_options,
     )
     still_present = False
-    scanner_succeeded = False
+    successful_scanners = 0
+    unsuccessful_scanners = 0
     retest_docs: list[dict[str, str]] = []
     for inst in instances:
         try:
-            result = inst.run(ctx)
-            scanner_succeeded = True
+            with _pin_target_dns(target_for_retest, target_options.get("resolved_ips", [])):
+                result = inst.run(ctx)
         except Exception as exc:
+            unsuccessful_scanners += 1
             logger.warning("Retest scanner %s failed: %s", getattr(inst, "name", "?"), exc)
             retest_docs.append(
                 store.save(
@@ -705,6 +799,14 @@ def retest_finding(db: Session, finding_id: str, user_email: str) -> dict[str, A
                 )
             )
             continue
+        result_status = getattr(result, "status", "")
+        result_errors = list(getattr(result, "errors", []) or [])
+        if result_status == "completed" and not result_errors:
+            successful_scanners += 1
+        else:
+            # Failed/skipped results are valid scanner responses, but they do
+            # not prove a finding was remediated.
+            unsuccessful_scanners += 1
         # Compare fingerprints of findings seen during retest with original
         for f in getattr(result, "findings", []) or []:
             try:
@@ -726,6 +828,8 @@ def retest_finding(db: Session, finding_id: str, user_email: str) -> dict[str, A
                 payload={
                     "retest": True,
                     "scanner": getattr(inst, "name", "?"),
+                    "status": result_status,
+                    "errors": result_errors,
                     "findings_seen": [getattr(f, "check_id", "?") for f in getattr(result, "findings", []) or []],
                 },
             )
@@ -735,7 +839,7 @@ def retest_finding(db: Session, finding_id: str, user_email: str) -> dict[str, A
 
     finding.retest_count = int(finding.retest_count or 0) + 1
     finding.retested_at = datetime.now(timezone.utc)
-    if not scanner_succeeded:
+    if successful_scanners == 0 or unsuccessful_scanners > 0:
         finding.retest_status = "INCONCLUSIVE"
         finding.status = "OPEN"
     else:
