@@ -55,7 +55,7 @@ Optional modules (`tls`, `graphql`, `deep_scan`, `fuzzing`, `supply_chain`) degr
 
 ## Run Everything
 
-`ash
+Bash
 # Terminal 1 - Lab
 cd lab/vulnerable-world-monitor
 python app.py
