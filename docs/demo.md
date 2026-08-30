@@ -20,7 +20,7 @@ powershell -ExecutionPolicy Bypass -File scripts\start_all.ps1
 
 | Service | URL | Login |
 |---|---|---|
-| Platform UI + API | http://127.0.0.1:8000 | `admin` / `admin` (or `admin@example.com` / `admin`) |
+| Platform UI + API | http://127.0.0.1:8000 | `admin@example.com` / `ChangeMe_Use_Strong_Password_Here` (override via `ADMIN_PASSWORD` in `.env`) |
 | Vulnerable lab | http://127.0.0.1:8080 | `alice` / `user123` · `bob` / `user456` · `admin` / `admin123` |
 | Real World Monitor (optional) | http://127.0.0.1:3000 | `npm install` then `npm run dev -- --port 3000` inside `targets/real-world-monitor` |
 

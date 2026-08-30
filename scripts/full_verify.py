@@ -1,11 +1,26 @@
 """FULL LIVE VERIFICATION - all targets, all modules, all operations."""
 import json, sys, time
-sys.path.insert(0, r"C:\Users\wagde\Desktop\world-monitor-security-assessment")
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import httpx
 
 BASE = "http://127.0.0.1:8000/api"
+# Use fresh-clone default; override via ADMIN_PASSWORD env if you hardened .env on this host
+import os
+admin_pwd = os.environ.get("ADMIN_PASSWORD") or Path(Path(__file__).resolve().parents[1] / ".env").read_text(encoding="utf-8", errors="ignore").split("ADMIN_PASSWORD=")[-1].splitlines()[0].strip().strip('"').strip("'") if (Path(__file__).resolve().parents[1] / ".env").exists() else "ChangeMe_Use_Strong_Password_Here"
+if not admin_pwd or admin_pwd.startswith("ChangeMe") is False and len(admin_pwd) < 4:
+    admin_pwd = "ChangeMe_Use_Strong_Password_Here"
+# fallback that works on both hardened main PC and fresh clone
+for pwd_try in [admin_pwd, "ChangeMe_Use_Strong_Password_Here", "FarGCo6hO-q2K2HUqVRgSJb3X2p8ZFzN", "admin"]:
+    try:
+        tok = httpx.post(f"{BASE}/auth/login", json={"email": "admin@example.com", "password": pwd_try}, timeout=10).json().get("access_token")
+        if tok:
+            admin_pwd = pwd_try
+            break
+    except Exception:
+        continue
 c = httpx.Client(timeout=60)
-t = c.post(f"{BASE}/auth/login", json={"email": "admin@example.com", "password": "admin"}).json()["access_token"]
+t = c.post(f"{BASE}/auth/login", json={"email": "admin@example.com", "password": admin_pwd}).json()["access_token"]
 c.headers["Authorization"] = f"Bearer {t}"
 lab_tok = c.post(f"{BASE}/lab/token").json()["access_token"]
 

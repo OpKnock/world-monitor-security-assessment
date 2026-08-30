@@ -12,16 +12,20 @@ venv/
 .pytest_cache_local/
 
 # generated artifacts
-evidence/*
-reports/*
+evidence/
+reports/
 !evidence/.gitkeep
 !reports/.gitkeep
-bin/*.exe
+bin/*
+!bin/.gitkeep
 .bomber/
 
-# node
+# node + build
 node_modules/
 _sources/
+_sources/candidates/
 _world/
-_sources/
 logs/
+*.log
+.DS_Store
+*.tmp

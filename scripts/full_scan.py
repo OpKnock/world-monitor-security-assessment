@@ -8,7 +8,7 @@ import tempfile
 import time
 from pathlib import Path
 
-ROOT = Path(__file__resolve().parent) if False else Path(r"C:\Users\wagde\Desktop\world-monitor-security-assessment")
+ROOT = Path(__file__).resolve().parents[1]
 os.chdir(ROOT)
 
 issues = []
@@ -106,8 +106,8 @@ print("=== 6. .env ===")
 env = ROOT / ".env"
 if env.exists():
     t = env.read_text(encoding="utf-8")
-    if "ADMIN_PASSWORD=admin" not in t:
-        issues.append(".env: ADMIN_PASSWORD should be 'admin' for demo")
+    if "ADMIN_PASSWORD=" not in t:
+        issues.append(".env: ADMIN_PASSWORD missing")
     if "LAB_MODE=true" not in t:
         issues.append(".env: LAB_MODE should be true")
 else:

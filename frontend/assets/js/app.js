@@ -171,7 +171,7 @@
         </form>
         <p class="auth-toggle">${isLogin ? `No account? <a href="#" id="tgAuth">Register</a>` : `<a href="#" id="tgAuth">Back to sign in</a>`}</p>
         <div class="divider"></div>
-        <p class="muted small" style="font-size:11px;line-height:1.6">Demo: <span class="mono">admin@example.com / admin</span><br>Lab users: <span class="mono">alice/user123</span> · <span class="mono">bob/user456</span></p>
+        <p class="muted small" style="font-size:11px;line-height:1.6">Demo: <span class="mono">admin@example.com / ChangeMe_Use_Strong_Password_Here</span><br>Lab users: <span class="mono">alice/user123</span> · <span class="mono">bob/user456</span></p>
       </div></div>`;
     document.getElementById("tgAuth").onclick = e=>{ e.preventDefault(); AuthScreen(isLogin ? "register" : "login"); };
     const form=document.getElementById("authForm");

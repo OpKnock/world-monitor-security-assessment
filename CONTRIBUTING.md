@@ -4,7 +4,7 @@
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\pip install -r requirements.txt
-powershell -ExecutionPolicy Bypass -File scriptsuild_go_tools.ps1
+powershell -ExecutionPolicy Bypass -File scripts/build_go_tools.ps1
 Copy-Item .env.example .env
 .\.venv\Scripts\python -m pytest tests -q
 ```

@@ -27,7 +27,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 ROOT_DIR: Path = Path(__file__).resolve().parents[2]
 
 # Placeholder that ships in the repo.  Any deployment MUST override it.
-_PLACEHOLDER_SECRET = "CHANGE-ME-in-.env-64-random-hex-chars"
+_PLACEHOLDER_SECRET = "CHANGE-ME-64-random-hex-chars"
 
 
 class Settings(BaseSettings):
@@ -105,9 +105,9 @@ class Settings(BaseSettings):
     # production still warns if <12 chars via _check_secret_strength.
     # ------------------------------------------------------------------ #
     ADMIN_EMAIL: EmailStr = Field(default="admin@example.com")  # type: ignore[assignment]
-    ADMIN_PASSWORD: Annotated[str, Field(min_length=4, max_length=256)] = "ChangeMe_Admin_2026!"
+    ADMIN_PASSWORD: Annotated[str, Field(min_length=4, max_length=256)] = "ChangeMe_Use_Strong_Password_Here"
     ANALYST_EMAIL: EmailStr = Field(default="analyst@example.com")  # type: ignore[assignment]
-    ANALYST_PASSWORD: Annotated[str, Field(min_length=4, max_length=256)] = "ChangeMe_Analyst_2026!"
+    ANALYST_PASSWORD: Annotated[str, Field(min_length=4, max_length=256)] = "ChangeMe_Use_Strong_Password_Here"
 
     # ------------------------------------------------------------------ #
     # Optional alerting
@@ -210,7 +210,7 @@ class Settings(BaseSettings):
         if self.SECRET_KEY == _PLACEHOLDER_SECRET:
             if not is_demo:
                 raise ValueError(
-                    "SECRET_KEY is still the placeholder 'CHANGE-ME-in-.env-64-random-hex-chars'. "
+                    "SECRET_KEY is still the placeholder 'CHANGE-ME-64-random-hex-chars'. "
                     "Generate a strong key with: python -c \"import secrets; print(secrets.token_hex(32))\" "
                     "and set it in .env / environment."
                 )
@@ -228,7 +228,7 @@ class Settings(BaseSettings):
         if not is_demo:
             for attr in ("ADMIN_PASSWORD", "ANALYST_PASSWORD"):
                 val: str = getattr(self, attr)
-                if val in ("ChangeMe_Admin_2026!", "ChangeMe_Analyst_2026!"):
+                if val in ("ChangeMe_Admin_2026!", "ChangeMe_Analyst_2026!", "ChangeMe_Use_Strong_Password_Here"):
                     warnings.warn(
                         f"{attr} is still the default demo password — change it before deploying",
                         UserWarning,

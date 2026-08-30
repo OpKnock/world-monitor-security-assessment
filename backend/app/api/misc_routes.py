@@ -136,6 +136,7 @@ def audit_logs(db: Session = Depends(get_db), user=Depends(require_role("admin")
 
 @router.get("/settings")
 def platform_settings(user=Depends(require_role("analyst"))):
+    from pathlib import Path as _P
     return {
         "app": settings.APP_NAME,
         "version": settings.VERSION,
@@ -147,7 +148,7 @@ def platform_settings(user=Depends(require_role("analyst"))):
         "secrets_binary": settings.SECRETS_SCANNER_BIN or str(settings.BIN_DIR / "portia.exe"),
         "sbom_binary": settings.SBOM_SCANNER_BIN or str(settings.BIN_DIR / "bomber.exe"),
         "binaries_present": {
-            "portia": (settings.BIN_DIR / ("portia.exe" if not settings.SECRETS_SCANNER_BIN else settings.SECRETS_SCANNER_BIN)).exists(),
-            "bomber": (settings.BIN_DIR / ("bomber.exe" if not settings.SBOM_SCANNER_BIN else settings.SBOM_SCANNER_BIN)).exists(),
+            "portia": (_P(settings.SECRETS_SCANNER_BIN) if settings.SECRETS_SCANNER_BIN else settings.BIN_DIR / "portia.exe").exists(),
+            "bomber": (_P(settings.SBOM_SCANNER_BIN) if settings.SBOM_SCANNER_BIN else settings.BIN_DIR / "bomber.exe").exists(),
         },
     }
