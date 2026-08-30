@@ -1,14 +1,47 @@
+<div align="center">
+
 # World Monitor Security Assessment Platform
 
-[![ci](https://github.com/OpKnock/world-monitor-security-assessment/actions/workflows/ci.yml/badge.svg)](https://github.com/OpKnock/world-monitor-security-assessment/actions/workflows/ci.yml)
-![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)
-![License AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-green)
+**Unified · Localhost-only · 12 Scanner Modules · CVSS v3.1 · Retest-until-FIXED**
 
-A unified, **localhost-only** security assessment platform that scans an intentionally vulnerable lab and the real World Monitor codebase, normalizes findings into one schema, scores them with **CVSS v3.1**, stores masked evidence, explains business impact, recommends remediation, supports **retest-until-FIXED**, and generates **PDF / JSON / Markdown / CSV** reports. Docker images run as non-root with healthchecks. CI runs **46 tests + pip-audit** on every push.
+[![ci](https://github.com/OpKnock/world-monitor-security-assessment/actions/workflows/ci.yml/badge.svg)](https://github.com/OpKnock/world-monitor-security-assessment/actions/workflows/ci.yml)
+![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)
+![Tests 46 passed](https://img.shields.io/badge/tests-46%20passed-brightgreen?style=flat-square)
+![CVSS v3.1](https://img.shields.io/badge/CVSS-v3.1-orange?style=flat-square)
+![License AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-green?style=flat-square)
+![Security localhost-only](https://img.shields.io/badge/security-localhost--only-critical?style=flat-square)
+
+_A unified security assessment platform that scans an intentionally vulnerable lab and the real World Monitor codebase, normalizes findings into one schema, scores with **CVSS v3.1**, stores masked evidence, explains business impact, recommends remediation, supports **retest-until-FIXED**, and generates **PDF / JSON / Markdown / CSV** reports. Docker images run as non-root with healthchecks. CI runs **46 tests + pip-audit** on every push._
+
+</div>
 
 ```
 DETECT -> VERIFY -> DOCUMENT -> SCORE -> EXPLAIN IMPACT -> REMEDIATE -> RETEST -> REPORT
 ```
+
+<details>
+<summary><strong>Contents</strong></summary>
+
+- [Two Targets, One Platform](#two-targets-one-platform)
+- [The 12 Scanner Modules](#the-12-scanner-modules)
+- [Prerequisites](#prerequisites)
+- [Quick Start — Fresh Clone](#quick-start--fresh-clone)
+- [Three-Terminal Setup](#three-terminal-setup)
+- [Quick Demo (2 min)](#quick-demo-2-min)
+- [Environment Variables](#environment-variables)
+- [Docker Alternative](#docker-alternative)
+- [Architecture](#architecture)
+- [How Each Scanner Works](#how-each-scanner-works)
+- [How the Retest Loop Works](#how-the-retest-loop-works)
+- [Running Tests](#running-tests)
+- [Safety Model](#safety-model)
+- [Branch & CI](#branch--ci)
+- [Troubleshooting](#troubleshooting)
+- [Documentation Index](#documentation-index)
+
+</details>
 
 ---
 
@@ -405,6 +438,14 @@ Remove-Item database/worldmonitor.db -Force -ErrorAction SilentlyContinue
 ## Documentation Index
 
 `docs/architecture.md` · `docs/security-model.md` · `docs/api.md` · `docs/demo.md` · `docs/deployment.md` · `docs/integration.md` · `docs/scanner-development.md` · `docs/requirements-coverage.md` · `docs/repository-audit.md`
+
+---
+
+## Keywords / Tags
+
+`security` · `vulnerability-scanner` · `security-assessment` · `dast` · `sast` · `sca` · `supply-chain-security` · `secrets-detection` · `cvss` · `owasp` · `penetration-testing` · `devsecops` · `appsec` · `vulnerability-management` · `security-automation` · `threat-modeling` · `fastapi` · `docker` · `python` · `go`
+
+> GitHub repository topics are also set — see the **About** section on GitHub for filterable tags.
 
 ---
 
