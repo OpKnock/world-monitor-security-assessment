@@ -34,4 +34,4 @@ jobs:
           submodules: recursive
       - run: docker build -f docker/api.Dockerfile -t world-monitor:api .
       - run: docker build -f docker/lab.Dockerfile -t world-monitor:lab .
-      - run: docker run --rm -d -p 8000:8000 --name api world-monitor:api && sleep 8 && curl -fsS http://localhost:8000/api/health | grep -q healthy && docker rm -f api
+      - run: docker run --rm -d -p 8000:8000 --name api world-monitor:api && sleep 15 && (curl -fsS http://localhost:8000/api/health | grep -q healthy || (echo "--- api logs ---" && docker logs api && docker rm -f api && exit 1)) && docker rm -f api

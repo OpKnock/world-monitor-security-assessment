@@ -1,7 +1,8 @@
 FROM python:3.14-slim
 WORKDIR /lab
 COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir flask gunicorn curl && rm -rf /var/lib/apt/lists/* && \
+RUN pip install --no-cache-dir -r /tmp/requirements.txt && \
+    apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/* && \
     adduser --disabled-password --gecos '' labuser && chown -R labuser /lab
 COPY lab/vulnerable-world-monitor/ .
 RUN chown -R labuser /lab
