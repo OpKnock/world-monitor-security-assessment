@@ -65,17 +65,6 @@ TITLES: dict[str, str] = {
     "headers.x_content_type_options": "Missing X-Content-Type-Options (nosniff)",
     "headers.x_frame_options": "Missing X-Frame-Options / frame-ancestors",
     "headers.referrer_policy": "Missing Referrer-Policy",
-    "headers.permissions_policy": "headers.permissions_policy",  # placeholder overwritten below
-    "headers.referrer_policy": "Missing Referrer-Policy",
-    "headers.permissions_policy": "Missing Permissions-Policy",
-}
-# Correct TITLES after duplicate override clarity:
-TITLES = {
-    "headers.strict_transport_security": "Missing/weak HSTS header",
-    "headers.content_security_policy": "Missing Content-Security-Policy",
-    "headers.x_content_type_options": "Missing X-Content-Type-Options (nosniff)",
-    "headers.x_frame_options": "Missing X-Frame-Options / frame-ancestors",
-    "headers.referrer_policy": "Missing Referrer-Policy",
     "headers.permissions_policy": "Missing Permissions-Policy",
 }
 

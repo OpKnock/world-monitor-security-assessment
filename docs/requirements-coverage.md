@@ -32,7 +32,7 @@ creatable · [x] Multiple scanners execute · [x] Outputs normalized · [x] Find
 stored · [x] Duplicates handled (fingerprint merge) · [x] CVSS calculated ·
 [x] Evidence stored safely · [x] Sensitive info masked · [x] Dashboard shows real
 results · [x] Remediation attached · [x] Controlled PoC in lab · [x] PDF report ·
-[x] Retesting works · [x] CLI works · [x] Tests pass (38) · [x] Docker files
+[x] Retesting works · [x] CLI works · [x] Tests pass (46) · [x] Docker files
 provided (compose validated logically; daemon unavailable on build host — see
 deployment notes) · [x] Requirements mapping documented · [x] No arbitrary-target
 exploitation by default.

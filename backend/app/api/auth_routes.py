@@ -16,7 +16,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 class RegisterRequest(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=10, max_length=128)
+    password: str = Field(min_length=12, max_length=128)
 
 
 class LoginRequest(BaseModel):
@@ -27,7 +27,7 @@ class LoginRequest(BaseModel):
 @router.post("/register", status_code=201)
 def register(body: RegisterRequest, request: Request, db: Session = Depends(get_db)):
     enforce_rate_limit(request, settings.AUTH_RATE_LIMIT_PER_MINUTE)
-    exists = db.scalar(select(User).where(User.email == body.email.lower().lower()))
+    exists = db.scalar(select(User).where(User.email == body.email.lower()))
     if exists:
         raise HTTPException(409, detail="email already registered")
     is_first_user = db.scalar(select(User).limit(1)) is None

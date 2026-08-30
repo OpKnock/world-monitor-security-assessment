@@ -57,8 +57,8 @@ All configuration is environment-driven (`.env`, see `.env.example`). Never comm
 | `ALLOWED_TARGETS` | `` | Comma-separated extra URLs always permitted |
 | `LAB_APP_URL` | `http://127.0.0.1:8080` | Vulnerable lab URL (platform fetches demo tokens here) |
 | `LAB_SOURCE_DIR` | `lab/vulnerable-world-monitor` | Default filesystem scope for `secrets` / `dependencies` / `supply_chain` |
-| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | `admin@example.com` / `admin` | Bootstrap admin account (password synced on every boot) |
-| `ANALYST_EMAIL` / `ANALYST_PASSWORD` | `analyst@example.com` / `admin` | Bootstrap analyst account |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | `admin@example.com` / `ChangeMe_Use_Strong_Password_Here` | Bootstrap admin account (password synced on every boot) |
+| `ANALYST_EMAIL` / `ANALYST_PASSWORD` | `analyst@example.com` / `ChangeMe_Use_Strong_Password_Here` | Bootstrap analyst account |
 | `MAX_SCAN_WORKERS` | `4` | Maximum concurrent assessment workers per process |
 | `API_RATE_LIMIT_PER_MINUTE` | `600` | General rate limit |
 | `AUTH_RATE_LIMIT_PER_MINUTE` | `30` | Auth endpoint rate limit |

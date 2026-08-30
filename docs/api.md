@@ -12,7 +12,7 @@ All endpoints return JSON. Errors use `{"detail": "..."}` with status `401` unau
 | POST | `/auth/login` | `{email, password}` | `200` → `{access_token, user}` | Timing-safe verify; `401` on failure |
 | GET | `/auth/me` | — | `200` → `{id, email, role}` | Current user + role |
 
-Password rules: minimum 8 characters; validated by Pydantic. Roles: `viewer` (read-only) < `analyst` (create / retest / report) < `admin` (full).
+Password rules: minimum 12 characters; validated by Pydantic. Roles: `viewer` (read-only) < `analyst` (create / retest / report) < `admin` (full).
 
 ## Assessments & findings
 
