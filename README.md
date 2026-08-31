@@ -191,12 +191,12 @@ SECURITY HEALTH  91/100  Healthy        Penalty 9
 5. **Dashboard health updates** `68 -> 91` and `FIXED` count increases ? the cinematic `Verifying fix...` overlay -> `FIXED` (green) is the demo moment. Evidence is re-linked and audit-logged.
 
 **Try it:**
-```powershell
-# 1. Start lab vulnerable (no toggles) -> Scan Playground :8080 -> see CRITICAL/HIGH findings, health 68
-# 2. Restart lab fixed:
-$env:WM_LAB_FIX_HEADERS="1"; $env:WM_LAB_PATCH_SQLI="1"; python lab/vulnerable-world-monitor/app.py
-# 3. In platform: Findings -> click header finding -> Retest -> overlay -> FIXED, health 91
-```
+
+    # 1. Start lab vulnerable (no toggles) -> Scan Playground :8080 -> see CRITICAL/HIGH findings, health 68
+    # 2. Restart lab fixed:
+    $env:WM_LAB_FIX_HEADERS="1"; $env:WM_LAB_PATCH_SQLI="1"; python lab/vulnerable-world-monitor/app.py
+    # 3. In platform: Findings -> click header finding -> Retest -> overlay -> FIXED, health 91
+
 
 `fuzzing` is opt-in (`WM_ENABLE_FUZZING=1`) and `tls`/`graphql`/`deep_scan` degrade to `skipped` when not applicable ? `skipped` is not a failure.
 
@@ -228,7 +228,7 @@ $env:WM_LAB_FIX_HEADERS="1"; $env:WM_LAB_PATCH_SQLI="1"; python lab/vulnerable-w
 
 ## Quick Start — Fresh Clone
 
-> ⚠️ **Do NOT run from `C:\\WINDOWS\\System32`** (you will get `Permission denied` / `Access is denied`). Open **PowerShell** normally and first run `Set-Location $HOME\Desktop` (or `cd %USERPROFILE%\Desktop` for CMD) — then copy/paste **only the commands inside** the gray blocks below (click the copy button at top-right of each block, do **not** copy the `\`\`\`powershell` line). Do **not** use
+> ⚠️ **Do NOT run from `C:\\WINDOWS\\System32`** (you will get `Permission denied` / `Access is denied`). Open **PowerShell** normally and first run `Set-Location $HOME\Desktop` (or `cd %USERPROFILE%\Desktop` for CMD) — then copy/paste the indented commands below.
 
 ### ⚡ Super Quick Start — one block, copy-paste, done (all shells)
 
@@ -253,12 +253,11 @@ $env:WM_LAB_FIX_HEADERS="1"; $env:WM_LAB_PATCH_SQLI="1"; python lab/vulnerable-w
 
 ### Windows PowerShell
 
-```powershell
-# 0. Go to a writable folder FIRST
 
-### Windows PowerShell
-
-```powershell
+    # 0. Go to a writable folder FIRST
+    
+    ### Windows PowerShell
+powershell
 # 0. Go to a writable folder FIRST ? do NOT stay in C:\WINDOWS\System32 (Permission denied)
 Set-Location $HOME\Desktop
 
@@ -288,58 +287,58 @@ python scripts/start_all.py
 
 ### Windows CMD
 
-```cmd
-:: 0. Go to Desktop first ? not System32
-cd /d %USERPROFILE%\Desktop
 
-:: 1. Clone
-git clone --recurse-submodules https://github.com/OpKnock/world-monitor-security-assessment.git
-cd world-monitor-security-assessment
+    :: 0. Go to Desktop first ? not System32
+    cd /d %USERPROFILE%\Desktop
+    
+    :: 1. Clone
+    git clone --recurse-submodules https://github.com/OpKnock/world-monitor-security-assessment.git
+    cd world-monitor-security-assessment
+    
+    :: 2. Python env
+    python -m venv .venv
+    .\.venv\Scripts\activate.bat
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+    
+    :: 3. Build Go scanners
+    powershell -ExecutionPolicy Bypass -File scripts\build_go_tools.ps1
+    
+    :: 4. Verify
+    dir bin
+    
+    :: 5. Configure
+    copy .env.example .env
+    
+    :: 6. Run
+    python scripts\start_all.py
 
-:: 2. Python env
-python -m venv .venv
-.\.venv\Scripts\activate.bat
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-
-:: 3. Build Go scanners
-powershell -ExecutionPolicy Bypass -File scripts\build_go_tools.ps1
-
-:: 4. Verify
-dir bin
-
-:: 5. Configure
-copy .env.example .env
-
-:: 6. Run
-python scripts\start_all.py
-```
 
 ### Mac / Linux
 
-```bash
-# 1. Clone
-git clone --recurse-submodules https://github.com/OpKnock/world-monitor-security-assessment.git
-cd world-monitor-security-assessment
 
-# 2. Python env
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
+    # 1. Clone
+    git clone --recurse-submodules https://github.com/OpKnock/world-monitor-security-assessment.git
+    cd world-monitor-security-assessment
+    
+    # 2. Python env
+    python3 -m venv .venv
+    source .venv/bin/activate
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+    
+    # 3. Build Go scanners
+    chmod +x scripts/build_go_tools.sh && ./scripts/build_go_tools.sh
+    
+    # 4. Verify
+    ls bin/
+    
+    # 5. Configure
+    cp .env.example .env
+    
+    # 6. Run
+    python scripts/start_all.py
 
-# 3. Build Go scanners
-chmod +x scripts/build_go_tools.sh && ./scripts/build_go_tools.sh
-
-# 4. Verify
-ls bin/
-
-# 5. Configure
-cp .env.example .env
-
-# 6. Run
-python scripts/start_all.py
-```
 
 **Default login after step 5:** `admin@example.com` / `ChangeMe_Use_Strong_Password_Here`  
 Override via `ADMIN_PASSWORD` in `.env`.
@@ -350,10 +349,10 @@ Override via `ADMIN_PASSWORD` in `.env`.
 
 Runs **lab :8080 + platform :8000 + real app :3000 (optional)** together. On **Windows** it pops up 3 new PowerShell windows (one per service) so the three-terminal setup shows properly; on **Mac/Linux** it streams prefixed `[lab]/[platform]/[real-app]` logs in one terminal. If a port is already busy it is skipped (“already existence”).
 
-```bash
-# from repo root, venv active — one command, 3 terminals pop up (Windows)
-python scripts/start_all.py
-```
+
+    # from repo root, venv active — one command, 3 terminals pop up (Windows)
+    python scripts/start_all.py
+
 
 > **That is it.** 3 terminals pop up: `lab :8080` + `platform :8000` + `real app :3000` (optional). If a port is already busy it is skipped. `Ctrl+C` in each window to stop or close the window.
 
@@ -361,17 +360,17 @@ python scripts/start_all.py
 <details>
 <summary>Variants (optional) ? only if you need them</summary>
 
-```bash
-# with fix toggles for retest demo (headers + IDOR)
-python scripts/start_all.py --fix-headers --patch-idor
-# lab + platform only, skip real app
-python scripts/start_all.py --no-real-app
 
-# Windows PowerShell wrapper (same)
-powershell -ExecutionPolicy Bypass -File scripts/start_all.ps1
-# Mac/Linux wrapper
-chmod +x scripts/start_all.sh && ./scripts/start_all.sh
-```
+    # with fix toggles for retest demo (headers + IDOR)
+    python scripts/start_all.py --fix-headers --patch-idor
+    # lab + platform only, skip real app
+    python scripts/start_all.py --no-real-app
+    
+    # Windows PowerShell wrapper (same)
+    powershell -ExecutionPolicy Bypass -File scripts/start_all.ps1
+    # Mac/Linux wrapper
+    chmod +x scripts/start_all.sh && ./scripts/start_all.sh
+
 
 All wrappers delegate to the same `scripts/start_all.py` ? pick one.
 
@@ -388,24 +387,24 @@ What it does: checks `.venv`, checks ports 8080/8000/3000 (skips if already list
 If you prefer 3 separate terminals:
 
 **Terminal 1 ? Vulnerable Lab** (`http://127.0.0.1:8080`):
-```bash
-cd lab/vulnerable-world-monitor
-python app.py
-```
+
+    cd lab/vulnerable-world-monitor
+    python app.py
+
 
 **Terminal 2 ? Platform** (`http://127.0.0.1:8000`):
-```bash
-# from repo root
-.venv\Scripts\python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
-```
+
+    # from repo root
+    .venv\Scripts\python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+
 
 **Terminal 3 — Real World Monitor** (optional, `http://127.0.0.1:3000`):
-```bash
-# from repo root — no manual cd needed, also fixes vite _inventory-facts.generated.js if missing
-npm --prefix targets/real-world-monitor install
-python scripts/ensure_real_app.py
-npm --prefix targets/real-world-monitor run dev -- --port 3000 --host 127.0.0.1
-```
+
+    # from repo root — no manual cd needed, also fixes vite _inventory-facts.generated.js if missing
+    npm --prefix targets/real-world-monitor install
+    python scripts/ensure_real_app.py
+    npm --prefix targets/real-world-monitor run dev -- --port 3000 --host 127.0.0.1
+
 
 ### Verification
 
@@ -442,9 +441,9 @@ npm --prefix targets/real-world-monitor run dev -- --port 3000 --host 127.0.0.1
 | `WM_LAB_PATCH_SQLI=1` | Parameterized query on `/api/search` |
 | `WM_LAB_RATELIMIT=1` | 20 req/min on `/api/*` |
 
-```powershell
-$env:WM_LAB_FIX_HEADERS="1"; python lab\vulnerable-world-monitor\app.py
-```
+
+    $env:WM_LAB_FIX_HEADERS="1"; python lab\vulnerable-world-monitor\app.py
+
 
 ---
 
@@ -485,32 +484,32 @@ $env:WM_LAB_FIX_HEADERS="1"; python lab\vulnerable-world-monitor\app.py
 
 Images run as **non-root** (`appuser`/`labuser`) with healthchecks. No Go toolchain needed on host — binaries built inside `api` image.
 
-```bash
-docker build -f docker/api.Dockerfile -t world-monitor:api .
-docker build -f docker/lab.Dockerfile -t world-monitor:lab .
 
-docker run --rm -d -p 8080:8080 --name lab world-monitor:lab
-docker run --rm -d -p 8000:8000 --name api world-monitor:api
-# platform reads .env at runtime; mount it if you customized:
-# docker run --rm -d -p 8000:8000 --env-file .env --name api world-monitor:api
+    docker build -f docker/api.Dockerfile -t world-monitor:api .
+    docker build -f docker/lab.Dockerfile -t world-monitor:lab .
+    
+    docker run --rm -d -p 8080:8080 --name lab world-monitor:lab
+    docker run --rm -d -p 8000:8000 --name api world-monitor:api
+    # platform reads .env at runtime; mount it if you customized:
+    # docker run --rm -d -p 8000:8000 --env-file .env --name api world-monitor:api
+    
+    curl -fsS http://localhost:8000/api/health   # {"status":"healthy"}
+    curl -fsS http://localhost:8080/health
 
-curl -fsS http://localhost:8000/api/health   # {"status":"healthy"}
-curl -fsS http://localhost:8080/health
-```
 
 ---
 
 ## Running Tests
 
-```bash
-# from repo root, venv active
-python -m pytest tests -v          # verbose — 46 passed
-python -m pytest tests -q          # quiet
-python -m pytest tests/test_e2e_lab.py -v  # E2E only
 
-# with import mode required by CI
-python -m pytest tests -q --import-mode=importlib
-```
+    # from repo root, venv active
+    python -m pytest tests -v          # verbose — 46 passed
+    python -m pytest tests -q          # quiet
+    python -m pytest tests/test_e2e_lab.py -v  # E2E only
+    
+    # with import mode required by CI
+    python -m pytest tests -q --import-mode=importlib
+
 
 Covers: CVSS math vs FIRST vectors, auth gate (DNS pinning, redirect block, special-IP reject, Windows drive-path jail), evidence masking, fingerprint/dedupe, RBAC, report generation, delete cascade, live E2E lab + retest-FIXED flow, `MAX_SCAN_WORKERS` bound, and `INCONCLUSIVE` on scanner failure.
 
@@ -536,25 +535,25 @@ world-monitor-security-assessment/
 
 ## Quick Commands
 
-```bash
-# venv
-.venv\Scripts\activate          # Windows — Scripts, not sripts
-source .venv/bin/activate       # Mac/Linux
 
-# tests
-python -m pytest tests -q --import-mode=importlib
+    # venv
+    .venv\Scripts\activate          # Windows — Scripts, not sripts
+    source .venv/bin/activate       # Mac/Linux
+    
+    # tests
+    python -m pytest tests -q --import-mode=importlib
+    
+    # Go tools
+    powershell -ExecutionPolicy Bypass -File scripts\build_go_tools.ps1
+    ./scripts/build_go_tools.sh     # Mac/Linux
+    
+    # PPTs
+    python scripts\make_sih_ppt.py
+    
+    # CLI scans
+    python cli\world_monitor.py scan --lab
+    python cli\world_monitor.py findings --severity CRITICAL
 
-# Go tools
-powershell -ExecutionPolicy Bypass -File scripts\build_go_tools.ps1
-./scripts/build_go_tools.sh     # Mac/Linux
-
-# PPTs
-python scripts\make_sih_ppt.py
-
-# CLI scans
-python cli\world_monitor.py scan --lab
-python cli\world_monitor.py findings --severity CRITICAL
-```
 
 ---
 
@@ -574,13 +573,13 @@ See `docs/security-model.md` for the full threat model.
 
 `master` is **protected** (public repo — free). All changes via PR:
 
-```bash
-git checkout -b feat/my-change
-git commit -m "feat: ..."
-git push origin feat/my-change
-gh pr create --base master --title "feat: my change" --body "..."
-# requires: 1 approving review + checks test + docker + pip-audit green
-```
+
+    git checkout -b feat/my-change
+    git commit -m "feat: ..."
+    git push origin feat/my-change
+    gh pr create --base master --title "feat: my change" --body "..."
+    # requires: 1 approving review + checks test + docker + pip-audit green
+
 
 CI (`.github/workflows/ci.yml`): `test` (46 tests + `pip-audit` + `pip check`) and `docker` (build `api` + `lab` + `curl /api/health`). Docker images use `python:3.12-slim` / `python:3.14-slim`, Go 1.22, non-root users, and `HEALTHCHECK`.
 
@@ -607,11 +606,11 @@ CI (`.github/workflows/ci.yml`): `test` (46 tests + `pip-audit` + `pip check`) a
 | Assessment shows `4) skipped` / `experimental module - disabled by default` while scanning | Not an error -- `fuzzing` is an *optional experimental* module disabled by default. `skipped` means the scanner was not applicable and does **not** fail the assessment. Enable with `WM_ENABLE_FUZZING=1` (PowerShell: `$env:WM_ENABLE_FUZZING="1"`) before starting the platform, or just ignore -- other 11 modules still run and `completed` is still success. See `backend/app/scanners/zdv_scan.py: FuzzingModule`. |
 
 **Reset DB (fresh seed):**
-```powershell
-Remove-Item database/worldmonitor.db -Force -ErrorAction SilentlyContinue
-.venv\Scripts\python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
-# log in with your current .env ADMIN_EMAIL/PASSWORD
-```
+
+    Remove-Item database/worldmonitor.db -Force -ErrorAction SilentlyContinue
+    .venv\Scripts\python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+    # log in with your current .env ADMIN_EMAIL/PASSWORD
+
 
 ---
 
