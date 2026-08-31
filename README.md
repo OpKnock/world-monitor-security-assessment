@@ -335,6 +335,28 @@ $env:WM_LAB_FIX_HEADERS="1"; python lab\vulnerable-world-monitor\app.py
 
 ---
 
+## How Retest and Fix Work (for judges)
+
+**Fix is not automatic ? the platform proves a fix was verified:**
+
+1. **Vulnerable lab has fix toggles** (`lab/vulnerable-world-monitor/app.py`): `WM_LAB_PATCH_IDOR=1`, `WM_LAB_FIX_HEADERS=1`, `WM_LAB_PATCH_SQLI=1`, `WM_LAB_RATELIMIT=1`. Restarting the lab with a toggle *actually* patches the code path (e.g., `FIX_HEADERS` adds HSTS/CSP, `PATCH_SQLI` uses parametrized query).
+2. **Assessment finds the weakness** ? e.g., `headers` scanner grades 6 headers `F` before fix.
+3. **Remediation guidance** is shown per finding (`Why this matters?` card: Risk/CVSS, Affected, Fix, Retest) ? the *developer* applies the fix (in the lab: restart with toggle; in real code: edit source).
+4. **Retest** (`POST /api/assessments/findings/{id}/retest`) re-runs *only* that check's scanner against the *current* target. Fingerprint `sha1(target|category|check_id|component)` is compared: `FIXED` if gone, `STILL_PRESENT` if still found, `INCONCLUSIVE` if scanner failed (never false `FIXED`).
+5. **Dashboard health updates** `68 -> 91` and `FIXED` count increases ? the cinematic `Verifying fix...` overlay -> `FIXED` (green) is the demo moment. Evidence is re-linked and audit-logged.
+
+**Try it:**
+```powershell
+# 1. Start lab vulnerable (no toggles) -> Scan Playground :8080 -> see CRITICAL/HIGH findings, health 68
+# 2. Restart lab fixed:
+$env:WM_LAB_FIX_HEADERS="1"; $env:WM_LAB_PATCH_SQLI="1"; python lab/vulnerable-world-monitor/app.py
+# 3. In platform: Findings -> click header finding -> Retest -> overlay -> FIXED, health 91
+```
+
+`fuzzing` is opt-in (`WM_ENABLE_FUZZING=1`) and `tls`/`graphql`/`deep_scan` degrade to `skipped` when not applicable ? `skipped` is not a failure.
+
+---
+
 ## How the Retest Loop Works
 
 1. **Finding created** → fingerprint `sha1(target|category|check_id|component)` ? `Why this matters?` card shows Risk/CVSS, Affected, Fix, Retest status
@@ -447,6 +469,9 @@ CI (`.github/workflows/ci.yml`): `test` (46 tests + `pip-audit` + `pip check`) a
 | `No url found for submodule` | `git pull` then `git submodule sync --recursive` |
 | Flask not found / `requirements.txt` has no Flask | It’s at `requirements.txt:21` (`flask>=3.1,<4`) — you forgot `pip install -r requirements.txt` or venv not active |
 | DB locked / login still fails after `.env` | Delete `database/worldmonitor.db` and restart platform — it re-seeds from current `.env` |
+| `ModuleNotFoundError: No module named .flask.` on `lab/app.py` | Not in venv / missed `pip install`. Fix: `.venv\\Scripts\\activate` (Win) or `source .venv/bin/activate` (Mac/Linux) then `pip install -r requirements.txt` (has `flask>=3.1,<4` at line 21). Or run: `.venv\\Scripts\\python lab/vulnerable-world-monitor/app.py`. The lab now shows a friendly hint if Flask is missing. |
+| Vite `[plugin:vite:import-analysis] Failed to resolve import "./_inventory-facts.generated.js"` in `targets/real-world-monitor` | Generated file gitignored, missing on fresh clone until `postinstall`. Fix: `cd targets/real-world-monitor && npm install` (postinstall runs `npm run inventory:facts` -> creates `api/_inventory-facts.generated.js` + `api/_product-catalog.generated.js`). Or quick stub: `python scripts/ensure_real_app.py` (creates minimal stubs so `npm run dev` can start), then `npm run inventory:facts && npm run product:facts` for authoritative data. See `scripts/ensure_real_app.py`. |
+| Assessment shows `4) skipped` / `experimental module - disabled by default` while scanning | Not an error -- `fuzzing` is an *optional experimental* module disabled by default. `skipped` means the scanner was not applicable and does **not** fail the assessment. Enable with `WM_ENABLE_FUZZING=1` (PowerShell: `$env:WM_ENABLE_FUZZING="1"`) before starting the platform, or just ignore -- other 11 modules still run and `completed` is still success. See `backend/app/scanners/zdv_scan.py: FuzzingModule`. |
 
 **Reset DB (fresh seed):**
 ```powershell

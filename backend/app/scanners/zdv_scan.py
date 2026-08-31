@@ -85,7 +85,7 @@ class FuzzingModule(ScannerModule):
         import os
         if os.environ.get("WM_ENABLE_FUZZING") != "1":
             return ScanResult(scanner=self.name, status="skipped", checks_total=0,
-                              notes=["experimental module - disabled by default; set WM_ENABLE_FUZZING=1 to enable"])
+                              notes=["Fuzzing is an optional experimental module ? disabled by default (not a failure). Set WM_ENABLE_FUZZING=1 to enable; skipped modules do not affect overall assessment status"])
         store = ctx.require_evidence()
         target = _target_from_url(ctx.target)
         corpus = ["/", "/login", "/api", "/search?q=test"]

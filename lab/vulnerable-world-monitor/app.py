@@ -45,7 +45,23 @@ import time
 import traceback
 from datetime import datetime, timezone
 
-from flask import Flask, Response, g, jsonify, request
+try:
+    from flask import Flask, Response, g, jsonify, request
+except ModuleNotFoundError as _e:
+    import sys
+    sys.stderr.write(
+        "\n[lab] ERROR: Flask is not installed.\n"
+        "  You are likely not in the project venv or forgot to install requirements.\n"
+        "  Fix (Windows):\n"
+        "    .venv/Scripts\activate\n"
+        "    pip install -r requirements.txt  # includes flask>=3.1,<4 at line 21\n"
+        "  Fix (Mac/Linux):\n"
+        "    source .venv/bin/activate\n"
+        "    pip install -r requirements.txt\n"
+        "  Then: python lab/vulnerable-world-monitor/app.py  (or: .venv/Scripts\\python lab/vulnerable-world-monitor/app.py)\n"
+        "  See README.md Quick Start - Fresh Clone.\n\n"
+    )
+    raise
 
 # Configure lab logging — INFO for lab, WARNING for werkzeug noise suppression
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [lab] %(levelname)s: %(message)s")
