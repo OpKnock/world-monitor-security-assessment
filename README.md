@@ -395,6 +395,8 @@ npm run dev -- --port 3000 --host 127.0.0.1
 6. **Retest** again → overlay `FIXED` (green) ✓ — dashboard updates `SECURITY HEALTH 91/100` Healthy (+23 pts), `Before/after: 68 → 91`
 7. **Reports** → Generate PDF / JSON / Markdown / CSV (now includes health)
 
+> **New to security?** See `docs/poc-for-non-coders.md` ? plain-English proofs, before/after health, `Why this matters?` per finding, masked evidence, and how to verify without coding.
+
 ---
 
 ## Lab Fix Toggles (for retest demo)
@@ -581,7 +583,7 @@ Remove-Item database/worldmonitor.db -Force -ErrorAction SilentlyContinue
 
 ## Documentation Index
 
-`docs/architecture.md` · `docs/security-model.md` · `docs/api.md` · `docs/demo.md` · `docs/deployment.md` · `docs/integration.md` · `docs/scanner-development.md` · `docs/requirements-coverage.md` · `docs/repository-audit.md`
+`docs/architecture.md` · `docs/security-model.md` · `docs/api.md` · `docs/demo.md` · `docs/poc-for-non-coders.md` · `docs/deployment.md` · `docs/integration.md` · `docs/scanner-development.md` · `docs/requirements-coverage.md` · `docs/repository-audit.md`
 
 ---
 
