@@ -26,17 +26,23 @@ DETECT -> VERIFY -> DOCUMENT -> SCORE -> EXPLAIN IMPACT -> REMEDIATE -> RETEST -
 
 - [Two Targets, One Platform](#two-targets-one-platform)
 - [The 12 Scanner Modules](#the-12-scanner-modules)
+- [Architecture](#architecture)
+- [Security Health Score (0–100)](#security-health-score-0100)
+- [How Each Scanner Works](#how-each-scanner-works)
+- [How Retest and Fix Work (for judges)](#how-retest-and-fix-work-for-judges)
+- [How the Retest Loop Works](#how-the-retest-loop-works)
 - [Prerequisites](#prerequisites)
 - [Quick Start — Fresh Clone](#quick-start--fresh-clone)
-- [Three-Terminal Setup](#three-terminal-setup)
+- [One-Command Setup (recommended) — 1 terminal, 1 command](#one-command-setup-recommended-1-terminal-1-command)
+- [Three-Terminal Setup (advanced — manual)](#three-terminal-setup-advanced--manual)
 - [Quick Demo (2 min)](#quick-demo-2-min)
+- [Lab Fix Toggles (for retest demo)](#lab-fix-toggles-for-retest-demo)
+- [Demo Accounts](#demo-accounts)
 - [Environment Variables](#environment-variables)
 - [Docker Alternative](#docker-alternative)
-- [Architecture](#architecture)
-- [How Each Scanner Works](#how-each-scanner-works)
-- [Security Health Score (0–100)](#security-health-score-0100)
-- [How the Retest Loop Works](#how-the-retest-loop-works)
 - [Running Tests](#running-tests)
+- [Key Paths](#key-paths)
+- [Quick Commands](#quick-commands)
 - [Safety Model](#safety-model)
 - [Branch & CI](#branch--ci)
 - [Troubleshooting](#troubleshooting)
@@ -77,6 +83,55 @@ Same engine, same finding schema, same scoring, same reporting — no separate t
 Optional modules (`tls`, `graphql`, `deep_scan`, `fuzzing`, `supply_chain`) degrade to `skipped` when the environment can't support them — never fabricated.
 ---
 
+## Architecture
+
+```
+┌───────────┐    ┌──────────┐    ┌──────────────┐
+│  SPA UI   │───▶│ FastAPI  │───▶│  Auth Gate   │
+│ (vanilla) │    │ Backend  │    │(loopback only)│
+└───────────┘    └────┬─────┘    └──────┬───────┘
+                      │                 │
+               ┌──────▼───────┐         │
+               │ Orchestrator │◀────────┘
+               │ (job runner) │
+               └──────┬───────┘
+                      │
+      ┌───────────────┼───────────────┐
+      ▼               ▼               ▼
+ ┌─────────┐     ┌─────────┐     ┌─────────┐
+ │ Scanner │     │ Scanner │ ... │ Scanner │  12 modules
+ └────┬────┘     └────┬────┘     └────┬────┘
+      └───────────────┼───────────────┘
+                      ▼
+         ┌───────────────────────┐
+         │   Finding Engine      │
+         │  • Normalize          │
+         │  • Dedupe (fingerprint)│
+         │  • CVSS v3.1 scoring  │
+         │  • Evidence masking   │
+         └───────────┬───────────┘
+                     │
+         ┌───────────┴───────────┐
+         ▼                       ▼
+   ┌───────────┐           ┌───────────┐
+   │  Reports  │           │  Retest   │
+   │PDF/JSON/  │           │FIXED /    │
+   │MD/CSV     │           │STILL_PRESENT│
+   └───────────┘           └───────────┘
+```
+
+| Component | Tech | Purpose |
+|-----------|------|---------|
+| API | FastAPI + SQLAlchemy 2 | REST + OpenAPI, JWT (HS256, `aud` verified), RBAC |
+| DB | SQLite WAL (Postgres-ready) | Findings, evidence refs, reports, `audit_logs` |
+| Job Runner | Thread-per-assessment + watchdog | Isolated scanners, 10-min timeout, `MAX_SCAN_WORKERS` |
+| Scanner Registry | 12 modules (Go + native) | Unified `ScannerModule.run(ctx)` |
+| Evidence | JSON files + masking | Tokens/cookies/keys redacted before write |
+| CVSS Engine | Pure Python, FIRST v3.1 | 38 curated presets, deterministic |
+| Frontend | Vanilla JS (ES6), SVG charts | Zero build, served by FastAPI |
+
+---
+
 ## Security Health Score (0–100)
 
 One number for judges, before & after:
@@ -96,6 +151,64 @@ SECURITY HEALTH  91/100  Healthy        Penalty 9
 - **Recent table:** new `Health` column per assessment (badge `healthColor`).
 - **Endpoint:** `GET /api/dashboard` now returns `health{score,penalty,weights}`, `recent_health[{id,score,counts}]` (last 8), `retest_summary`.
 
+
+---
+
+## How Each Scanner Works
+
+**Dynamic** (requires running target):
+
+| Module | Target | Technique |
+|--------|--------|-----------|
+| `authentication` | `/api/*` + auth | Missing auth, JWT `none` alg, signature bypass |
+| `authorization` | `/api/reports/:id` | IDOR/BOLA via numeric & string enumeration |
+| `api` | Rate-limit endpoints | Paced requests, header-spoof & path-variant bypass |
+| `input_validation` | `/api/search?id=`, `/greet?name=` | SQLi (boolean/error), reflected XSS canary |
+| `headers` | `/*` | 6 headers graded A–F + `Set-Cookie` flags |
+| `tls` | HTTPS | Cert validity/expiry, redirect check |
+| `graphql` | `/graphql` | Introspection, depth/field & alias abuse |
+| `deep_scan` | `host:port` | Port scan, banner grab, default-credential probes |
+| `fuzzing` | All endpoints | Mutation fuzzing, 5xx anomaly detection (opt-in) |
+
+**Static** (requires `source_path`):
+
+| Module | Input | Technique |
+|--------|-------|-----------|
+| `secrets` | Source dir | `portia` ~110 regex/entropy rules, git history scan |
+| `dependencies` | `package.json`, `go.mod`, `requirements.txt` | `bomber` → SBOM → OSV.dev CVE + CVSS v3 |
+| `supply_chain` | Project dir | Typosquat, unpinned deps, license hygiene |
+
+---
+
+## How Retest and Fix Work (for judges)
+
+**Fix is not automatic ? the platform proves a fix was verified:**
+
+1. **Vulnerable lab has fix toggles** (`lab/vulnerable-world-monitor/app.py`): `WM_LAB_PATCH_IDOR=1`, `WM_LAB_FIX_HEADERS=1`, `WM_LAB_PATCH_SQLI=1`, `WM_LAB_RATELIMIT=1`. Restarting the lab with a toggle *actually* patches the code path (e.g., `FIX_HEADERS` adds HSTS/CSP, `PATCH_SQLI` uses parametrized query).
+2. **Assessment finds the weakness** ? e.g., `headers` scanner grades 6 headers `F` before fix.
+3. **Remediation guidance** is shown per finding (`Why this matters?` card: Risk/CVSS, Affected, Fix, Retest) ? the *developer* applies the fix (in the lab: restart with toggle; in real code: edit source).
+4. **Retest** (`POST /api/assessments/findings/{id}/retest`) re-runs *only* that check's scanner against the *current* target. Fingerprint `sha1(target|category|check_id|component)` is compared: `FIXED` if gone, `STILL_PRESENT` if still found, `INCONCLUSIVE` if scanner failed (never false `FIXED`).
+5. **Dashboard health updates** `68 -> 91` and `FIXED` count increases ? the cinematic `Verifying fix...` overlay -> `FIXED` (green) is the demo moment. Evidence is re-linked and audit-logged.
+
+**Try it:**
+```powershell
+# 1. Start lab vulnerable (no toggles) -> Scan Playground :8080 -> see CRITICAL/HIGH findings, health 68
+# 2. Restart lab fixed:
+$env:WM_LAB_FIX_HEADERS="1"; $env:WM_LAB_PATCH_SQLI="1"; python lab/vulnerable-world-monitor/app.py
+# 3. In platform: Findings -> click header finding -> Retest -> overlay -> FIXED, health 91
+```
+
+`fuzzing` is opt-in (`WM_ENABLE_FUZZING=1`) and `tls`/`graphql`/`deep_scan` degrade to `skipped` when not applicable ? `skipped` is not a failure.
+
+---
+
+## How the Retest Loop Works
+
+1. **Finding created** → fingerprint `sha1(target|category|check_id|component)` ? `Why this matters?` card shows Risk/CVSS, Affected, Fix, Retest status
+2. **Developer fixes** → restarts lab with a toggle (`WM_LAB_FIX_HEADERS=1`)
+3. **Click Retest** → cinematic overlay `Verifying fix...` (spinner) → platform re-runs *only* that check’s scanner
+4. **Compare fingerprints** → overlay `FIXED` (green) if gone, `STILL_PRESENT` (red) if still found ? then `Why this matters?` updates, dashboard `SECURITY HEALTH 68 → 91`
+5. **Evidence linked** → new evidence attached, history preserved (failed retests → `INCONCLUSIVE`, never false `FIXED`); `Findings` tab now correctly lists via `GET /api/assessments/-/findings` (fixed hijack)
 
 ---
 
@@ -222,6 +335,35 @@ npm run dev -- --port 3000 --host 127.0.0.1
 
 ---
 
+## Lab Fix Toggles (for retest demo)
+
+| Toggle | Effect |
+|--------|--------|
+| `WM_LAB_PATCH_IDOR=1` | Fixes IDOR on `/api/reports/:id` |
+| `WM_LAB_FIX_HEADERS=1` | Enables HSTS, CSP, X-Content-Type-Options, X-Frame-Options |
+| `WM_LAB_PATCH_SQLI=1` | Parameterized query on `/api/search` |
+| `WM_LAB_RATELIMIT=1` | 20 req/min on `/api/*` |
+
+```powershell
+$env:WM_LAB_FIX_HEADERS="1"; python lab\vulnerable-world-monitor\app.py
+```
+
+---
+
+## Demo Accounts
+
+**Lab** (`http://127.0.0.1:8080`):
+
+| User | Password | Role |
+|------|----------|------|
+| alice | user123 | user |
+| bob | user456 | user |
+| admin | admin123 | admin |
+
+**Platform** (`http://127.0.0.1:8000`): `admin@example.com` / `ChangeMe_Use_Strong_Password_Here` (or your `.env` value) · Analyst: `analyst@example.com` / `ChangeMe_Use_Strong_Password_Here`
+
+---
+
 ## Environment Variables
 
 `.env` is **not committed**. Copy from `.env.example` and edit. Key vars:
@@ -257,142 +399,6 @@ docker run --rm -d -p 8000:8000 --name api world-monitor:api
 curl -fsS http://localhost:8000/api/health   # {"status":"healthy"}
 curl -fsS http://localhost:8080/health
 ```
-
----
-
-## Lab Fix Toggles (for retest demo)
-
-| Toggle | Effect |
-|--------|--------|
-| `WM_LAB_PATCH_IDOR=1` | Fixes IDOR on `/api/reports/:id` |
-| `WM_LAB_FIX_HEADERS=1` | Enables HSTS, CSP, X-Content-Type-Options, X-Frame-Options |
-| `WM_LAB_PATCH_SQLI=1` | Parameterized query on `/api/search` |
-| `WM_LAB_RATELIMIT=1` | 20 req/min on `/api/*` |
-
-```powershell
-$env:WM_LAB_FIX_HEADERS="1"; python lab\vulnerable-world-monitor\app.py
-```
-
----
-
-## Demo Accounts
-
-**Lab** (`http://127.0.0.1:8080`):
-
-| User | Password | Role |
-|------|----------|------|
-| alice | user123 | user |
-| bob | user456 | user |
-| admin | admin123 | admin |
-
-**Platform** (`http://127.0.0.1:8000`): `admin@example.com` / `ChangeMe_Use_Strong_Password_Here` (or your `.env` value) · Analyst: `analyst@example.com` / `ChangeMe_Use_Strong_Password_Here`
-
----
-
-## Architecture
-
-```
-┌───────────┐    ┌──────────┐    ┌──────────────┐
-│  SPA UI   │───▶│ FastAPI  │───▶│  Auth Gate   │
-│ (vanilla) │    │ Backend  │    │(loopback only)│
-└───────────┘    └────┬─────┘    └──────┬───────┘
-                      │                 │
-               ┌──────▼───────┐         │
-               │ Orchestrator │◀────────┘
-               │ (job runner) │
-               └──────┬───────┘
-                      │
-      ┌───────────────┼───────────────┐
-      ▼               ▼               ▼
- ┌─────────┐     ┌─────────┐     ┌─────────┐
- │ Scanner │     │ Scanner │ ... │ Scanner │  12 modules
- └────┬────┘     └────┬────┘     └────┬────┘
-      └───────────────┼───────────────┘
-                      ▼
-         ┌───────────────────────┐
-         │   Finding Engine      │
-         │  • Normalize          │
-         │  • Dedupe (fingerprint)│
-         │  • CVSS v3.1 scoring  │
-         │  • Evidence masking   │
-         └───────────┬───────────┘
-                     │
-         ┌───────────┴───────────┐
-         ▼                       ▼
-   ┌───────────┐           ┌───────────┐
-   │  Reports  │           │  Retest   │
-   │PDF/JSON/  │           │FIXED /    │
-   │MD/CSV     │           │STILL_PRESENT│
-   └───────────┘           └───────────┘
-```
-
-| Component | Tech | Purpose |
-|-----------|------|---------|
-| API | FastAPI + SQLAlchemy 2 | REST + OpenAPI, JWT (HS256, `aud` verified), RBAC |
-| DB | SQLite WAL (Postgres-ready) | Findings, evidence refs, reports, `audit_logs` |
-| Job Runner | Thread-per-assessment + watchdog | Isolated scanners, 10-min timeout, `MAX_SCAN_WORKERS` |
-| Scanner Registry | 12 modules (Go + native) | Unified `ScannerModule.run(ctx)` |
-| Evidence | JSON files + masking | Tokens/cookies/keys redacted before write |
-| CVSS Engine | Pure Python, FIRST v3.1 | 38 curated presets, deterministic |
-| Frontend | Vanilla JS (ES6), SVG charts | Zero build, served by FastAPI |
-
----
-
-## How Each Scanner Works
-
-**Dynamic** (requires running target):
-
-| Module | Target | Technique |
-|--------|--------|-----------|
-| `authentication` | `/api/*` + auth | Missing auth, JWT `none` alg, signature bypass |
-| `authorization` | `/api/reports/:id` | IDOR/BOLA via numeric & string enumeration |
-| `api` | Rate-limit endpoints | Paced requests, header-spoof & path-variant bypass |
-| `input_validation` | `/api/search?id=`, `/greet?name=` | SQLi (boolean/error), reflected XSS canary |
-| `headers` | `/*` | 6 headers graded A–F + `Set-Cookie` flags |
-| `tls` | HTTPS | Cert validity/expiry, redirect check |
-| `graphql` | `/graphql` | Introspection, depth/field & alias abuse |
-| `deep_scan` | `host:port` | Port scan, banner grab, default-credential probes |
-| `fuzzing` | All endpoints | Mutation fuzzing, 5xx anomaly detection (opt-in) |
-
-**Static** (requires `source_path`):
-
-| Module | Input | Technique |
-|--------|-------|-----------|
-| `secrets` | Source dir | `portia` ~110 regex/entropy rules, git history scan |
-| `dependencies` | `package.json`, `go.mod`, `requirements.txt` | `bomber` → SBOM → OSV.dev CVE + CVSS v3 |
-| `supply_chain` | Project dir | Typosquat, unpinned deps, license hygiene |
-
----
-
-## How Retest and Fix Work (for judges)
-
-**Fix is not automatic ? the platform proves a fix was verified:**
-
-1. **Vulnerable lab has fix toggles** (`lab/vulnerable-world-monitor/app.py`): `WM_LAB_PATCH_IDOR=1`, `WM_LAB_FIX_HEADERS=1`, `WM_LAB_PATCH_SQLI=1`, `WM_LAB_RATELIMIT=1`. Restarting the lab with a toggle *actually* patches the code path (e.g., `FIX_HEADERS` adds HSTS/CSP, `PATCH_SQLI` uses parametrized query).
-2. **Assessment finds the weakness** ? e.g., `headers` scanner grades 6 headers `F` before fix.
-3. **Remediation guidance** is shown per finding (`Why this matters?` card: Risk/CVSS, Affected, Fix, Retest) ? the *developer* applies the fix (in the lab: restart with toggle; in real code: edit source).
-4. **Retest** (`POST /api/assessments/findings/{id}/retest`) re-runs *only* that check's scanner against the *current* target. Fingerprint `sha1(target|category|check_id|component)` is compared: `FIXED` if gone, `STILL_PRESENT` if still found, `INCONCLUSIVE` if scanner failed (never false `FIXED`).
-5. **Dashboard health updates** `68 -> 91` and `FIXED` count increases ? the cinematic `Verifying fix...` overlay -> `FIXED` (green) is the demo moment. Evidence is re-linked and audit-logged.
-
-**Try it:**
-```powershell
-# 1. Start lab vulnerable (no toggles) -> Scan Playground :8080 -> see CRITICAL/HIGH findings, health 68
-# 2. Restart lab fixed:
-$env:WM_LAB_FIX_HEADERS="1"; $env:WM_LAB_PATCH_SQLI="1"; python lab/vulnerable-world-monitor/app.py
-# 3. In platform: Findings -> click header finding -> Retest -> overlay -> FIXED, health 91
-```
-
-`fuzzing` is opt-in (`WM_ENABLE_FUZZING=1`) and `tls`/`graphql`/`deep_scan` degrade to `skipped` when not applicable ? `skipped` is not a failure.
-
----
-
-## How the Retest Loop Works
-
-1. **Finding created** → fingerprint `sha1(target|category|check_id|component)` ? `Why this matters?` card shows Risk/CVSS, Affected, Fix, Retest status
-2. **Developer fixes** → restarts lab with a toggle (`WM_LAB_FIX_HEADERS=1`)
-3. **Click Retest** → cinematic overlay `Verifying fix...` (spinner) → platform re-runs *only* that check’s scanner
-4. **Compare fingerprints** → overlay `FIXED` (green) if gone, `STILL_PRESENT` (red) if still found ? then `Why this matters?` updates, dashboard `SECURITY HEALTH 68 → 91`
-5. **Evidence linked** → new evidence attached, history preserved (failed retests → `INCONCLUSIVE`, never false `FIXED`); `Findings` tab now correctly lists via `GET /api/assessments/-/findings` (fixed hijack)
 
 ---
 
@@ -536,4 +542,3 @@ Integrated scanner components are **AGPL-3.0**; this repository is distributed u
 **Real World Monitor** (`targets/real-world-monitor/`, submodule `https://github.com/koala73/worldmonitor`): real-time global intelligence dashboard with AI news aggregation and geopolitical monitoring (AGPL-3.0). Used as the genuine production codebase target for static + dynamic assessment.
 
 **Vulnerable Lab** (`lab/vulnerable-world-monitor/`): intentionally insecure Flask app included in this repo for scanner demonstration — **never expose beyond `127.0.0.1`**.
-
