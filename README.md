@@ -228,7 +228,7 @@ $env:WM_LAB_FIX_HEADERS="1"; $env:WM_LAB_PATCH_SQLI="1"; python lab/vulnerable-w
 
 ## Quick Start — Fresh Clone
 
-> ⚠️ **Do NOT run from `C:\\WINDOWS\\System32`** (you will get `Permission denied` / `Access is denied`). Open **PowerShell** normally and first run `Set-Location $HOME\Desktop` (or `cd %USERPROFILE%\Desktop` for CMD) ? then copy/paste one block at a time below. Do **not** use “Download ZIP”.
+> ⚠️ **Do NOT run from `C:\\WINDOWS\\System32`** (you will get `Permission denied` / `Access is denied`). Open **PowerShell** normally and first run `Set-Location $HOME\Desktop` (or `cd %USERPROFILE%\Desktop` for CMD) — then copy/paste **only the commands inside** the gray blocks below (click the copy button at top-right of each block, do **not** copy the `\`\`\`powershell` line). Do **not** use
 
 ### ⚡ Super Quick Start — one block, copy-paste, done (all shells)
 

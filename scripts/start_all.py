@@ -84,7 +84,19 @@ def main():
         if not args.no_real_app and REAL_DIR.exists() and (REAL_DIR / "node_modules").exists():
             popup("real-app", real_cmd, port=3000)
         elif not args.no_real_app:
-            print("[real] skipped ? run: cd targets/real-world-monitor && npm install")
+            print("[real] skipped - run: cd targets/real-world-monitor && npm install")
+        # auto-open browsers for first 2 terminals after a short delay
+        try:
+            import time as _t2; _t2.sleep(2.0)
+            import webbrowser
+            if is_port_open("127.0.0.1", 8080):
+                webbrowser.open("http://127.0.0.1:8080")
+                print("[open] browser lab http://127.0.0.1:8080")
+            if is_port_open("127.0.0.1", 8000):
+                webbrowser.open("http://127.0.0.1:8000")
+                print("[open] browser platform http://127.0.0.1:8000")
+        except Exception as _e:
+            print(f"[warn] auto-open browser failed: {_e}")
         print("\n[done] 3 terminals popped up. Close windows to stop or Ctrl+C this window to exit.")
         return 0
 
