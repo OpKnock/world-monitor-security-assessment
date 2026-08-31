@@ -353,7 +353,7 @@ All wrappers delegate to the same `scripts/start_all.py` ? pick one.
 
 What it does: checks `.venv`, checks ports 8080/8000/3000 (skips if already listening), starts Flask lab and uvicorn platform (and `npm run dev` for real app if `node_modules` exists, otherwise hints `python scripts/ensure_real_app.py` + `npm install`), streams `[lab]/[platform]/[real-app]` logs, `Ctrl+C` stops all.
 
-> **If `targets/real-world-monitor` shows vite import error** `Failed to resolve import "./_inventory-facts.generated.js"` ? `python scripts/ensure_real_app.py` then `cd targets/real-world-monitor && npm install`.
+> **If `targets/real-world-monitor` shows vite import error** `Failed to resolve import "./_inventory-facts.generated.js"` ? `python scripts/ensure_real_app.py` then `npm --prefix targets/real-world-monitor install` (or just `npm install` from repo root, now delegates via `package.json: postinstall`).
 
 ---
 
