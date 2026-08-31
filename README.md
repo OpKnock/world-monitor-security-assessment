@@ -373,11 +373,12 @@ python app.py
 .venv\Scripts\python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
-**Terminal 3 ? Real World Monitor** (optional, `http://127.0.0.1:3000`):
+**Terminal 3 — Real World Monitor** (optional, `http://127.0.0.1:3000`):
 ```bash
-cd targets/real-world-monitor
-npm install        # postinstall generates api/_*.generated.js
-npm run dev -- --port 3000 --host 127.0.0.1
+# from repo root — no manual cd needed, also fixes vite _inventory-facts.generated.js if missing
+npm --prefix targets/real-world-monitor install
+python scripts/ensure_real_app.py
+npm --prefix targets/real-world-monitor run dev -- --port 3000 --host 127.0.0.1
 ```
 
 ### Verification
