@@ -228,30 +228,85 @@ $env:WM_LAB_FIX_HEADERS="1"; $env:WM_LAB_PATCH_SQLI="1"; python lab/vulnerable-w
 
 ## Quick Start — Fresh Clone
 
-Copy/paste this. Do **not** use “Download ZIP”.
+Copy/paste **one block at a time** in order. Do **not** use “Download ZIP”.
+
+### Windows PowerShell
+
+```powershell
+# 1. Clone with submodule
+git clone --recurse-submodules https://github.com/OpKnock/world-monitor-security-assessment.git
+Set-Location world-monitor-security-assessment
+
+# 2. Python env
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt  # includes Flask, FastAPI, etc.
+
+# 3. Build Go scanners
+powershell -ExecutionPolicy Bypass -File scripts\build_go_tools.ps1
+
+# 4. Verify binaries
+Get-ChildItem bin
+
+# 5. Configure env BEFORE first run
+Copy-Item .env.example .env
+# defaults work for demo; change SECRET_KEY + ADMIN_PASSWORD before real use
+
+# 6. Run — one terminal, one command
+python scripts/start_all.py
+```
+
+### Windows CMD
+
+```cmd
+:: 1. Clone
+git clone --recurse-submodules https://github.com/OpKnock/world-monitor-security-assessment.git
+cd world-monitor-security-assessment
+
+:: 2. Python env
+python -m venv .venv
+.\.venv\Scripts\activate.bat
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+
+:: 3. Build Go scanners
+powershell -ExecutionPolicy Bypass -File scripts\build_go_tools.ps1
+
+:: 4. Verify
+dir bin
+
+:: 5. Configure
+copy .env.example .env
+
+:: 6. Run
+python scripts\start_all.py
+```
+
+### Mac / Linux
 
 ```bash
-# 1. Clone with submodule
+# 1. Clone
 git clone --recurse-submodules https://github.com/OpKnock/world-monitor-security-assessment.git
 cd world-monitor-security-assessment
 
 # 2. Python env
-python -m venv .venv
-.venv\Scripts\activate          # Windows — Scripts with capital S
-source .venv/bin/activate       # Mac/Linux
-pip install -r requirements.txt  # includes Flask, FastAPI, etc.
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
 
-# 3. Build Go scanners (secrets / deps / supply_chain)
-powershell -ExecutionPolicy Bypass -File scripts\build_go_tools.ps1
-# Mac/Linux: chmod +x scripts/build_go_tools.sh && ./scripts/build_go_tools.sh
+# 3. Build Go scanners
+chmod +x scripts/build_go_tools.sh && ./scripts/build_go_tools.sh
 
-# 4. Verify binaries
-ls bin/   # portia.exe, bomber.exe (or portia/bomber on Linux/Mac)
+# 4. Verify
+ls bin/
 
-# 5. Configure env BEFORE first run
-copy .env.example .env   # Windows
-cp .env.example .env     # Mac/Linux
-# defaults work for demo; change SECRET_KEY + ADMIN_PASSWORD before real use
+# 5. Configure
+cp .env.example .env
+
+# 6. Run
+python scripts/start_all.py
 ```
 
 **Default login after step 5:** `admin@example.com` / `ChangeMe_Use_Strong_Password_Here`  
