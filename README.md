@@ -13,7 +13,7 @@
 ![License AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-green?style=flat-square)
 ![Security localhost-only](https://img.shields.io/badge/security-localhost--only-critical?style=flat-square)
 
-_A unified security assessment platform that scans an intentionally vulnerable lab and the real World Monitor codebase, normalizes findings into one schema, scores with **CVSS v3.1**, stores masked evidence, explains business impact, recommends remediation, supports **retest-until-FIXED**, and generates **PDF / JSON / Markdown / CSV** reports. Docker images run as non-root with healthchecks. CI runs **46 tests + pip-audit** on every push._
+_A unified security assessment platform that scans an intentionally vulnerable lab and the real World Monitor codebase, normalizes findings into one schema, scores with **CVSS v3.1**, computes a **Security Health Score 0-100** (penalty-weighted by severity), stores masked evidence, explains business impact, recommends remediation, supports **cinematic retest-until-FIXED** with `Why this matters?` and before/after health, and generates **PDF / JSON / Markdown / CSV** reports. Docker images run as non-root with healthchecks. CI runs **46 tests + pip-audit** on every push._
 
 </div>
 
@@ -34,6 +34,7 @@ DETECT -> VERIFY -> DOCUMENT -> SCORE -> EXPLAIN IMPACT -> REMEDIATE -> RETEST -
 - [Docker Alternative](#docker-alternative)
 - [Architecture](#architecture)
 - [How Each Scanner Works](#how-each-scanner-works)
+- [Security Health Score (0–100)](#security-health-score-0100)
 - [How the Retest Loop Works](#how-the-retest-loop-works)
 - [Running Tests](#running-tests)
 - [Safety Model](#safety-model)
@@ -74,6 +75,27 @@ Same engine, same finding schema, same scoring, same reporting — no separate t
 | 12 | `fuzzing` | Input Validation | Mutation fuzzing with 5xx anomaly detection |
 
 Optional modules (`tls`, `graphql`, `deep_scan`, `fuzzing`, `supply_chain`) degrade to `skipped` when the environment can't support them — never fabricated.
+---
+
+## Security Health Score (0–100)
+
+One number for judges, before & after:
+
+```
+SECURITY HEALTH  68/100  At risk        Penalty 32
+[CRITICAL 2] [HIGH 4] [MEDIUM 6] [LOW 3]   FIXED 0  STILL_PRESENT 5
+
+  FIX applied (WM_LAB_FIX_HEADERS=1)
+
+SECURITY HEALTH  91/100  Healthy        Penalty 9
+[CRITICAL 0] [HIGH 1] [MEDIUM 3] [LOW 2]   FIXED 5  STILL_PRESENT 0
+```
+
+- **Weights:** `CRITICAL 5, HIGH 3, MEDIUM 1.5, LOW 0.5, INFO 0` -> `score = 100 - penalty` clamped 0–100. Example `2C+4H+6M+3L = 32.5 -> 68`; after fixing `2C+3H+3M` -> `91` (+23 pts).
+- **Dashboard hero:** `SECURITY HEALTH 68/100` with conic-gradient ring, health bar, penalty, `FIXED/STILL_PRESENT` counts, severity breakdown, and `Before/after (last 2): 68 → 91 +23 pts` (from `GET /api/dashboard` `health`, `recent_health`, `retest_summary`).
+- **Recent table:** new `Health` column per assessment (badge `healthColor`).
+- **Endpoint:** `GET /api/dashboard` now returns `health{score,penalty,weights}`, `recent_health[{id,score,counts}]` (last 8), `retest_summary`.
+
 
 ---
 
@@ -161,13 +183,13 @@ npm run dev -- --port 3000 --host 127.0.0.1
 
 ## Quick Demo (2 min)
 
-1. Open `http://127.0.0.1:8000` → Login `admin@example.com` / `ChangeMe_Use_Strong_Password_Here`
-2. **New Assessment** → Preset `Playground :8080` → tick “authorized” → **Start**
-3. Watch live progress → findings appear with CVSS scores
-4. Click a finding → **Retest** → `STILL_PRESENT`
+1. Open `http://127.0.0.1:8000` → Login `admin@example.com` / `ChangeMe_Use_Strong_Password_Here` (see `PLATFORM` vs `LAB` boxes on login)
+2. **Dashboard** shows `SECURITY HEALTH 68/100` (At risk) — penalty-weighted `2C+4H+6M+3L`; `Findings` tab now lists all normalized findings (fixed `/-/findings` hijack 404)
+3. **New Assessment** → Preset `Playground :8080` → tick “authorized” → **Start** — watch live progress & health bar
+4. Click a finding → `Why this matters?` card (Risk/CVSS, Affected, Fix, Retest) → **Retest** → cinematic overlay `Verifying fix...` → `STILL_PRESENT` (red)
 5. Restart lab with a fix: `$env:WM_LAB_FIX_HEADERS=1; python lab\vulnerable-world-monitor\app.py`
-6. **Retest** again → `FIXED` ✓
-7. **Reports** → Generate PDF / JSON / Markdown / CSV
+6. **Retest** again → overlay `FIXED` (green) ✓ — dashboard updates `SECURITY HEALTH 91/100` Healthy (+23 pts), `Before/after: 68 → 91`
+7. **Reports** → Generate PDF / JSON / Markdown / CSV (now includes health)
 
 ---
 
@@ -315,11 +337,11 @@ $env:WM_LAB_FIX_HEADERS="1"; python lab\vulnerable-world-monitor\app.py
 
 ## How the Retest Loop Works
 
-1. **Finding created** → fingerprint `sha1(target|category|check_id|component)`
+1. **Finding created** → fingerprint `sha1(target|category|check_id|component)` ? `Why this matters?` card shows Risk/CVSS, Affected, Fix, Retest status
 2. **Developer fixes** → restarts lab with a toggle (`WM_LAB_FIX_HEADERS=1`)
-3. **Click Retest** → platform re-runs *only* that check’s scanner
-4. **Compare fingerprints** → `FIXED` if fingerprint gone, `STILL_PRESENT` if still found
-5. **Evidence linked** → new evidence attached, history preserved (failed retests → `INCONCLUSIVE`, never false `FIXED`)
+3. **Click Retest** → cinematic overlay `Verifying fix...` (spinner) → platform re-runs *only* that check’s scanner
+4. **Compare fingerprints** → overlay `FIXED` (green) if gone, `STILL_PRESENT` (red) if still found ? then `Why this matters?` updates, dashboard `SECURITY HEALTH 68 → 91`
+5. **Evidence linked** → new evidence attached, history preserved (failed retests → `INCONCLUSIVE`, never false `FIXED`); `Findings` tab now correctly lists via `GET /api/assessments/-/findings` (fixed hijack)
 
 ---
 
