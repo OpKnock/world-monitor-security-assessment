@@ -1,0 +1,15 @@
+{
+  "name": "world-monitor-security-assessment",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Unified localhost-only security assessment - 12 modules (DAST/SAST/SCA), CVSS v3.1, retest-until-FIXED",
+  "scripts": {
+    "postinstall": "npm --prefix targets/real-world-monitor install",
+    "dev:real": "npm --prefix targets/real-world-monitor run dev -- --port 3000 --host 127.0.0.1",
+    "ensure": "python scripts/ensure_real_app.py",
+    "start:all": "python scripts/start_all.py"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
