@@ -4,7 +4,6 @@
 
 **Unified · Localhost-only · 12 Scanner Modules · CVSS v3.1 · Retest-until-FIXED**
 
-[![ci](https://github.com/OpKnock/world-monitor-security-assessment/actions/workflows/ci.yml/badge.svg)](https://github.com/OpKnock/world-monitor-security-assessment/actions/workflows/ci.yml)
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)
