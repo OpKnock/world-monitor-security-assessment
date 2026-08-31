@@ -13,6 +13,26 @@ from ..models import Assessment, AuditLog, Finding, Report
 from ..scanners.base import AVAILABLE_MODULES
 from .deps import get_current_user, require_role
 
+
+# --- Health Score (0-100) ---  weights calibrated for cinematic before/after demo
+#   CRITICAL 5, HIGH 3, MEDIUM 1.5, LOW 0.5  ->  e.g. 2C+4H+6M+3L = 32.5 penalty -> 68 health
+#   After fixing 2C+3H+3M -> penalty ~9 -> 91 health. Clamped 0-100.
+HEALTH_WEIGHTS = {"CRITICAL": 5, "HIGH": 3, "MEDIUM": 1.5, "LOW": 0.5, "INFORMATIONAL": 0}
+
+def compute_health(counts: dict) -> int:
+    penalty = sum(counts.get(k, 0) * w for k, w in HEALTH_WEIGHTS.items())
+    score = 100 - penalty
+    # bonus for zero findings is 100, never negative
+    return max(0, min(100, round(score)))
+
+def health_breakdown(counts: dict) -> dict:
+    return {
+        "score": compute_health(counts),
+        "penalty": round(sum(counts.get(k,0)*w for k,w in HEALTH_WEIGHTS.items()),1),
+        "weights": HEALTH_WEIGHTS,
+    }
+
+
 router = APIRouter(tags=["misc"])
 
 
@@ -40,10 +60,28 @@ def dashboard(db: Session = Depends(get_db), user=Depends(require_role("analyst"
             entry["worst_severity"] = severity
 
     recent = db.scalars(select(Assessment).order_by(Assessment.created_at.desc()).limit(8)).all()
+    health = health_breakdown(counts)
+    # per-assessment health (last 8)
+    recent_health = []
+    for a in recent:
+        ac = {"CRITICAL":0,"HIGH":0,"MEDIUM":0,"LOW":0,"INFORMATIONAL":0}
+        for sev, n in db.execute(select(Finding.severity, func.count(Finding.id)).where(Finding.assessment_id==a.id).group_by(Finding.severity)).all():
+            ac[sev]=n
+        recent_health.append({"id": a.id, "score": compute_health(ac), "counts": ac})
+    # retest summary across all findings
+    retest_counts = {"FIXED":0, "STILL_PRESENT":0, "INCONCLUSIVE":0, "PENDING":0}
+    for f in db.scalars(select(Finding)).all():
+        if f.retest_status:
+            retest_counts[f.retest_status] = retest_counts.get(f.retest_status,0)+1
+        else:
+            retest_counts["PENDING"]+=1
     return {
         "total_findings": sum(counts.values()),
         "severity_counts": counts,
         "categories": categories,
+        "health": health,
+        "recent_health": recent_health,
+        "retest_summary": retest_counts,
         "recent_assessments": [{
             "id": a.id, "target": a.target, "status": a.status,
             "created_at": a.created_at.isoformat(), "modules": a.modules,

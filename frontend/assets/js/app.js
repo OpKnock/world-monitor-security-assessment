@@ -1,4 +1,4 @@
-/* World Monitor SPA — premium rewrite v2. Hardened, audited, accessibility & performance tuned. */
+﻿/* World Monitor SPA — premium rewrite v2. Hardened, audited, accessibility & performance tuned. */
 (() => {
   "use strict";
 
@@ -15,6 +15,9 @@
   const SEV = ["CRITICAL","HIGH","MEDIUM","LOW","INFORMATIONAL"];
   const SEV_ORDER = { CRITICAL:0, HIGH:1, MEDIUM:2, LOW:3, INFORMATIONAL:4 };
   const SEV_COLOR = { CRITICAL:"#f43f5e", HIGH:"#fb923c", MEDIUM:"#fbbf24", LOW:"#38bdf8", INFORMATIONAL:"#94a3b8" };
+  const healthColor = s => s>=80 ? "#22c55e" : s>=60 ? "#84cc16" : s>=40 ? "#f59e0b" : s>=20 ? "#f97316" : "#ef4444";
+  const HEALTH_WEIGHTS = {CRITICAL:5,HIGH:3,MEDIUM:1.5,LOW:0.5,INFORMATIONAL:0};
+  const computeHealth = c => Math.max(0, Math.min(100, Math.round(100 - ( (c.CRITICAL||0)*5 + (c.HIGH||0)*3 + (c.MEDIUM||0)*1.5 + (c.LOW||0)*0.5 ))));
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
   const truncate = (s, n=48) => s.length>n ? s.slice(0,n)+"…" : s;
   let pollId = null, bannerTimer = null;
@@ -171,7 +174,10 @@
         </form>
         <p class="auth-toggle">${isLogin ? `No account? <a href="#" id="tgAuth">Register</a>` : `<a href="#" id="tgAuth">Back to sign in</a>`}</p>
         <div class="divider"></div>
-        <p class="muted small" style="font-size:11px;line-height:1.6">Demo: <span class="mono">admin@example.com / ChangeMe_Use_Strong_Password_Here</span><br>Lab users: <span class="mono">alice/user123</span> · <span class="mono">bob/user456</span></p>
+        <div style="margin-top:12px;display:grid;gap:8px">
+  <div style="background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.18);padding:8px 10px;border-radius:8px"><div class="muted small" style="font-weight:700;letter-spacing:.06em">PLATFORM &mdash; authorized</div><div class="mono small" style="margin-top:4px">admin@example.com / ChangeMe_Use_Strong_Password_Here</div><div class="muted small" style="font-size:10px">Platform login from .env ? change SECRET_KEY & ADMIN_PASSWORD before prod.</div></div>
+  <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.18);padding:8px 10px;border-radius:8px"><div class="muted small" style="font-weight:700;letter-spacing:.06em;color:#f87171">LAB &mdash; intentionally vulnerable, loopback only</div><div class="mono small" style="margin-top:4px">alice/user123 &middot; bob/user456 (lab:8080)</div><div class="muted small" style="font-size:10px;color:#f87171">Never expose lab beyond 127.0.0.1. For scanner demo & retest only.</div></div>
+</div>
       </div></div>`;
     document.getElementById("tgAuth").onclick = e=>{ e.preventDefault(); AuthScreen(isLogin ? "register" : "login"); };
     const form=document.getElementById("authForm");
@@ -291,6 +297,12 @@
     const counts=d.severity_counts||{};
     const categories=d.categories||{};
     const recent=d.recent_assessments||[];
+    const health = d.health || {score: computeHealth(counts), penalty: 0, weights: HEALTH_WEIGHTS};
+    const recentHealth = d.recent_health || [];
+    const retestSummary = d.retest_summary || {};
+    const healthCol = healthColor(health.score);
+    const healthMap = Object.fromEntries((recentHealth||[]).map(h=>[h.id, h.score]));
+    const healthLabel = health.score>=80 ? "Healthy" : health.score>=60 ? "Needs attention" : health.score>=40 ? "At risk" : health.score>=20 ? "Critical" : "Severe";
     const kpis = SEV.map(s=>{
       const n=counts[s]??0;
       const cls=s.toLowerCase().slice(0,6);
@@ -298,8 +310,10 @@
       return `<div class="kpi ${cls}" role="status" aria-label="${s} ${n}"><b>${n}</b><small>${s}</small><span class="kpi-sub">${sub}</span></div>`;
     }).join("");
     const heroKpi = `<div class="kpi total" role="status" aria-label="Total findings ${total}"><b>${total}</b><small>TOTAL FINDINGS</small><span class="kpi-sub">${recent.length} recent assessments</span></div>`;
+    const healthCard = `<div class="card health-hero" style="border:1px solid ${healthCol}33"><div class="row spread"><div><div class="muted small">SECURITY HEALTH</div><div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:36px;font-weight:800;color:${healthCol}">${health.score}</span><span>/100</span><span class="badge" style="background:${healthCol}">${healthLabel}</span></div><div class="muted small">Penalty ${health.penalty} | ${total} findings | FIXED ${retestSummary.FIXED||0} / STILL_PRESENT ${retestSummary.STILL_PRESENT||0}</div></div><div style="text-align:center"><div style="width:80px;height:80px;border-radius:50%;background:conic-gradient(${healthCol} ${health.score}%, #1e293b 0);display:grid;place-items:center"><span style="font-weight:800;color:${healthCol}">${health.score}%</span></div></div></div><div style="height:8px;background:#1e293b;border-radius:8px;overflow:hidden;margin-top:8px"><div style="width:${health.score}%;height:100%;background:${healthCol}"></div></div>${recentHealth.length>=2 ? `<div class="row mt" style="gap:6px;align-items:center;flex-wrap:wrap;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.18);padding:6px 8px;border-radius:8px"><span class="muted small">Before/after (last 2):</span><span class="mono small" style="font-weight:700">${recentHealth[1].score} &rarr; ${recentHealth[0].score}</span><span class="badge" style="background:${healthColor(recentHealth[0].score)}">${recentHealth[0].score - recentHealth[1].score >=0 ? "+" : ""}${recentHealth[0].score - recentHealth[1].score} pts</span><span class="muted small">${recentHealth[0].score>recentHealth[1].score?"Improved":"Stable"}</span></div>` : ""}</div>`;
     el.innerHTML = `
-      <div class="grid kpis mb" style="grid-template-columns:repeat(6,1fr)">${heroKpi}${kpis}</div>
+      ${healthCard}
+      <div class="grid kpis mb mt" style="grid-template-columns:repeat(6,1fr)">${heroKpi}${kpis}</div>
       <div class="grid two-col">
         <div class="card"><div class="row spread"><strong>Distribution</strong><span class="badge">${total} total</span></div>
           <div class="row mt" style="justify-content:center;min-height:160px">${Charts.donut(counts)}</div>
@@ -311,9 +325,10 @@
       </div>
       <div class="card mt">
         <div class="row spread"><strong>Recent assessments</strong><button class="ghost tiny" onclick="location.hash='#/history'">View history →</button></div>
-        ${recent.length ? `<div class="table-wrap mt"><table><thead><tr><th>Target</th><th>Status</th><th>Modules</th><th>Created</th><th></th></tr></thead><tbody>
+        ${recent.length ? `<div class="table-wrap mt"><table><thead><tr><th>Target</th><th>Health</th><th>Status</th><th>Modules</th><th>Created</th><th></th></tr></thead><tbody>
           ${recent.map(a=> `<tr class="click" onclick="location.hash='#/assessment/${esc(a.id)}'">
             <td class="mono" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${targetChip(a.target)} <span title="${esc(a.target)}">${esc(a.target.length>42 ? a.target.slice(0,42)+"…" : a.target)}</span></td>
+            <td><span class="badge" style="background:${healthColor(healthMap[a.id]??50)};color:#fff">${healthMap[a.id]??"?"}</span></td>
             <td><span class="status ${esc(a.status)}">${esc(a.status)}</span></td>
             <td class="muted small" title="${esc((a.modules||[]).join(", "))}">${esc((a.modules||[]).slice(0,3).join(", "))}${(a.modules||[]).length>3?" +"+((a.modules||[]).length-3):""}</td>
             <td class="muted small mono">${a.created_at ? new Date(a.created_at).toLocaleString() : "—"}</td><td style="color:var(--text-3)" aria-hidden="true">›</td></tr>`).join("")}
@@ -658,6 +673,7 @@
           </div>
         </div>
       </div>
+      <div class="card mt why-card" style="border-left:4px solid ${cvssTone};background:linear-gradient(135deg, ${cvssTone}08, transparent)"><h3 style="margin:0 0 6px">Why this matters?</h3><p class="small" style="color:var(--text-2)"><strong>Risk:</strong> <span class="sev ${esc(f.severity)}">${esc(f.severity)}</span> CVSS ${f.cvss_score ?? "?"} &mdash; ${esc(f.business_impact||f.impact||"See impact")}</p><p class="small" style="color:var(--text-2)"><strong>Affected:</strong> <span class="mono">${esc(f.affected_component||"?")}</span></p><p class="small" style="color:var(--text-2)"><strong>Fix:</strong> ${esc(f.remediation||"?")}</p><p class="small"><strong>Retest:</strong> <span class="${f.retest_status==="FIXED"?"retest-fixed":"retest-present"}">${esc(f.retest_status||"Pending")}</span> ${f.retest_count?`(${f.retest_count} retests)`:""}</p></div>
       <div class="detail-grid mt">
         <dl class="kv card">
           <dt>Affected</dt><dd class="mono">${esc(f.affected_component || "—")} <button class="ghost xs" style="margin-left:6px" onclick="navigator.clipboard.writeText('${esc(f.affected_component).replace(/'/g,"\\'")}').then(()=>toast('Copied'))">copy</button></dd>
@@ -684,14 +700,18 @@
         ${prettyEvidence.length ? prettyEvidence.map(ev=> `<details class="mt"><summary class="mono small" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span>${esc(ev.summary)}</span> <span class="muted">· ${esc(ev.kind)}</span><button class="ghost xs" style="margin-left:auto" onclick="event.preventDefault(); navigator.clipboard.writeText(document.getElementById('ev-${esc(ev.id)}').textContent).then(()=>toast('Evidence copied'))">copy</button></summary><pre class="evidence-doc" id="ev-${esc(ev.id)}">${esc(ev.pretty)}</pre></details>`).join("") : `<div class="mt">${emptyState({icon:"—", title:"No evidence documents", hint:"This finding has no attached evidence — the check may have produced a synthetic result.", action:""})}</div>`}
       </div>`;
     el.querySelector("#copyLinkBtn").onclick=()=> copyText(location.href);
-    el.querySelector("#retestBtn").onclick= async ()=>{
+        el.querySelector("#retestBtn").onclick= async ()=>{
       const btn=el.querySelector("#retestBtn");
-      btn.disabled=true; const orig=btn.innerHTML; btn.innerHTML=`<span class="spinner" aria-hidden="true"></span> Retesting…`;
+      btn.disabled=true; const orig=btn.innerHTML; btn.innerHTML=`<span class="spinner" aria-hidden="true"></span> Verifying fix...`;
+      const overlay=document.createElement("div"); overlay.style.cssText="position:fixed;inset:0;background:rgba(6,10,19,.88);display:grid;place-items:center;z-index:9999;color:#fff;text-align:center;padding:24px";
+      overlay.innerHTML=`<div><div class="spinner" style="width:42px;height:42px;border-width:4px;margin:0 auto 16px"></div><div style="font-size:18px;font-weight:800">Retesting...</div><div class="muted small" style="color:#94a3b8;margin-top:6px">Re-running scanner for this check</div></div>`;
+      document.body.appendChild(overlay);
       try{
         const r=await API.post(`/assessments/findings/${id}/retest`);
-        toast(r.retest_status==="FIXED" ? "✓ FIXED — remediation verified" : "✗ STILL PRESENT — not yet remediated", r.retest_status==="FIXED");
-        FindingDetail(id);
-      }catch(e){ toast(e.message,false); btn.disabled=false; btn.innerHTML=orig; }
+        overlay.innerHTML = r.retest_status==="FIXED" ? `<div style="background:#22c55e;color:#fff;padding:28px;border-radius:16px;min-width:280px"><div style="font-size:42px">OK</div><div style="font-size:22px;font-weight:800;margin-top:8px">FIXED</div><div style="opacity:.9;margin-top:4px">Remediation verified</div></div>` : `<div style="background:#ef4444;color:#fff;padding:28px;border-radius:16px;min-width:280px"><div style="font-size:42px">X</div><div style="font-size:22px;font-weight:800;margin-top:8px">STILL PRESENT</div><div style="opacity:.9;margin-top:4px">Not yet remediated</div></div>`;
+        toast(r.retest_status==="FIXED" ? "FIXED - remediation verified" : "STILL PRESENT - not yet remediated", r.retest_status==="FIXED");
+        setTimeout(()=>{ overlay.remove(); FindingDetail(id); }, 1600);
+      }catch(e){ overlay.remove(); toast(e.message,false); btn.disabled=false; btn.innerHTML=orig; }
     };
     el.querySelector("#delBtn").onclick= async ()=>{
       if(!confirm("Delete this finding and its evidence? This also purges related audit rows.")) return;
@@ -876,3 +896,5 @@
     if(e.key==="n" || e.key==="N"){ e.preventDefault(); location.hash="#/assess/new"; }
   });
 })();
+
+
