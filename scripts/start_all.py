@@ -58,6 +58,36 @@ def main():
     if args.ratelimit: env["WM_LAB_RATELIMIT"] = "1"
     if args.enable_fuzzing: env["WM_ENABLE_FUZZING"] = "1"
 
+    # Windows pop-up mode ? 3 terminals (requested)
+    if os.name == "nt":
+        def popup(name, cmd_str, port=None):
+            if port and is_port_open("127.0.0.1", port):
+                print(f"[skip] {name} already listening on :{port} ? skipping (already existence)")
+                return None
+            print(f"[popup] {name} -> new PowerShell window")
+            # Use Start-Process powershell -NoExit to pop up
+            ps_cmd = f"Set-Location '{ROOT}'; {cmd_str}"
+            subprocess.Popen(["powershell", "-NoExit", "-Command", ps_cmd], creationflags=subprocess.CREATE_NEW_CONSOLE if hasattr(subprocess, "CREATE_NEW_CONSOLE") else 0)
+            return True
+        # Build cmd strings with env toggles
+        lab_env = ""
+        if args.fix_headers: lab_env += "$env:WM_LAB_FIX_HEADERS='1'; "
+        if args.patch_idor: lab_env += "$env:WM_LAB_PATCH_IDOR='1'; "
+        if args.patch_sqli: lab_env += "$env:WM_LAB_PATCH_SQLI='1'; "
+        if args.ratelimit: lab_env += "$env:WM_LAB_RATELIMIT='1'; "
+        lab_cmd = f"{lab_env}.venv/Scripts/python.exe lab/vulnerable-world-monitor/app.py"
+        app_cmd = f".venv/Scripts/python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000"
+        real_cmd = f"npm run dev -- --port 3000 --host 127.0.0.1"
+        popup("lab", lab_cmd, port=8080)
+        import time as _t; _t.sleep(1.0)
+        popup("platform", app_cmd, port=8000)
+        if not args.no_real_app and REAL_DIR.exists() and (REAL_DIR / "node_modules").exists():
+            popup("real-app", real_cmd, port=3000)
+        elif not args.no_real_app:
+            print("[real] skipped ? run: cd targets/real-world-monitor && npm install")
+        print("\n[done] 3 terminals popped up. Close windows to stop or Ctrl+C this window to exit.")
+        return 0
+
     procs = []
 
     def start(name, cmd, cwd, port=None):
@@ -65,7 +95,6 @@ def main():
             print(f"[skip] {name} already listening on :{port} ? skipping (already existence)")
             return None
         print(f"[start] {name}: {' '.join(cmd)}  (cwd={cwd})")
-        # use same env plus lab toggles for lab, platform gets base env
         p = subprocess.Popen(cmd, cwd=str(cwd), env=env if name=="lab" else os.environ.copy(),
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
         procs.append((name, p))

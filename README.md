@@ -320,16 +320,17 @@ Override via `ADMIN_PASSWORD` in `.env`.
 
 ---
 
-## One-Command Setup (recommended) ? 1 terminal, 1 command
+## One-Command Setup (recommended) — 1 command, 3 terminals
 
-Runs **lab :8080 + platform :8000 + real app :3000 (optional)** together, streaming prefixed logs. If a port is already busy it skips that service ("already existence").
+Runs **lab :8080 + platform :8000 + real app :3000 (optional)** together. On **Windows** it pops up 3 new PowerShell windows (one per service) so the three-terminal setup shows properly; on **Mac/Linux** it streams prefixed `[lab]/[platform]/[real-app]` logs in one terminal. If a port is already busy it is skipped (“already existence”).
 
 ```bash
-# from repo root, venv active ? one terminal, one command
+# from repo root, venv active — one command, 3 terminals pop up (Windows)
 python scripts/start_all.py
 ```
 
-> **That is it.** `lab :8080` + `platform :8000` + `real app :3000` (optional) start together. If a port is already busy it is skipped (?already existence?).
+> **That is it.** 3 terminals pop up: `lab :8080` + `platform :8000` + `real app :3000` (optional). If a port is already busy it is skipped. `Ctrl+C` in each window to stop or close the window.
+
 
 <details>
 <summary>Variants (optional) ? only if you need them</summary>
