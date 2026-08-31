@@ -180,7 +180,7 @@ SECURITY HEALTH  91/100  Healthy        Penalty 9
 
 ---
 
-## How Retest and Fix Work (for judges)
+## How Retest and Fix Work 
 
 **Fix is not automatic ? the platform proves a fix was verified:**
 
