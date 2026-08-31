@@ -228,11 +228,14 @@ $env:WM_LAB_FIX_HEADERS="1"; $env:WM_LAB_PATCH_SQLI="1"; python lab/vulnerable-w
 
 ## Quick Start — Fresh Clone
 
-Copy/paste **one block at a time** in order. Do **not** use “Download ZIP”.
+> ⚠️ **Do NOT run from `C:\\WINDOWS\\System32`** (you will get `Permission denied` / `Access is denied`). Open **PowerShell** normally and first run `Set-Location $HOME\Desktop` (or `cd %USERPROFILE%\Desktop` for CMD) ? then copy/paste one block at a time below. Do **not** use “Download ZIP”.
 
 ### Windows PowerShell
 
 ```powershell
+# 0. Go to a writable folder FIRST ? do NOT stay in C:\WINDOWS\System32 (Permission denied)
+Set-Location $HOME\Desktop
+
 # 1. Clone with submodule
 git clone --recurse-submodules https://github.com/OpKnock/world-monitor-security-assessment.git
 Set-Location world-monitor-security-assessment
@@ -260,6 +263,9 @@ python scripts/start_all.py
 ### Windows CMD
 
 ```cmd
+:: 0. Go to Desktop first ? not System32
+cd /d %USERPROFILE%\Desktop
+
 :: 1. Clone
 git clone --recurse-submodules https://github.com/OpKnock/world-monitor-security-assessment.git
 cd world-monitor-security-assessment
