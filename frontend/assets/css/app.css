@@ -647,6 +647,20 @@ input[type="search"]:focus{ border-color:var(--cyan); box-shadow:0 0 0 3px rgba(
 .progress-label{ font-family:var(--mono); font-size:11px; color:var(--text-3); }
 
 /* ══════════ MOTION PREFERENCES ══════════ */
+
+/* Dashboard premium - minimal animations */
+.health-hero{animation:view-enter .5s cubic-bezier(.21,1.02,.73,1) both}
+.kpi{animation:view-enter .4s cubic-bezier(.21,1.02,.73,1) both}
+.kpi:nth-child(1){animation-delay:.05s}
+.kpi:nth-child(2){animation-delay:.1s}
+.kpi:nth-child(3){animation-delay:.15s}
+.kpi:nth-child(4){animation-delay:.2s}
+.kpi:nth-child(5){animation-delay:.25s}
+.kpi:nth-child(6){animation-delay:.3s}
+.health-bar .health-fill{animation:health-grow 1.2s cubic-bezier(.21,1.02,.73,1) both}
+@keyframes health-grow{from{width:0}}
+.card{transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease}
+.card:hover{transform:translateY(-1px);border-color:rgba(34,211,238,.18);box-shadow:0 8px 32px rgba(0,0,0,.4)}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
   .progressbar i{ animation:none !important; }

@@ -64,6 +64,30 @@ def delete_assessment(assessment_id: str, db: Session = Depends(get_db),
             "audit_rows_purged": purged}
 
 
+@router.delete("/assessments")
+def delete_all_assessments(db: Session = Depends(get_db),
+                           user=Depends(require_role("admin"))):
+    # Fresh start: delete ALL assessments, findings, evidence, reports, and audit refs (admin only)
+    all_assessments = db.scalars(select(Assessment)).all()
+    if not all_assessments:
+        return {"deleted": 0, "message": "no assessments to delete"}
+    count = len(all_assessments)
+    if settings.EVIDENCE_DIR.exists():
+        shutil.rmtree(settings.EVIDENCE_DIR, ignore_errors=True)
+        settings.EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
+    if settings.REPORT_DIR.exists():
+        shutil.rmtree(settings.REPORT_DIR, ignore_errors=True)
+        settings.REPORT_DIR.mkdir(parents=True, exist_ok=True)
+    for a in all_assessments:
+        db.delete(a)
+    db.query(AuditLog).delete()
+    db.add(AuditLog(user_email=user.email, action="assessments.bulk_deleted",
+                    target="*",
+                    detail={"deleted_assessments": count}))
+    db.commit()
+    return {"deleted": count, "message": f"deleted {count} assessments - fresh start"}
+
+
 @router.delete("/findings/{finding_id}")
 def delete_finding(finding_id: str, db: Session = Depends(get_db),
                    user=Depends(require_role("analyst"))):
