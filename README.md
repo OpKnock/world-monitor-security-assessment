@@ -146,26 +146,55 @@ Override via `ADMIN_PASSWORD` in `.env`.
 
 ---
 
-## Three-Terminal Setup
+## One-Command Setup (recommended) ? 1 terminal, 1 command
 
-**Terminal 1 — Vulnerable Lab** (`http://127.0.0.1:8080`):
+Runs **lab :8080 + platform :8000 + real app :3000 (optional)** together, streaming prefixed logs. If a port is already busy it skips that service ("already existence").
+
+```bash
+# from repo root, venv active
+
+# Cross-platform (preferred)
+python scripts/start_all.py
+# with fix toggles for retest demo
+python scripts/start_all.py --fix-headers --patch-idor
+# skip real app (lab + platform only)
+python scripts/start_all.py --no-real-app
+
+# Windows PowerShell wrapper
+powershell -ExecutionPolicy Bypass -File scripts/start_all.ps1
+powershell -ExecutionPolicy Bypass -File scripts/start_all.ps1 -FixHeaders -PatchIdor
+
+# Mac/Linux wrapper
+chmod +x scripts/start_all.sh && ./scripts/start_all.sh
+./scripts/start_all.sh --fix-headers --patch-idor
+```
+
+What it does: checks `.venv`, checks ports 8080/8000/3000 (skips if already listening), starts Flask lab and uvicorn platform (and `npm run dev` for real app if `node_modules` exists, otherwise hints `python scripts/ensure_real_app.py` + `npm install`), streams `[lab]/[platform]/[real-app]` logs, `Ctrl+C` stops all.
+
+> **If `targets/real-world-monitor` shows vite import error** `Failed to resolve import "./_inventory-facts.generated.js"` ? `python scripts/ensure_real_app.py` then `cd targets/real-world-monitor && npm install`.
+
+---
+
+## Three-Terminal Setup (advanced ? manual)
+
+If you prefer 3 separate terminals:
+
+**Terminal 1 ? Vulnerable Lab** (`http://127.0.0.1:8080`):
 ```bash
 cd lab/vulnerable-world-monitor
 python app.py
 ```
 
-**Terminal 2 — Platform** (`http://127.0.0.1:8000`):
+**Terminal 2 ? Platform** (`http://127.0.0.1:8000`):
 ```bash
 # from repo root
-powershell -ExecutionPolicy Bypass -File scripts\start_all.ps1
-# or manually:
 .venv\Scripts\python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
-**Terminal 3 — Real World Monitor** (optional, `http://127.0.0.1:3000`):
+**Terminal 3 ? Real World Monitor** (optional, `http://127.0.0.1:3000`):
 ```bash
 cd targets/real-world-monitor
-npm install
+npm install        # postinstall generates api/_*.generated.js
 npm run dev -- --port 3000 --host 127.0.0.1
 ```
 
