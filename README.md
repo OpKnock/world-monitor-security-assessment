@@ -232,20 +232,22 @@ $env:WM_LAB_FIX_HEADERS="1"; $env:WM_LAB_PATCH_SQLI="1"; python lab/vulnerable-w
 
 ### ⚡ Super Quick Start — one block, copy-paste, done (all shells)
 
+> ⚠️ **Just copy the single indented line for your shell below (no ``` to copy).** — one block, copy-paste, done (all shells)
+
 **PowerShell ? one block:** (handles already exists, System32, venv, Go, env, 3 terminals)
-```powershell
-Set-Location $HOME\Desktop; if (Test-Path world-monitor-security-assessment) { Set-Location world-monitor-security-assessment; git pull; git submodule update --init --recursive } else { git clone --recurse-submodules https://github.com/OpKnock/world-monitor-security-assessment.git; Set-Location world-monitor-security-assessment }; python -m venv .venv; .\.venv\Scripts\Activate.ps1; python -m pip install --upgrade pip; pip install -r requirements.txt; powershell -ExecutionPolicy Bypass -File scripts\build_go_tools.ps1; Get-ChildItem bin; Copy-Item .env.example .env -Force; python scripts/start_all.py
-```
+
+    Set-Location $HOME\Desktop; if (Test-Path world-monitor-security-assessment) { Set-Location world-monitor-security-assessment; git pull; git submodule update --init --recursive } else { git clone --recurse-submodules https://github.com/OpKnock/world-monitor-security-assessment.git; Set-Location world-monitor-security-assessment }; python -m venv .venv; .\.venv\Scripts\Activate.ps1; python -m pip install --upgrade pip; pip install -r requirements.txt; powershell -ExecutionPolicy Bypass -File scripts\build_go_tools.ps1; Get-ChildItem bin; Copy-Item .env.example .env -Force; python scripts/start_all.py
+
 
 **CMD ? one block:**
-```cmd
-cd /d %USERPROFILE%\Desktop & if exist world-monitor-security-assessment (cd world-monitor-security-assessment & git pull & git submodule update --init --recursive) else (git clone --recurse-submodules https://github.com/OpKnock/world-monitor-security-assessment.git & cd world-monitor-security-assessment) & python -m venv .venv & call .\.venv\Scripts\activate.bat & python -m pip install --upgrade pip & pip install -r requirements.txt & powershell -ExecutionPolicy Bypass -File scripts\build_go_tools.ps1 & dir bin & copy /Y .env.example .env & python scripts\start_all.py
-```
+
+    cd /d %USERPROFILE%\Desktop & if exist world-monitor-security-assessment (cd world-monitor-security-assessment & git pull & git submodule update --init --recursive) else (git clone --recurse-submodules https://github.com/OpKnock/world-monitor-security-assessment.git & cd world-monitor-security-assessment) & python -m venv .venv & call .\.venv\Scripts\activate.bat & python -m pip install --upgrade pip & pip install -r requirements.txt & powershell -ExecutionPolicy Bypass -File scripts\build_go_tools.ps1 & dir bin & copy /Y .env.example .env & python scripts\start_all.py
+
 
 **Mac/Linux ? one block:**
-```bash
-cd ~/Desktop; if [ -d world-monitor-security-assessment ]; then cd world-monitor-security-assessment; git pull; git submodule update --init --recursive; else git clone --recurse-submodules https://github.com/OpKnock/world-monitor-security-assessment.git; cd world-monitor-security-assessment; fi; python3 -m venv .venv; source .venv/bin/activate; python -m pip install --upgrade pip; pip install -r requirements.txt; chmod +x scripts/build_go_tools.sh && ./scripts/build_go_tools.sh; ls bin/; cp .env.example .env; python scripts/start_all.py
-```
+
+    cd ~/Desktop; if [ -d world-monitor-security-assessment ]; then cd world-monitor-security-assessment; git pull; git submodule update --init --recursive; else git clone --recurse-submodules https://github.com/OpKnock/world-monitor-security-assessment.git; cd world-monitor-security-assessment; fi; python3 -m venv .venv; source .venv/bin/activate; python -m pip install --upgrade pip; pip install -r requirements.txt; chmod +x scripts/build_go_tools.sh && ./scripts/build_go_tools.sh; ls bin/; cp .env.example .env; python scripts/start_all.py
+
 
 > That single block = `lab :8080` + `platform :8000` + `real app :3000` popped. If you prefer step-by-step, use the blocks below.
 
