@@ -128,25 +128,6 @@ def list_assessments(
     return [_assessment_summary(a) for a in rows]
 
 
-@router.get("/{assessment_id}")
-def get_assessment(assessment_id: str, db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
-    assessment = db.get(Assessment, assessment_id)
-    if assessment is None:
-        raise HTTPException(404, detail="assessment not found")
-    return _assessment_dict(db, assessment)
-
-
-@router.get("/{assessment_id}/findings")
-def assessment_findings(assessment_id: str, db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
-    assessment = db.get(Assessment, assessment_id)
-    if assessment is None:
-        raise HTTPException(404, detail="assessment not found")
-    rows = db.scalars(
-        select(Finding).where(Finding.assessment_id == assessment_id).order_by(Finding.severity)
-    ).all()
-    return [_finding_dict(f) for f in rows]
-
-
 @router.get("/-/findings")
 def all_findings(
     severity: str | None = Query(None),
@@ -210,6 +191,25 @@ def finding_evidence(finding_id: str, db: Session = Depends(get_db), user=Depend
         out.append({"id": ev.id, "kind": ev.kind, "summary": ev.summary,
                     "path": ev.path, "created_at": ev.created_at.isoformat(), "document": doc})
     return out
+
+
+@router.get("/{assessment_id}")
+def get_assessment(assessment_id: str, db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
+    assessment = db.get(Assessment, assessment_id)
+    if assessment is None:
+        raise HTTPException(404, detail="assessment not found")
+    return _assessment_dict(db, assessment)
+
+
+@router.get("/{assessment_id}/findings")
+def assessment_findings(assessment_id: str, db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
+    assessment = db.get(Assessment, assessment_id)
+    if assessment is None:
+        raise HTTPException(404, detail="assessment not found")
+    rows = db.scalars(
+        select(Finding).where(Finding.assessment_id == assessment_id).order_by(Finding.severity)
+    ).all()
+    return [_finding_dict(f) for f in rows]
 
 
 def _assessment_summary(a: Assessment) -> dict:
