@@ -172,14 +172,9 @@
           <button style="width:100%;margin-top:6px" type="submit">${isLogin ? "Sign in" : "Create account"}</button>
           <div class="err" id="authErr" role="alert" aria-live="polite"></div>
         </form>
-        <p class="auth-toggle">${isLogin ? `No account? <a href="#" id="tgAuth">Register</a>` : `<a href="#" id="tgAuth">Back to sign in</a>`}</p>
-        <div class="divider"></div>
-        <div style="margin-top:12px;display:grid;gap:8px">
-  <div style="background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.18);padding:8px 10px;border-radius:8px"><div class="muted small" style="font-weight:700;letter-spacing:.06em">PLATFORM &mdash; authorized</div><div class="mono small" style="margin-top:4px">admin@example.com / ChangeMe_Use_Strong_Password_Here</div><div class="muted small" style="font-size:10px">Platform login from .env ? change SECRET_KEY & ADMIN_PASSWORD before prod.</div></div>
-  <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.18);padding:8px 10px;border-radius:8px"><div class="muted small" style="font-weight:700;letter-spacing:.06em;color:#f87171">LAB &mdash; intentionally vulnerable, loopback only</div><div class="mono small" style="margin-top:4px">alice/user123 &middot; bob/user456 (lab:8080)</div><div class="muted small" style="font-size:10px;color:#f87171">Never expose lab beyond 127.0.0.1. For scanner demo & retest only.</div></div>
-</div>
+        <p class="muted small" style="margin-top:10px;text-align:center;font-size:11px;opacity:.7">Demo: admin@example.com / ChangeMe_Use_Strong_Password_Here</p>
       </div></div>`;
-    document.getElementById("tgAuth").onclick = e=>{ e.preventDefault(); AuthScreen(isLogin ? "register" : "login"); };
+    const tgAuth = document.getElementById("tgAuth"); if (tgAuth) tgAuth.onclick = e=>{ e.preventDefault(); AuthScreen(isLogin ? "register" : "login"); };
     const form=document.getElementById("authForm");
     const pwInput=document.getElementById("password");
     const pwHelp=document.getElementById("pwHelp");
@@ -724,7 +719,7 @@
   /* ═══════════ HISTORY ═══════════ */
   async function History(){
     setBreadcrumb([{label:"History"}]);
-    $view.innerHTML = `<div class="page-head row spread"><div><h1 class="page">Assessment History</h1><p class="sub">Every authorized assessment run — newest first.</p></div><span class="badge" id="histCount">—</span></div>
+    $view.innerHTML = `<div class="page-head row spread"><div><h1 class="page">Assessment History</h1><p class="sub">Every authorized assessment run — newest first.</p></div><span class="badge" id="histCount">—</span><button class="ghost xs danger" id="freshStartBtn" title="Delete all assessments for fresh start" style="margin-left:8px">Fresh Start</button></div>
       <div class="row" style="gap:8px;margin-bottom:12px"><input id="histSearch" type="text" placeholder="Filter by target…" style="flex:1" aria-label="Filter history"><button class="ghost xs" onclick="History()">↻ Refresh</button></div>
       <div class="card" style="padding:0;overflow:hidden"><div id="histBody" style="padding:16px">${skeletonTable(5)}</div></div>`;
     const body=$view.querySelector("#histBody");
@@ -752,6 +747,11 @@
       </tbody></table></div>`;
     }
     searchEl.addEventListener("input", debounce(render, 250));
+    document.getElementById("freshStartBtn")?.addEventListener("click", async ()=>{
+      if(!confirm("Fresh start: delete ALL assessments, findings, evidence and reports from this PC? This cannot be undone.")) return;
+      const btn=document.getElementById("freshStartBtn"); const orig=btn.textContent; btn.disabled=true; btn.textContent="Clearing...";
+      try{ await API.del("/assessments"); toast("All history cleared - fresh start"); History(); }catch(e){ toast(e.message,false); btn.disabled=false; btn.textContent=orig; }
+    });
     render();
   }
   window.History=History;

@@ -280,7 +280,7 @@ def handle_500(e):  # type: ignore[no-untyped-def]
 
 PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>World Monitor Lab — Vulnerable Playground</title>
 <style>
-:root{--bg:#0a0f1a;--bg-elev:#111827;--card:#111827;--border:#1f2937;--border-bright:#374151;--text:#f3f4f6;--text-muted:#9ca3af;--text-dim:#6b7280;--cyan:#06b6d4;--cyan-glow:rgba(6,182,212,.35);--green:#10b981;--amber:#f59e0b;--red:#ef4444;--orange:#f97316;--violet:#a855f7;--bg-gradient:radial-gradient(ellipse 80% 60% at 50% -20%,rgba(6,182,212,.12),transparent 60%),radial-gradient(ellipse 60% 50% at 90% 80%,rgba(168,85,247,.08),transparent 55%);}
+:root{--bg:#060a13;--bg-elev:#0f172a;--card:rgba(17,24,39,.85);--border:rgba(31,41,55,.8);--border-bright:rgba(55,65,81,.9);--text:#f8fafc;--text-muted:#94a3b8;--text-dim:#64748b;--cyan:#22d3ee;--cyan-glow:rgba(34,211,238,.4);--green:#10b981;--amber:#f59e0b;--red:#ef4444;--orange:#f97316;--violet:#a855f7;--bg-gradient:radial-gradient(ellipse 80% 60% at 50% -20%,rgba(34,211,238,.15),transparent 60%),radial-gradient(ellipse 60% 50% at 90% 80%,rgba(168,85,247,.1),transparent 55%),radial-gradient(ellipse 40% 30% at 10% 90%,rgba(16,185,129,.06),transparent 50%);}
 *{box-sizing:border-box;margin:0;padding:0} html{scroll-behavior:smooth}
 body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;background-image:var(--bg-gradient)}
 a{color:var(--cyan);text-decoration:none}a:hover{text-decoration:underline;text-underline-offset:2px}
@@ -313,6 +313,13 @@ label{display:block;font-size:.8rem;font-weight:600;color:#9ca3af;margin-bottom:
 pre{background:#0a0f1a;border:1px solid var(--border);border-radius:8px;padding:14px;overflow:auto;white-space:pre-wrap;word-break:break-word;color:var(--text-muted);font-size:.8125rem;line-height:1.6}
 .card-title svg{width:1.25rem;height:1.25rem;color:var(--cyan)}
 .warn svg{flex-shrink:0;margin-top:.125rem}
+@keyframes lab-enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes lab-glow{0%,100%{opacity:.6}50%{opacity:1}}
+#bg-glow{position:fixed;inset:0;pointer-events:none;background:var(--bg-gradient);animation:lab-glow 8s ease infinite;opacity:.6}
+.card{animation:lab-enter .5s cubic-bezier(.21,1.02,.73,1) both}
+.card:nth-child(2){animation-delay:.08s}
+.card:nth-child(3){animation-delay:.16s}
+.card:nth-child(4){animation-delay:.24s}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
