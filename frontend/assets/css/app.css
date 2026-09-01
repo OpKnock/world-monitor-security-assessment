@@ -661,6 +661,10 @@ input[type="search"]:focus{ border-color:var(--cyan); box-shadow:0 0 0 3px rgba(
 @keyframes health-grow{from{width:0}}
 .card{transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease}
 .card:hover{transform:translateY(-1px);border-color:rgba(34,211,238,.18);box-shadow:0 8px 32px rgba(0,0,0,.4)}
+
+/* Fix text cursor on cards */
+.card, .kpi, .health-hero{user-select:none}
+.card input, .card textarea, .card [contenteditable]{user-select:text}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
   .progressbar i{ animation:none !important; }
