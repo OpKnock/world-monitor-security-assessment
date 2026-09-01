@@ -750,7 +750,7 @@
     document.getElementById("freshStartBtn")?.addEventListener("click", async ()=>{
       if(!confirm("Fresh start: delete ALL assessments, findings, evidence and reports from this PC? This cannot be undone.")) return;
       const btn=document.getElementById("freshStartBtn"); const orig=btn.textContent; btn.disabled=true; btn.textContent="Clearing...";
-      try{ await API.del("/assessments"); toast("All history cleared - fresh start"); History(); }catch(e){ toast(e.message,false); btn.disabled=false; btn.textContent=orig; }
+      try{ await API.del("/assessments"); toast("All history cleared - fresh start"); rows = []; render(); }catch(e){ toast(e.message,false); btn.disabled=false; btn.textContent=orig; }
     });
     render();
   }
@@ -759,7 +759,7 @@
     ev.stopPropagation();
     if(!confirm("Delete this assessment with ALL findings, evidence and reports? Audit rows referencing it will be purged.")) return;
     const btn=ev.currentTarget; const orig=btn.innerHTML; btn.disabled=true; btn.innerHTML=`<span class="spinner" style="width:10px;height:10px;border-width:1.6px" aria-hidden="true"></span>`;
-    try{ await API.del(`/assessments/${id}`); toast("Assessment deleted"); History(); }
+    try{ await API.del(`/assessments/${id}`); toast("Assessment deleted"); rows = rows.filter(a=> a.id !== id); render(); }
     catch(e){ toast(e.message,false); btn.disabled=false; btn.innerHTML=orig; }
   };
 
