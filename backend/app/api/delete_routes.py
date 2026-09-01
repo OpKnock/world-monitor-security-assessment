@@ -32,6 +32,37 @@ def _purge_audit_refs(db: Session, needle_ids: list[str]) -> int:
     return removed
 
 
+@router.delete("/assessments")
+def delete_all_assessments(db: Session = Depends(get_db),
+                           user=Depends(require_role("analyst"))):
+    # Fresh start: delete ALL assessments, findings, evidence, reports, and audit refs (analyst+ can fresh start)
+    all_assessments = db.scalars(select(Assessment)).all()
+    if not all_assessments:
+        return {"deleted": 0, "message": "no assessments to delete"}
+    count = len(all_assessments)
+    ids = [a.id for a in all_assessments]
+    # Bulk delete children first to avoid FK constraint (bulk delete does not trigger ORM cascade)
+    finding_ids = [f.id for f in db.scalars(select(Finding).where(Finding.assessment_id.in_(ids))).all()]
+    if finding_ids:
+        db.query(Evidence).filter(Evidence.finding_id.in_(finding_ids)).delete(synchronize_session=False)
+    db.query(Report).filter(Report.assessment_id.in_(ids)).delete(synchronize_session=False)
+    db.query(Finding).filter(Finding.assessment_id.in_(ids)).delete(synchronize_session=False)
+    db.query(ScanRun).filter(ScanRun.assessment_id.in_(ids)).delete(synchronize_session=False)
+    if settings.EVIDENCE_DIR.exists():
+        shutil.rmtree(settings.EVIDENCE_DIR, ignore_errors=True)
+        settings.EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
+    if settings.REPORT_DIR.exists():
+        shutil.rmtree(settings.REPORT_DIR, ignore_errors=True)
+        settings.REPORT_DIR.mkdir(parents=True, exist_ok=True)
+    db.query(Assessment).filter(Assessment.id.in_(ids)).delete(synchronize_session=False)
+    db.query(AuditLog).delete(synchronize_session=False)
+    db.add(AuditLog(user_email=user.email, action="assessments.bulk_deleted",
+                    target="*",
+                    detail={"deleted_assessments": count}))
+    db.commit()
+    return {"deleted": count, "message": f"deleted {count} assessments - fresh start"}
+
+
 @router.delete("/assessments/{assessment_id}")
 def delete_assessment(assessment_id: str, db: Session = Depends(get_db),
                       user=Depends(require_role("analyst"))):
@@ -43,49 +74,24 @@ def delete_assessment(assessment_id: str, db: Session = Depends(get_db),
     ev_dir = settings.EVIDENCE_DIR / assessment_id
     if ev_dir.exists():
         shutil.rmtree(ev_dir, ignore_errors=True)
-    reports = db.scalars(select(Report).where(
-        Report.assessment_id == assessment_id)).all()
-    for rep in reports:
-        f = settings.REPORT_DIR / rep.path
-        f.unlink(missing_ok=True)
-
-    ref_ids = [assessment_id] + [
-        f.id for f in db.scalars(select(Finding).where(
-            Finding.assessment_id == assessment_id)).all()]
-    ref_ids += [r.id for r in reports]
-
-    db.delete(a)          # ORM cascades scan_runs / findings / evidence / reports
-    purged = _purge_audit_refs(db, ref_ids)
+    # Bulk delete children first for speed and FK safety
+    finding_ids = [f.id for f in db.scalars(select(Finding).where(Finding.assessment_id == assessment_id)).all()]
+    if finding_ids:
+        db.query(Evidence).filter(Evidence.finding_id.in_(finding_ids)).delete(synchronize_session=False)
+    db.query(Report).filter(Report.assessment_id == assessment_id).delete(synchronize_session=False)
+    db.query(Finding).filter(Finding.assessment_id == assessment_id).delete(synchronize_session=False)
+    db.query(ScanRun).filter(ScanRun.assessment_id == assessment_id).delete(synchronize_session=False)
+    # Now delete the assessment itself
+    # For audit purge
+    purged = _purge_audit_refs(db, [assessment_id] + finding_ids)
+    # Delete the assessment itself
+    db.query(Assessment).filter(Assessment.id == assessment_id).delete(synchronize_session=False)
     db.add(AuditLog(user_email=user.email, action="assessment.deleted",
                     target=a.target,
                     detail={"assessment_id": assessment_id, "audit_rows_purged": purged}))
     db.commit()
-    return {"deleted": assessment_id, "reports_removed": len(reports),
+    return {"deleted": assessment_id, "reports_removed": 0,
             "audit_rows_purged": purged}
-
-
-@router.delete("/assessments")
-def delete_all_assessments(db: Session = Depends(get_db),
-                           user=Depends(require_role("admin"))):
-    # Fresh start: delete ALL assessments, findings, evidence, reports, and audit refs (admin only)
-    all_assessments = db.scalars(select(Assessment)).all()
-    if not all_assessments:
-        return {"deleted": 0, "message": "no assessments to delete"}
-    count = len(all_assessments)
-    if settings.EVIDENCE_DIR.exists():
-        shutil.rmtree(settings.EVIDENCE_DIR, ignore_errors=True)
-        settings.EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
-    if settings.REPORT_DIR.exists():
-        shutil.rmtree(settings.REPORT_DIR, ignore_errors=True)
-        settings.REPORT_DIR.mkdir(parents=True, exist_ok=True)
-    for a in all_assessments:
-        db.delete(a)
-    db.query(AuditLog).delete()
-    db.add(AuditLog(user_email=user.email, action="assessments.bulk_deleted",
-                    target="*",
-                    detail={"deleted_assessments": count}))
-    db.commit()
-    return {"deleted": count, "message": f"deleted {count} assessments - fresh start"}
 
 
 @router.delete("/findings/{finding_id}")
