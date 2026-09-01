@@ -172,7 +172,7 @@
           <button style="width:100%;margin-top:6px" type="submit">${isLogin ? "Sign in" : "Create account"}</button>
           <div class="err" id="authErr" role="alert" aria-live="polite"></div>
         </form>
-        <p class="muted small" style="margin-top:10px;text-align:center;font-size:11px;opacity:.7">Demo: admin@example.com / ChangeMe_Use_Strong_Password_Here</p>
+        <p class="muted small" style="margin-top:10px;text-align:center;font-size:11px;opacity:.7">Secure workspace - authorized assessment only</p>
       </div></div>`;
     const tgAuth = document.getElementById("tgAuth"); if (tgAuth) tgAuth.onclick = e=>{ e.preventDefault(); AuthScreen(isLogin ? "register" : "login"); };
     const form=document.getElementById("authForm");
@@ -305,7 +305,7 @@
       return `<div class="kpi ${cls}" role="status" aria-label="${s} ${n}"><b>${n}</b><small>${s}</small><span class="kpi-sub">${sub}</span></div>`;
     }).join("");
     const heroKpi = `<div class="kpi total" role="status" aria-label="Total findings ${total}"><b>${total}</b><small>TOTAL FINDINGS</small><span class="kpi-sub">${recent.length} recent assessments</span></div>`;
-    const healthCard = `<div class="card health-hero" style="border:1px solid ${healthCol}33"><div class="row spread"><div><div class="muted small">SECURITY HEALTH</div><div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:36px;font-weight:800;color:${healthCol}">${health.score}</span><span>/100</span><span class="badge" style="background:${healthCol}">${healthLabel}</span></div><div class="muted small">Penalty ${health.penalty} | ${total} findings | FIXED ${retestSummary.FIXED||0} / STILL_PRESENT ${retestSummary.STILL_PRESENT||0}</div></div><div style="text-align:center"><div style="width:80px;height:80px;border-radius:50%;background:conic-gradient(${healthCol} ${health.score}%, #1e293b 0);display:grid;place-items:center"><span style="font-weight:800;color:${healthCol}">${health.score}%</span></div></div></div><div style="height:8px;background:#1e293b;border-radius:8px;overflow:hidden;margin-top:8px"><div style="width:${health.score}%;height:100%;background:${healthCol}"></div></div>${recentHealth.length>=2 ? `<div class="row mt" style="gap:6px;align-items:center;flex-wrap:wrap;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.18);padding:6px 8px;border-radius:8px"><span class="muted small">Before/after (last 2):</span><span class="mono small" style="font-weight:700">${recentHealth[1].score} &rarr; ${recentHealth[0].score}</span><span class="badge" style="background:${healthColor(recentHealth[0].score)}">${recentHealth[0].score - recentHealth[1].score >=0 ? "+" : ""}${recentHealth[0].score - recentHealth[1].score} pts</span><span class="muted small">${recentHealth[0].score>recentHealth[1].score?"Improved":"Stable"}</span></div>` : ""}</div>`;
+    const healthCard = `<div class="card health-hero" style="border:1px solid ${healthCol}33"><div class="row spread"><div><div class="muted small">SECURITY HEALTH</div><div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:36px;font-weight:800;color:${healthCol}">${health.score}</span><span>/100</span><span class="badge" style="background:${healthCol}">${healthLabel}</span></div><div class="muted small">Penalty ${health.penalty} | ${total} findings | FIXED ${retestSummary.FIXED||0} / STILL_PRESENT ${retestSummary.STILL_PRESENT||0}</div></div><div style="text-align:center"><div style="width:80px;height:80px;border-radius:50%;background:conic-gradient(${healthCol} ${health.score}%, #1e293b 0);display:grid;place-items:center"><span style="font-weight:800;color:${healthCol}">${health.score}%</span></div></div></div><div style="class="health-bar" style="height:8px;background:#1e293b;border-radius:8px;overflow:hidden;margin-top:8px"><div class="health-fill" style="width:${health.score}%;height:100%;background:${healthCol}"></div>${recentHealth.length>=2 ? `<div class="row mt" style="gap:6px;align-items:center;flex-wrap:wrap;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.18);padding:6px 8px;border-radius:8px"><span class="muted small">Before/after (last 2):</span><span class="mono small" style="font-weight:700">${recentHealth[1].score} &rarr; ${recentHealth[0].score}</span><span class="badge" style="background:${healthColor(recentHealth[0].score)}">${recentHealth[0].score - recentHealth[1].score >=0 ? "+" : ""}${recentHealth[0].score - recentHealth[1].score} pts</span><span class="muted small">${recentHealth[0].score>recentHealth[1].score?"Improved":"Stable"}</span></div>` : ""}</div>`;
     el.innerHTML = `
       ${healthCard}
       <div class="grid kpis mb mt" style="grid-template-columns:repeat(6,1fr)">${heroKpi}${kpis}</div>
@@ -725,7 +725,7 @@
     const body=$view.querySelector("#histBody");
     const cntEl=document.getElementById("histCount");
     let rows=[];
-    try{ rows=await API.get("/assessments"); }catch(e){ body.innerHTML=errorState(e.message, History); return; }
+    try{ rows=await API.get("/assessments?limit=20"); }catch(e){ body.innerHTML=errorState(e.message, History); return; }
     const searchEl=document.getElementById("histSearch");
     function render(){
       const q=(searchEl.value||"").toLowerCase().trim();
@@ -770,7 +770,7 @@
       <div class="card" style="padding:0;overflow:hidden"><div id="repBody" style="padding:16px">${skeletonTable(4)}</div></div>`;
     const body=$view.querySelector("#repBody");
     let rows=[];
-    try{ rows=await API.get("/assessments"); }catch(e){ body.innerHTML=errorState(e.message, Reports); return; }
+    try{ rows=await API.get("/assessments?limit=20"); }catch(e){ body.innerHTML=errorState(e.message, Reports); return; }
     if(!rows.length){
       body.innerHTML=emptyState({icon:"📄", title:"No assessments to report on", hint:"Create and complete an assessment first — only completed runs can generate reports.", action:`<button onclick="location.hash='#/assess/new'">New Assessment</button>`});
       return;
