@@ -1,4 +1,4 @@
-FROM python:3.12-slim AS gobuilder
+FROM python:3.14-slim AS gobuilder
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl git \
     && rm -rf /var/lib/apt/lists/*
 ENV GOVERSION=1.22.5
@@ -12,7 +12,7 @@ RUN cd /src/secrets-scanner && (grep -q "context.Background()" internal/cli/root
 RUN cd /src/bomber && (go build -trimpath -o /out/bomber ./cmd/bomber || go build -trimpath -o /out/bomber.exe ./cmd/bomber)
 RUN mkdir -p /out && ls -lh /out || true
 
-FROM python:3.12-slim
+FROM python:3.14-slim
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt && \
