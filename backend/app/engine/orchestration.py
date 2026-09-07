@@ -800,9 +800,16 @@ def retest_finding(db: Session, finding_id: str, user_email: str) -> dict[str, A
     if successful_scanners == 0 or unsuccessful_scanners > 0:
         finding.retest_status = "INCONCLUSIVE"
         finding.status = "OPEN"
+        finding.lifecycle = "NEW"
     else:
         finding.retest_status = "STILL_PRESENT" if still_present else "FIXED"
         finding.status = "CONFIRMED" if still_present else "RETESTED"
+        # Determine lifecycle: FIXED -> REINTRODUCED if was FIXED before, else FIXED
+        if still_present:
+            finding.lifecycle = "REINTRODUCED" if finding.lifecycle == "FIXED" else "NEW"
+        else:
+            # Check if component changed (MOVED)
+            finding.lifecycle = "FIXED"
     # Preserve existing meta and append retest evidence paths
     base_meta = dict(finding.meta or {})
     base_meta["retest_evidence"] = [d["path"] for d in retest_docs]

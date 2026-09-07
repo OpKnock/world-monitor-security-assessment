@@ -53,6 +53,7 @@ _ASSESSMENT_STATUS_VALUES = ("queued", "running", "completed", "failed", "incomp
 _SCAN_RUN_STATUS_VALUES = ("queued", "running", "completed", "failed", "skipped")
 _FINDING_SEVERITY_VALUES = ("CRITICAL", "HIGH", "MEDIUM", "LOW", "INFORMATIONAL")
 _FINDING_STATUS_VALUES = ("OPEN", "CONFIRMED", "FALSE_POSITIVE", "REMEDIATED", "RETESTED")
+_FINDING_LIFECYCLE_VALUES = ("NEW", "FIXED", "REINTRODUCED", "MOVED", "WONT_FIX", "RISK_ACCEPTED")
 _REPORT_FORMAT_VALUES = ("pdf", "json", "md", "csv")
 
 # ---------------------------------------------------------------------------
@@ -174,6 +175,7 @@ class Finding(Base, TimestampMixin):
     __table_args__ = (
         CheckConstraint(f"severity IN {str(_FINDING_SEVERITY_VALUES)}", name="ck_findings_severity"),
         CheckConstraint(f"status IN {str(_FINDING_STATUS_VALUES)}", name="ck_findings_status"),
+        CheckConstraint(f"lifecycle IN {str(_FINDING_LIFECYCLE_VALUES)}", name="ck_findings_lifecycle"),
         Index("ix_findings_assessment_severity", "assessment_id", "severity"),
         Index("ix_findings_scanner_category", "scanner", "category"),
         Index("ix_findings_status_retest", "status", "retest_status"),
@@ -208,9 +210,13 @@ class Finding(Base, TimestampMixin):
     status: Mapped[str] = mapped_column(String(20), default="OPEN", nullable=False)
     authorized_target: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
+    lifecycle: Mapped[str] = mapped_column(String(20), default="NEW", nullable=False)
+
     retest_status: Mapped[str] = mapped_column(String(30), default="", nullable=False)
     retest_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     retested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    ai_provenance: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
 
     meta: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
 
