@@ -179,23 +179,21 @@
     const isLogin = mode==="login";
     $view.innerHTML = `
       <div class="min-h-[70vh] flex items-center justify-center p-6 bg-paper">
-        <div class="w-full max-w-md bg-card border border-ink/10 p-8" style="animation:fadeUp .6s var(--ease-soft) both">
-          <div class="text-center mb-8">
-            <div class="w-12 h-12 mx-auto bg-ink text-paper grid place-items-center rounded" style="font-family:var(--display);font-weight:600">W</div>
-            <div class="font-display text-xl mt-3">World Monitor</div>
-            <div class="meta-mono text-ash">Security Assessment Platform</div>
-            <span class="inline-flex items-center gap-2 meta-mono text-ash border border-ink/10 px-3 py-1 rounded-full mt-4">${isLogin ? "Sign In" : "Create Account"}</span>
-            <h1 class="font-display text-2xl font-semibold tracking-tight text-ink mt-3">${isLogin ? "Welcome back" : "Create your account"}</h1>
+        <div class="auth-simple w-full max-w-md" style="animation:fadeUp .6s var(--ease-soft) both">
+          <div class="text-center mb-7">
+            <div class="w-logo">W</div>
+            <div class="font-display text-xl mt-3 tracking-tight text-ink">World Monitor</div>
+            <div class="meta-mono" style="font-size:10px;margin-top:4px">Security Assessment Platform</div>
+            <h1 class="font-display text-2xl font-semibold tracking-tight text-ink mt-5">${isLogin ? "Welcome back" : "Create your account"}</h1>
             <p class="text-ash text-sm mt-2">${isLogin ? "Sign in to your security workspace." : "Analyst accounts can run assessments."}</p>
           </div>
           <form id="authForm" novalidate class="space-y-4">
             <div class="field"><label for="email" class="meta-mono">Email</label><input id="email" type="email" name="email" required autocomplete="username" placeholder="you@company.com" aria-describedby="emailHelp"></div>
-              <div class="field"><label for="password" class="meta-mono">Password</label><input id="password" type="password" name="password" required minlength="${isLogin?1:12}" autocomplete="${isLogin?"current-password":"new-password"}" placeholder="${isLogin?"••••••••":"min 12 characters"}" aria-describedby="pwHelp"><div id="pwHelp" class="help" aria-live="polite"></div></div>
-              <button class="w-full bg-ink text-paper hover:bg-ink/90 transition-colors py-3 font-medium" type="submit">${isLogin ? "Sign in" : "Create account"}</button>
-              <div class="err" id="authErr" role="alert" aria-live="polite"></div>
-            </form>
-            <p class="meta-mono text-ash/60 text-center mt-6">Secure workspace — authorized assessment only</p>
-          </div>
+            <div class="field"><label for="password" class="meta-mono">Password</label><input id="password" type="password" name="password" required minlength="${isLogin?1:12}" autocomplete="${isLogin?"current-password":"new-password"}" placeholder="${isLogin?"••••••••":"min 12 characters"}" aria-describedby="pwHelp"><div id="pwHelp" class="help" aria-live="polite"></div></div>
+            <button class="w-full bg-ink text-paper hover:bg-ink/90 transition-colors py-3 font-medium" type="submit">${isLogin ? "Sign in" : "Create account"}</button>
+            <div class="err" id="authErr" role="alert" aria-live="polite"></div>
+          </form>
+          <p class="meta-mono text-center mt-6" style="font-size:10px;color:hsl(var(--ash)/0.6)">Secure workspace — authorized assessment only</p>
         </div>
       </div>`;
     const tgAuth = document.getElementById("tgAuth"); if (tgAuth) tgAuth.onclick = e=>{ e.preventDefault(); AuthScreen(isLogin ? "register" : "login"); };
@@ -309,90 +307,82 @@
     }
   }
 
-  /* ═══════════ WELCOME (Apex e219a5 replica, beautiful minimal) ═══════════ */
+  /* ═══════════ WELCOME — 7-5 lab exact, clamp 3.5rem 9vw 8.5rem leading 0.90, study/surface italic, imageReveal 1.2s saturate 0.12 ═══════════ */
   function Welcome(){
     const today = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"}).toUpperCase();
     setBreadcrumb([{label:"Welcome"}]);
     $view.innerHTML = `
-      <div class="bg-paper min-h-screen">
-        <div class="container-editorial pt-6 sm:pt-8">
-          <div class="grid grid-cols-12 gap-x-4 sm:gap-x-6 items-baseline meta-mono text-ash border-b border-ink/15 pb-3">
-            <span class="col-span-3 sm:col-span-2 text-ink font-bold">World Monitor Security Assessment</span>
+      <div class="bg-paper">
+        <div class="container-editorial pt-6 sm:pt-7">
+          <div class="grid grid-cols-12 gap-x-4 sm:gap-x-6 items-baseline meta-mono border-b border-ink/15 pb-3">
+            <span class="col-span-3 sm:col-span-4 text-ink font-bold" style="letter-spacing:-0.01em">World Monitor Security Assessment</span>
             <span class="hidden sm:block sm:col-span-2 text-ink/70">Vol. I</span>
-            <span class="hidden md:block md:col-span-3 text-ink/70">Independent · Security · Editorial</span>
-            <span class="col-span-9 sm:col-span-5 md:col-span-5 text-right text-ink">${esc(today)}</span>
+            <span class="hidden md:block md:col-span-3 text-ink/60">Independent · Security · Editorial</span>
+            <span class="col-span-9 sm:col-span-6 md:col-span-3 text-right text-ink">${esc(today)}</span>
           </div>
         </div>
-        <div class="container-editorial pt-10 sm:pt-14 lg:pt-16 pb-12">
-          <div class="grid grid-cols-12 gap-8 lg:gap-12">
-            <div class="col-span-12 lg:col-span-7">
+        <div class="container-editorial pt-10 sm:pt-12 lg:pt-14 pb-10">
+          <div class="welcome-grid grid">
+            <div class="col-span-12 lg:col-span-7 flex flex-col gap-8">
               <div class="flex items-center gap-4" style="animation:fadeUp .6s var(--ease-soft) both">
-                <span class="meta-mono text-ash">Issue 01 — Platform</span><span class="block h-px w-10 bg-ink/30"></span><span class="label-eyebrow">the surface, the signal, the fix</span>
+                <span class="meta-mono" style="color:hsl(var(--ash))">Issue 01 — Platform</span><span class="block h-px w-10 bg-ink/20"></span><span class="label-eyebrow">the surface, the signal, the fix</span>
               </div>
-              <h1 class="font-display text-[clamp(3.5rem,10vw,9rem)] leading-[0.88] tracking-[-0.04em] text-ink mt-8" style="animation:fadeUp .8s var(--ease-soft) .08s both">A continuous<br><span class="display-italic text-ink/60">study</span> of your<br>attack <span class="display-italic text-ink/60">surface.</span></h1>
-              <p class="text-[16px] leading-relaxed text-ash max-w-2xl mt-8" style="animation:fadeUp .6s var(--ease-soft) .14s both">World Monitor is a <span class="text-ink font-medium">continuous study</span> of your attack surface — not a scanner. We detect, verify, score and remediate with <span class="text-ink font-medium">fail-closed</span> gates and paper-trail evidence.</p>
-              <p class="text-[14px] leading-relaxed text-ash/80 max-w-2xl mt-4" style="animation:fadeUp .6s var(--ease-soft) .18s both">A neat, clean and professional editorial for engineering teams who care about the difference between a scan and a decision. Every assessment is authorized, every finding has provenance, every report is retetable.</p>
-              <div class="flex flex-wrap gap-4 mt-10" style="animation:fadeUp .6s var(--ease-soft) .22s both">
-                <a href="#/dashboard" class="px-8 py-4 bg-ink text-paper hover:bg-ink/90 transition-all hover:translate-y-[-1px] hover:shadow-lg text-base font-medium">Enter Home →</a>
-                <a href="#/assess/new" class="px-8 py-4 border border-ink text-ink hover:bg-ink hover:text-paper transition-all text-base font-medium">Commission Assessment</a>
+              <h1 class="welcome-hero-title" style="animation:fadeUp .85s var(--ease-soft) .08s both">A continuous<br><span class="display-italic">study</span> of your<br>attack <span class="display-italic">surface.</span></h1>
+              <p class="text-[15px] leading-[1.7] text-ash max-w-xl" style="animation:fadeUp .6s var(--ease-soft) .14s both">World Monitor is a <span class="text-ink font-medium">continuous study</span> of your attack surface — not a scanner. We detect, verify, score and remediate with <span class="text-ink font-medium">fail-closed</span> gates and paper-trail evidence.</p>
+              <p class="text-[13px] leading-[1.7] text-ash/80 max-w-xl" style="animation:fadeUp .6s var(--ease-soft) .16s both">A continuous study of your attack surface. A neat, clean editorial for engineering teams who care about the difference between a scan and a decision. Every assessment is authorized, every finding has provenance, every report is retetable.</p>
+              <div class="flex flex-wrap gap-3 mt-1" style="animation:fadeUp .6s var(--ease-soft) .20s both">
+                <a href="#/dashboard" class="inline-flex items-center gap-2 px-7 py-3.5 bg-ink text-paper hover:bg-ink/85 transition-all hover:-translate-y-px hover:shadow-md text-[14px] font-medium tracking-tight">Enter Home →</a>
+                <a href="#/assess/new" class="inline-flex items-center gap-2 px-7 py-3.5 border border-ink text-ink hover:bg-ink hover:text-paper transition-colors text-[14px] font-medium tracking-tight">Commission</a>
               </div>
-              <div class="grid grid-cols-3 gap-6 mt-10 pt-8 border-t border-ink/15 max-w-xl" style="animation:fadeUp .6s var(--ease-soft) .28s both">
-                <div><div class="font-display text-2xl text-ink">46</div><div class="meta-mono text-ash text-xs">Tests passing</div></div>
-                <div><div class="font-display text-2xl text-ink">8</div><div class="meta-mono text-ash text-xs">Modules</div></div>
-                <div><div class="font-display text-2xl text-ink">MMXXIV</div><div class="meta-mono text-ash text-xs">Established</div></div>
+              <div class="grid grid-cols-3 gap-6 pt-6 border-t border-ink/10 max-w-xl" style="animation:fadeUp .6s var(--ease-soft) .26s both">
+                <div><div class="font-display text-2xl text-ink leading-none">46</div><div class="meta-mono mt-1.5" style="font-size:10px">Tests passing</div></div>
+                <div><div class="font-display text-2xl text-ink leading-none">8</div><div class="meta-mono mt-1.5" style="font-size:10px">Modules</div></div>
+                <div><div class="font-display text-2xl text-ink leading-none">MMXXIV</div><div class="meta-mono mt-1.5" style="font-size:10px">Established</div></div>
               </div>
             </div>
             <div class="col-span-12 lg:col-span-5">
-              <div class="aspect-[3/4] relative overflow-hidden bg-bone border border-ink/10" style="animation:imageReveal 1.2s var(--ease-editorial) .15s both">
-                <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1000&q=80" alt="Security editorial" class="absolute inset-0 w-full h-full object-cover" loading="lazy" style="filter: saturate(0.1) contrast(1.1) brightness(0.95)">
-                <div class="absolute inset-0 bg-gradient-to-t from-ink/30 via-transparent to-transparent"></div>
-                <div class="absolute bottom-0 left-0 right-0 bg-paper/95 backdrop-blur-sm border-t border-ink/15 p-6">
-                  <div class="meta-mono text-ash text-xs">Security Study</div>
-                  <div class="font-display text-base text-ink">Threat Surface — <span class="display-italic">Production, Worldwide</span></div>
+              <div class="welcome-image-wrap">
+                <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1000&q=80" alt="Security Study — Threat Surface" loading="eager">
+                <div class="absolute bottom-0 left-0 right-0 bg-paper/94 backdrop-blur-[6px] border-t border-ink/10 px-5 py-4 flex flex-col gap-1">
+                  <span class="meta-mono" style="font-size:10px;letter-spacing:0.08em">Security Study — Threat Surface, Production, Worldwide</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
         <div class="container-editorial"><div class="editorial-rule"></div></div>
-        <div class="container-editorial py-10">
-          <div class="grid grid-cols-12 gap-8 text-sm leading-relaxed">
-            <div class="col-span-12 md:col-span-4"><div class="label-eyebrow">01 — Detect</div><p class="text-ash mt-3">Twelve scanners — authentication, authorization, headers, TLS, secrets, supply-chain — normalize to a canonical finding schema with CVSS 3.1 and fingerprint.</p></div>
-            <div class="col-span-12 md:col-span-4"><div class="label-eyebrow">02 — Verify</div><p class="text-ash mt-3">Evidence is masked, files are jailed, DNS is pinned. Every finding carries provenance, not AI hallucination.</p></div>
-            <div class="col-span-12 md:col-span-4"><div class="label-eyebrow">03 — Decide</div><p class="text-ash mt-3">Fail-closed gates: <span class="text-ink font-medium">BLOCKED</span> until health, findings and scans pass. Retest until <span class="text-ink font-medium">FIXED</span>.</p></div>
+        <div class="container-editorial py-8">
+          <div class="grid grid-cols-12 gap-6 text-[13px] leading-relaxed">
+            <div class="col-span-12 md:col-span-4"><div class="label-eyebrow">01 — Detect</div><p class="text-ash mt-2.5">Twelve scanners — authentication, authorization, headers, TLS, secrets, supply-chain — normalize to a canonical finding schema with CVSS 3.1 and fingerprint.</p></div>
+            <div class="col-span-12 md:col-span-4"><div class="label-eyebrow">02 — Verify</div><p class="text-ash mt-2.5">Evidence is masked, files are jailed, DNS is pinned. Every finding carries provenance, not AI hallucination.</p></div>
+            <div class="col-span-12 md:col-span-4"><div class="label-eyebrow">03 — Decide</div><p class="text-ash mt-2.5">Fail-closed gates: <span class="text-ink font-medium">BLOCKED</span> until health, findings and scans pass. Retest until <span class="text-ink font-medium">FIXED</span>.</p></div>
           </div>
         </div>
       </div>`;
   }
 
-/* ═══════════ DASHBOARD (Home) — health, circle graphs ranked, history scroll only ═══════════ */
+/* ═══════════ DASHBOARD (Home) — full single screen, health/circle/history, no extra scroll ═══════════ */
   async function Dashboard(){
     const today = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"}).toUpperCase();
     setBreadcrumb([{label:"Home"}]);
     $view.innerHTML = `
       <div id="dashBody" class="bg-paper">
-        <!-- meta bar like HomePage -->
-        <div class="container-editorial pt-6 sm:pt-8">
-          <div class="grid grid-cols-12 gap-x-4 sm:gap-x-6 items-baseline meta-mono text-ash border-b border-ink/15 pb-3">
-            <span class="col-span-3 sm:col-span-4 text-ink font-bold">World Monitor Security Assessment</span>
-            <span class="hidden sm:block sm:col-span-3 text-ink/70">Vol. I — Home</span>
-            <span class="hidden md:block md:col-span-2 text-ink/70">Security · Editorial</span>
-            <span class="col-span-9 sm:col-span-3 md:col-span-3 text-right text-ink">${esc(today)}</span>
+        <div class="container-editorial pt-6 sm:pt-7">
+          <div class="dash-meta grid grid-cols-12 gap-x-4 sm:gap-x-6 items-baseline meta-mono">
+            <span class="col-span-3 sm:col-span-4 text-ink font-bold" style="font-size:11px;letter-spacing:-0.01em">World Monitor Security Assessment</span>
+            <span class="hidden sm:block sm:col-span-3 text-ink/60">Vol. I — Home</span>
+            <span class="hidden md:block md:col-span-2 text-ink/60">Security · Editorial</span>
+            <span class="col-span-9 sm:col-span-5 md:col-span-3 text-right text-ink" style="font-size:11px">${esc(today)}</span>
           </div>
         </div>
-        <div class="container-editorial pt-8 pb-2">
-          <div class="flex items-baseline gap-4">
-            <span class="meta-mono">Home — Dashboard</span><span class="block h-px w-10 bg-ink/20"></span><span class="label-eyebrow">health · ranking · history</span>
+        <div class="container-editorial pt-5 pb-6">
+          <div class="dash-title-row" style="animation:fadeUp .5s var(--ease-soft) both">
+            <span class="meta-mono" style="color:hsl(var(--ash))">Home — Dashboard</span><span class="block h-px w-10 bg-ink/15"></span><span class="label-eyebrow" style="font-size:10px">health · ranking · history</span>
           </div>
-        </div>
-        <div class="container-editorial">
-          <div class="flex items-baseline gap-4 mb-6" style="animation:fadeUp .6s var(--ease-soft) .1s both">
-            <span class="meta-mono">Home</span><span class="block h-px w-10 bg-ink/20"></span><span class="label-eyebrow">Overview — circle graphs · findings · assessments</span>
-          </div>
-          <div class="editorial-rule mb-8"></div>
-          <div class="metrics-grid" id="metricsGrid">${skeletonKpis()}${skeletonCards(2)}</div>
-          <div class="cards-grid" id="cardsGrid"><div class="skeleton sk-card"></div><div class="skeleton sk-card"></div></div>
-          <div class="card mt">${skeletonTable(4)}</div>
+          <div class="editorial-rule mt-4 mb-6"></div>
+          <div id="metricsGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-5">${skeletonCards(2)}</div>
+          <div id="kpiGrid" class="kpis mt-5">${skeletonKpis()}</div>
+          <div id="dashCards" class="dash-cards grid mt-5"><div class="skeleton sk-card"></div><div class="skeleton sk-card"></div></div>
         </div>
       </div>`;
     const el=$view.querySelector("#dashBody");
@@ -418,31 +408,24 @@
     }).join("");
     const heroKpi = `<div class="kpi total" role="status" aria-label="Total findings ${total}"><b>${total}</b><small>TOTAL FINDINGS</small><span class="kpi-sub">${recent.length} recent assessments</span></div>`;
     
-    const healthCard = `<div class="card health-hero" style="border:1px solid hsl(var(--border))">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="meta-mono text-ash text-sm mb-1">SECURITY HEALTH</div>
-          <div class="flex items-baseline gap-3">
-            <span style="font-size:42px;font-weight:800;color:${healthCol};font-family:var(--display)">${health.score}</span>
-            <span class="text-ash text-xl">/100</span>
-            <span class="badge" style="background:${healthCol};color:white">${healthLabel}</span>
+    const healthCard = `<div class="card health-hero">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+        <div style="flex:1;min-width:0">
+          <div class="meta-mono" style="font-size:10px;letter-spacing:0.12em;color:hsl(var(--ash));margin-bottom:8px">SECURITY HEALTH</div>
+          <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+            <span class="health-number">${health.score}</span>
+            <span style="font-size:16px;color:hsl(var(--ash));font-weight:500">/100</span>
+            <span class="badge" style="background:${healthCol};color:#fff;border-color:${healthCol};font-size:10px;padding:4px 10px">${healthLabel}</span>
           </div>
-          <div class="meta-mono text-ash mt-1">Penalty ${health.penalty} | ${total} findings</div>
-        </div>
-        <div class="text-center">
-          <div style="width:100px;height:100px;border-radius:50%;background:conic-gradient(${healthCol} ${health.score}%, hsl(var(--bone)) 0%);display:grid;place-items:center;border:2px solid hsl(var(--border))">
-            <span style="font-weight:800;color:${healthCol};font-family:var(--display)">${health.score}%</span>
-          </div>
+          <div class="meta-mono" style="font-size:10px;color:hsl(var(--ash));margin-top:6px">Penalty ${health.penalty} · ${total} findings</div>
         </div>
       </div>
-      <div class="health-bar mt-4" style="height:8px;background:hsl(var(--bone));border-radius:99px;overflow:hidden;border:1px solid hsl(var(--border))">
-        <div class="health-fill" style="width:${health.score}%;height:100%;background:${healthCol};transition:width 1.2s var(--ease-soft)"></div>
-      </div>
-      ${recentHealth.length>=2 ? `<div class="row mt-4" style="gap:8px;align-items:center;flex-wrap:wrap;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.18);padding:8px 12px;border-radius:8px">
-        <span class="meta-mono text-sm">Before/after (last 2):</span>
-        <span class="mono small font-bold">${recentHealth[1].score} → ${recentHealth[0].score}</span>
-        <span class="badge" style="background:${healthColor(recentHealth[0].score)}">${recentHealth[0].score - recentHealth[1].score >=0 ? "+" : ""}${recentHealth[0].score - recentHealth[1].score} pts</span>
-        <span class="muted small">${recentHealth[0].score>recentHealth[1].score?"Improved":"Stable"}</span>
+      <div class="health-bar" style="margin-top:16px"><div class="health-fill" style="width:${health.score}%;background:${healthCol}"></div></div>
+      ${recentHealth.length>=2 ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;padding:8px 12px;background:hsl(var(--bone)/0.6);border:1px solid hsl(var(--border));border-radius:6px">
+        <span class="meta-mono" style="font-size:10px">Before/after (last 2):</span>
+        <span class="mono" style="font-size:12px;font-weight:700;color:hsl(var(--ink))">${recentHealth[1].score} → ${recentHealth[0].score}</span>
+        <span class="badge" style="background:${healthColor(recentHealth[0].score)};color:#fff;font-size:10px">${recentHealth[0].score - recentHealth[1].score >=0 ? "+" : ""}${recentHealth[0].score - recentHealth[1].score} pts</span>
+        <span class="muted" style="font-size:11px">${recentHealth[0].score>recentHealth[1].score?"Improved":"Stable"}</span>
       </div>` : ""}
     </div>`;
     
@@ -454,78 +437,53 @@
     const riskHealth = releaseRisk.health || health.score;
     const riskHasIncomplete = releaseRisk.has_incomplete || false;
     const riskHasFailed = releaseRisk.has_failed || false;
-    const riskColor = riskStatus === "BLOCKED" ? "var(--crit)" : riskStatus === "APPROVED" ? "var(--ok)" : "var(--warn)";
+    const riskColor = riskStatus === "BLOCKED" ? "hsl(var(--destructive))" : riskStatus === "APPROVED" ? "hsl(142 70% 35%)" : "hsl(var(--ash))";
     const riskLabel = riskStatus === "BLOCKED" ? "BLOCKED" : riskStatus === "APPROVED" ? "APPROVED" : "PENDING";
     const policy = releaseRisk.policy || {};
 
-    const releaseHero = `<div class="card release-hero" style="border:1px solid ${riskColor}33">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="meta-mono text-ash text-sm mb-1">RELEASE SECURITY GATE</div>
-          <div class="flex items-baseline gap-3">
-            <span style="font-size:42px;font-weight:800;color:${riskColor};font-family:var(--display)">${riskScore}</span>
-            <span class="text-ash text-xl">/100</span>
-            <span class="badge" style="background:${riskColor};color:white">${riskLabel}</span>
+    const releaseHero = `<div class="card release-hero" style="border-color:${riskStatus==="BLOCKED" ? "hsl(var(--destructive)/0.25)" : riskStatus==="APPROVED" ? "hsl(142 70% 35% /0.22)" : "hsl(var(--border))"}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+        <div style="flex:1;min-width:0">
+          <div class="meta-mono" style="font-size:10px;letter-spacing:0.12em;color:hsl(var(--ash));margin-bottom:8px">RELEASE SECURITY GATE</div>
+          <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+            <span class="health-number">${riskScore}</span>
+            <span style="font-size:16px;color:hsl(var(--ash));font-weight:500">/100</span>
+            <span class="badge" style="background:${riskColor};color:#fff;border-color:${riskColor};font-size:10px;padding:4px 10px">${riskLabel}</span>
           </div>
-          <div class="meta-mono text-ash mt-1">Health ${riskHealth}/100 ${riskHasIncomplete ? " · INCOMPLETE" : ""}${riskHasFailed ? " · FAILED" : ""}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="width:100px;height:100px;border-radius:50%;background:conic-gradient(${riskColor} ${riskScore}%, hsl(var(--bone)) 0%);display:grid;place-items:center;border:2px solid hsl(var(--border))">
-            <span style="font-weight:800;color:${riskColor};font-family:var(--display)">${riskScore}%</span>
-          </div>
+          <div class="meta-mono" style="font-size:10px;color:hsl(var(--ash));margin-top:6px">Health ${riskHealth}/100${riskHasIncomplete ? " · INCOMPLETE" : ""}${riskHasFailed ? " · FAILED" : ""}</div>
         </div>
       </div>
-      <div class="health-bar mt-4" style="height:8px;background:hsl(var(--bone));border-radius:99px;overflow:hidden;border:1px solid hsl(var(--border))">
-        <div class="health-fill" style="width:${riskScore}%;height:100%;background:${riskColor};transition:width 1.2s var(--ease-soft)"></div>
+      <div class="health-bar" style="margin-top:16px"><div class="health-fill" style="width:${riskScore}%;background:${riskColor}"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;align-items:center">
+        <span class="meta-mono" style="font-size:10px">Policy:</span>
+        ${Object.entries(policy).length ? Object.entries(policy).map(([k,v])=>`<span class="badge" style="background:hsl(var(--paper));border:1px solid hsl(var(--border));color:hsl(var(--ink));font-size:10px">${esc(k)}: ${esc(String(v))}</span>`).join("") : `<span class="muted" style="font-size:11px">—</span>`}
       </div>
-      <div class="flex flex-wrap gap-3 mt-4">
-        <span class="meta-mono text-sm">Policy:</span>
-        ${Object.entries(policy).map(([k,v])=>`<span class="badge" style="background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3)">${k}: ${v}</span>`).join("")}
-      </div>
-      <div class="flex flex-wrap gap-3 mt-3">
-        <span class="meta-mono text-sm">Reasons:</span>
-        ${riskReason.split("; ").map(r=>`<span class="badge" style="background:${riskColor}22;border:1px solid ${riskColor}44">${r}</span>`).join("")}
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center">
+        <span class="meta-mono" style="font-size:10px">Reasons:</span>
+        ${riskReason.split("; ").map(r=>`<span class="badge" style="background:hsl(var(--paper));border:1px solid hsl(var(--border));color:hsl(var(--ink));font-size:10px">${esc(r.trim())}</span>`).join("")}
       </div>
     </div>`;
 
     const metricsGrid = document.getElementById("metricsGrid");
-    metricsGrid.innerHTML = `
-      ${healthCard}
-      ${releaseHero}
-      <div class="grid kpis mb mt" style="grid-template-columns:repeat(6,1fr)">${heroKpi}${kpis}</div>
-    `;
+    if(metricsGrid) metricsGrid.innerHTML = healthCard + releaseHero;
 
-    const cardsGrid = document.getElementById("cardsGrid");
-    cardsGrid.innerHTML = `
-      <div class="card"><div class="row spread"><strong>Distribution</strong><span class="badge">${total} total</span></div>
-        <div class="row mt" style="justify-content:center;min-height:180px">${Charts.donut(counts)}</div>
+    const kpiGrid = document.getElementById("kpiGrid");
+    if(kpiGrid) kpiGrid.innerHTML = heroKpi + kpis;
+
+    const dashCards = document.getElementById("dashCards");
+    if(dashCards) dashCards.innerHTML = `
+      <div class="card"><div class="row spread"><strong style="font-size:13px">Distribution</strong><span class="badge" style="font-size:10px">${total} total</span></div>
+        <div class="row mt" style="justify-content:center;min-height:160px">${Charts.donut(counts)}</div>
         <div class="row mt" style="gap:8px;flex-wrap:wrap;justify-content:center">
-          ${SEV.map(s=> `<span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-3)"><i style="width:10px;height:10px;border-radius:50%;background:${SEV_COLOR[s]};display:inline-block" aria-hidden="true"></i>${s} <strong style="color:var(--text-1)">${counts[s]??0}</strong></span>`).join("")}
+          ${SEV.map(s=> `<span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:hsl(var(--ash))"><i style="width:8px;height:8px;border-radius:50%;background:${SEV_COLOR[s]};display:inline-block" aria-hidden="true"></i>${esc(s)} <strong style="color:hsl(var(--ink))">${counts[s]??0}</strong></span>`).join("")}
         </div>
       </div>
-      <div class="card"><div class="row spread"><strong>Posture by category</strong><span class="muted small">${Object.keys(categories).length} categories</span></div><div class="mt">${Charts.catBars(categories)}</div></div>
-      <div class="card"><div class="row spread"><strong>New Assessment</strong><span class="meta-mono text-ash text-sm">Commission a new scan</span></div><div class="mt-4"><button onclick="location.hash='#/assess/new'" class="w-full bg-ink text-paper py-3 font-medium hover:bg-ink/90 transition-all hover:translate-y-[-1px] hover:shadow-lg text-base font-medium">Commission Assessment →</button></div></div>
-      <div class="card"><div class="row spread"><strong>History</strong><button class="ghost tiny" onclick="location.hash='#/history'">View all →</button></div><div class="mt-4 space-y-3" style="max-height:200px;overflow-y:auto">
-        ${recent.length ? recent.slice(0,5).map(a=> `<div class="flex items-center gap-3 p-3 bg-card/50 border border-ink/10 rounded-lg hover:bg-card/80 transition-colors cursor-pointer" onclick="location.hash='#/assessment/${esc(a.id)}'"><div class="w-10 h-10 rounded-full bg-ink/10 flex items-center justify-center"><span class="text-ink font-medium">${(a.modules||[])[0]?.[0]?.toUpperCase()||"🔍"}</span></div><div class="flex-1 min-w-0"><p class="text-sm font-medium text-ink truncate">${esc(a.target)}</p><p class="text-xs text-ash">${a.modules?.slice(0,2).join(", ")||"No modules"}</p></div><div class="text-right"><span class="badge" style="background:${healthColor(healthMap[a.id]??50)};color:#fff">${healthMap[a.id]??"?"}</span><span class="meta-mono text-xs ml-2">${a.created_at ? new Date(a.created_at).toLocaleDateString() : "—"}</span></div></div>`).join("") : `<div class="text-center py-8 text-ash">No recent assessments</div>`}
-      </div>
+      <div class="card"><div class="row spread"><strong style="font-size:13px">Posture by category</strong><span class="muted" style="font-size:11px">${Object.keys(categories).length} categories</span></div><div class="mt" style="display:flex;flex-direction:column;gap:4px">${Charts.catBars(categories)}</div></div>
+      <div class="card" style="display:flex;flex-direction:column"><div class="row spread"><strong style="font-size:13px">New Assessment</strong><span class="meta-mono" style="font-size:10px">Commission a new scan</span></div><p class="muted small mt" style="font-size:12px;line-height:1.5">Start an authorized assessment against a loopback target or source tree. Evidence is masked, files jailed, DNS pinned.</p><div style="margin-top:auto;padding-top:16px"><button onclick="location.hash='#/assess/new'" class="w-full bg-ink text-paper py-3 font-medium hover:bg-ink/90 transition-colors" style="font-size:14px">Commission Assessment →</button></div></div>
+      <div class="card"><div class="row spread"><strong style="font-size:13px">History</strong><button class="ghost tiny" onclick="location.hash='#/history'" style="font-size:11px">View all →</button></div><div class="history-preview mt-3" style="display:flex;flex-direction:column;gap:8px">
+        ${recent.length ? recent.slice(0,5).map(a=> `<div class="flex items-center gap-3 p-3 bg-paper border border-ink/10 hover:bg-bone/50 transition-colors cursor-pointer" style="border-radius:6px" onclick="location.hash='#/assessment/${esc(a.id)}'"><div style="width:36px;height:36px;border-radius:50%;background:hsl(var(--bone));display:grid;place-items:center;flex-shrink:0"><span style="font-size:11px;font-weight:700;color:hsl(var(--ink))">${esc((a.modules||[])[0]?.[0]?.toUpperCase()||"—")}</span></div><div class="flex-1 min-w-0"><p style="font-size:13px;font-weight:500;color:hsl(var(--ink));white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.target)}</p><p style="font-size:11px;color:hsl(var(--ash))">${esc((a.modules||[]).slice(0,2).join(", ")||"No modules")}</p></div><div style="text-align:right;flex-shrink:0"><span class="badge" style="background:${healthColor(healthMap[a.id]??50)};color:#fff;font-size:10px;padding:3px 8px">${healthMap[a.id]??"?"}</span><div class="meta-mono" style="font-size:10px;margin-top:4px">${a.created_at ? new Date(a.created_at).toLocaleDateString() : "—"}</div></div></div>`).join("") : `<div class="text-center py-8 muted small">No recent assessments — commission one.</div>`}
+      </div></div>
     `;
-
-    
-    const tableContainer = el.querySelector(".card.mt:last-child");
-    if (tableContainer) {
-      tableContainer.innerHTML = `
-        <div class="row spread"><strong>Recent assessments</strong><button class="ghost tiny" onclick="location.hash='#/history'">View history →</button></div>
-        ${recent.length ? `<div class="table-wrap mt"><table><thead><tr><th>Target</th><th>Health</th><th>Status</th><th>Modules</th><th>Created</th><th></th></tr></thead><tbody>
-          ${recent.map(a=> `<tr class="click" onclick="location.hash='#/assessment/${esc(a.id)}'">
-            <td class="mono" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${targetChip(a.target)} <span title="${esc(a.target)}">${esc(a.target.length>42 ? a.target.slice(0,42)+"…" : a.target)}</span></td>
-            <td><span class="badge" style="background:${healthColor(healthMap[a.id]??50)};color:#fff">${healthMap[a.id]??"?"}</span></td>
-            <td><span class="status ${esc(a.status)}">${esc(a.status)}</span></td>
-            <td class="muted small" title="${esc((a.modules||[]).join(", "))}">${esc((a.modules||[]).slice(0,3).join(", "))}${(a.modules||[]).length>3?" +"+((a.modules||[]).length-3):""}</td>
-            <td class="muted small mono">${a.created_at ? new Date(a.created_at).toLocaleString() : "—"}</td><td style="color:var(--text-3)" aria-hidden="true">›</td></tr>`).join("")}
-        </tbody></table></div>`
-        : emptyState({icon:"◈", title:"No assessments yet", hint:"Create your first authorized assessment to populate the security posture overview.", action:`<button onclick="location.hash='#/assess/new'">Create assessment</button>`})}
-      `;
-    }
   }
 
   function targetChip(target){

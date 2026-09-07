@@ -100,7 +100,7 @@ img,svg{display:block;max-width:100%}
 .scrim.hidden{display:none!important}
 .scrim{position:fixed;inset:0;background:hsl(var(--ink)/0.2);backdrop-filter:blur(4px);z-index:30}
 
-/* Dock — auto-hide like Mac, appears on mouse near left */
+/* Dock — auto-hide like Mac, 64px collapsed left:12px top:50% opacity 0.45, expands 240px */
 #dockTrigger{position:fixed;left:0;top:0;bottom:0;width:18px;z-index:35;pointer-events:auto}
 #sidebar.dock{
   position:fixed;left:12px;top:50%;transform:translateY(-50%) translateX(-8px);
@@ -108,12 +108,12 @@ img,svg{display:block;max-width:100%}
   background:hsl(var(--paper) / 0.95);backdrop-filter:blur(24px) saturate(1.4);
   border:1px solid hsl(var(--ink)/0.12);border-radius:20px;
   box-shadow:0 16px 50px hsl(var(--ink)/0.18), 0 2px 8px hsl(var(--ink)/0.1);
-  padding:14px 12px;opacity:0.4;transition:all 0.55s cubic-bezier(0.22,1,0.36,1);
+  padding:14px 12px;opacity:0.45;transition:all 0.55s cubic-bezier(0.22,1,0.36,1);
   pointer-events:auto;
 }
 #sidebar.dock:hover, #sidebar.dock.dock-open, #dockTrigger:hover + #sidebar.dock{
   transform:translateY(-50%) translateX(0);
-  width:260px;opacity:1;
+  width:240px;opacity:1;
   background:hsl(var(--paper));box-shadow:0 24px 70px hsl(var(--ink)/0.2);
 }
 .dock-inner{display:flex;flex-direction:column;gap:12px;align-items:center}
@@ -134,9 +134,9 @@ img,svg{display:block;max-width:100%}
 .dock-item:hover svg{opacity:1}
 .dock-item.active{background:hsl(var(--bone));color:hsl(var(--ink));border:1px solid hsl(var(--ink)/0.18)}
 .dock-item.active svg{opacity:1;color:hsl(var(--ink))}
-/* bubble animation like Mac dock */
+/* bubble animation like Mac dock — scale 1.22 per spec */
 .dock-item{transition:all .45s cubic-bezier(0.34,1.56,0.64,1);transform-origin:center bottom}
-.dock-item:hover{transform:scale(1.25) translateY(-5px);box-shadow:0 10px 32px hsl(var(--ink)/0.18);z-index:4}
+.dock-item:hover{transform:scale(1.22) translateY(-5px);box-shadow:0 10px 32px hsl(var(--ink)/0.18);z-index:4}
 .dock-nav:hover .dock-item:not(:hover){transform:scale(0.88);opacity:.75}
 .dock-item:active{transform:scale(0.92)}
 .dock-foot{margin-top:16px;padding-top:16px;border-top:1px solid hsl(var(--ink)/0.12);display:flex;flex-direction:column;gap:12px;align-items:center;width:100%}
@@ -159,13 +159,14 @@ img,svg{display:block;max-width:100%}
 .dock-login:hover{background:hsl(var(--ink)/0.9)}
 @media(max-width:1024px){#sidebar.dock{display:none} #dockTrigger{display:none}}
 
-/* Header exact replica */
+/* Header exact replica — 28px star grunge, font-extrabold, Commission border-ink, no black */
 #topHeader .font-display{font-family:"Fraunces",serif}
 #topHeader nav a{position:relative}
 #topHeader nav a.active{color:hsl(var(--oxblood))}
 #topHeader nav a.active .meta-mono{color:hsl(var(--oxblood))}
 #topHeader nav a.active::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:1px;background:hsl(var(--ink));transform:scaleX(1)}
-#mobileNav a{font-family:"Inter Tight",sans-serif;font-size:15px}
+#mobileNav{background:hsl(var(--paper))!important;border-top:1px solid hsl(var(--ink)/0.10)}
+#mobileNav a{font-family:"Inter Tight",sans-serif;font-size:15px;color:hsl(var(--ink))}
 #mobileNav a .meta-mono{color:hsl(var(--ash))}
 
 /* Header logo bold */
@@ -181,6 +182,8 @@ img,svg{display:block;max-width:100%}
 #topHeader .text-paper{color:hsl(var(--paper))}
 #topHeader .hover\:bg-ink:hover{background:hsl(var(--ink)/0.9)}
 #topHeader .hover\:text-paper:hover{color:hsl(var(--paper))}
+#topHeader #headerCommissionBtn{border:1px solid hsl(var(--ink));color:hsl(var(--ink));background:transparent}
+#topHeader #headerCommissionBtn:hover{background:hsl(var(--ink));color:hsl(var(--paper))}
 
 /* Remove menu button from dashboard - only show on mobile */
 #menuBtn{display:none}
@@ -327,3 +330,40 @@ button:active:not(:disabled),.btn:active:not(:disabled){transform:translateY(0)}
 .bg-paper{background:hsl(var(--paper))}.text-ink{color:hsl(var(--ink))}.text-ash{color:hsl(var(--ash))}.border-ink\/10{border-color:hsl(var(--ink)/0.1)}.border-ink\/15{border-color:hsl(var(--ink)/0.15)}.bg-ink{background:hsl(var(--ink))}.text-paper{color:hsl(var(--paper))}
 .font-display{font-family:"Fraunces",serif}
 .meta-mono{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:hsl(var(--ash))}
+
+/* === Professional Welcome exact like lab 7-5 — clamp(3.5rem,9vw,8.5rem) leading 0.90 === */
+.welcome-hero-title{font-family:"Fraunces",serif;font-size:clamp(3.5rem,9vw,8.5rem);line-height:0.90;letter-spacing:-0.04em;color:hsl(var(--ink));text-wrap:balance}
+.welcome-hero-title .display-italic{font-family:"Fraunces",serif;font-style:italic;font-weight:300;color:hsl(var(--ink)/0.62)}
+.welcome-grid{grid-template-columns:repeat(12,1fr);gap:40px}
+@media(max-width:1024px){.welcome-grid{grid-template-columns:1fr;gap:32px}}
+.welcome-image-wrap{aspect-ratio:3/4;position:relative;overflow:hidden;background:hsl(var(--bone));border:1px solid hsl(var(--ink)/0.10);animation:imageReveal 1.2s cubic-bezier(0.7,0,0.2,1) .15s both}
+.welcome-image-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(0.12) contrast(1.08) brightness(0.96)}
+
+/* === Dashboard single-screen editorial — no scroll except history === */
+#view{max-width:1320px;margin:0 auto;width:100%;padding-bottom:24px}
+.dash-meta{border-bottom:1px solid hsl(var(--ink)/0.15);padding-bottom:12px}
+.dash-title-row{display:flex;align-items:baseline;gap:16px}
+.dash-cards{grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:900px){.dash-cards{grid-template-columns:1fr}}
+.health-hero,.release-hero{padding:22px 24px}
+.health-hero .health-number{font-family:"Fraunces",serif;font-size:42px;font-weight:800;line-height:1;color:hsl(var(--ink));letter-spacing:-0.03em}
+.health-bar{height:6px!important}
+.kpis{grid-template-columns:repeat(6,1fr);gap:14px}
+@media(max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:640px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:hsl(var(--paper))!important;border:1px solid hsl(var(--border))!important;color:hsl(var(--ink))!important}
+.kpi b{color:hsl(var(--ink))!important}
+.kpi small{color:hsl(var(--ash))!important}
+.kpi.total{background:hsl(var(--paper))!important;border:1px solid hsl(var(--ink)/0.15)!important;border-left:3px solid hsl(var(--ink))!important}
+.history-preview{max-height:200px;overflow-y:auto;padding-right:4px}
+.history-preview::-webkit-scrollbar{width:4px}
+.history-preview::-webkit-scrollbar-thumb{background:hsl(var(--ink)/0.15);border-radius:99px}
+.cat-row{display:grid;grid-template-columns:120px 1fr auto auto;gap:10px;align-items:center;padding:6px 0;font-size:13px}
+.cat-row .bar{height:6px;background:hsl(var(--bone));border-radius:99px;overflow:hidden;border:1px solid hsl(var(--border))}
+.cat-row .bar i{display:block;height:100%;border-radius:99px;transition:width .6s var(--ease-soft)}
+
+/* === Login simple centered max-w-md bg-card W logo no image no black lines === */
+.auth-simple{max-width:28rem;background:hsl(var(--card));border:1px solid hsl(var(--border));padding:32px;border-radius:2px;box-shadow:0 8px 32px hsl(var(--ink)/0.06)}
+.auth-simple .w-logo{width:48px;height:48px;display:grid;place-items:center;background:hsl(var(--ink));color:hsl(var(--paper));border-radius:2px;font-family:"Fraunces",serif;font-weight:700;font-size:20px;margin:0 auto}
+.auth-simple input{border:1px solid hsl(var(--border))}
+.auth-simple input:focus{border-color:hsl(var(--ink));box-shadow:0 0 0 1px hsl(var(--ink)/0.18)}
