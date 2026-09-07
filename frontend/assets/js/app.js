@@ -341,15 +341,12 @@
               </div>
             </div>
             <div class="col-span-12 lg:col-span-5">
-              <div class="welcome-image-wrap" style="animation:imageReveal 1.2s var(--ease-editorial) .12s both">
-                <div class="absolute inset-0 bg-bone flex items-center justify-center">
-                  <div class="w-24 h-24 rounded-full border border-ink/10 bg-paper flex items-center justify-center" style="animation:fadeUp .8s var(--ease-soft) .3s both"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" class="text-ink"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9v-5z"/><path d="M9 12l2 2 4-4"/></svg></div>
-                </div>
-                <div class="absolute inset-0 bg-gradient-to-t from-ink/5 via-transparent to-transparent"></div>
-                <div class="absolute bottom-0 left-0 right-0 bg-paper/95 backdrop-blur-sm border-t border-ink/10 p-5 flex flex-col gap-1">
-                  <span class="meta-mono" style="font-size:10px;letter-spacing:0.08em">Security Study — Threat Surface</span>
-                  <span class="font-display text-sm text-ink">Production, Worldwide — <span class="display-italic">Verified</span></span>
-                </div>
+              <div class="reveal grain" style="aspect-ratio:3/4;background:hsl(var(--ink));color:hsl(var(--paper));position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;animation:imageReveal 1.2s var(--ease-editorial) .12s both">
+                <div style="width:80px;height:80px;border:1px solid hsl(var(--paper)/0.2);border-radius:50%;display:grid;place-items:center;margin-bottom:20px;animation:fadeUp .8s var(--ease-soft) .3s both"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9v-5z"/><path d="M9 12l2 2 4-4"/></svg></div>
+                <div class="label-eyebrow" style="color:hsl(var(--paper)/0.7);animation:fadeUp .6s var(--ease-soft) .35s both">World Monitor</div>
+                <div class="font-display" style="font-size:22px;color:hsl(var(--paper));margin-top:8px;animation:fadeUp .6s var(--ease-soft) .4s both">Secure by<br><span class="display-italic" style="color:hsl(var(--paper)/0.8)">evidence</span> not assumption.</div>
+                <div class="meta-mono" style="color:hsl(var(--paper)/0.5);margin-top:16px;animation:fadeUp .6s var(--ease-soft) .45s both">CONTINUOUS STUDY · EDITORIAL</div>
+                <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 16px;border-top:1px solid hsl(var(--paper)/0.1);display:flex;justify-content:space-between" class="meta-mono"><span>Est. MMXXIV</span><span>Platform</span></div>
               </div>
             </div>
           </div>
