@@ -153,27 +153,35 @@
   /* ── auth ── */
   function AuthScreen(mode="login"){
     stopPoll(); stopBanner();
+    // Clear any stale token
+    API.setToken(null);
     $sidebar.classList.add("hidden");
     $topbar.classList.add("hidden");
     $footer.classList.add("hidden");
     $view.setAttribute("aria-busy","false");
     const isLogin = mode==="login";
     $view.innerHTML = `
-      <div class="auth-wrap"><div class="auth-card">
-        <div class="auth-logo">
-          <svg width="40" height="40" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0b1630"/><path d="M16 4.2L25 8.3v6.7c0 5.7-3.7 9.6-9 12.6C10.7 24.6 7 20.7 7 15V8.3L16 4.2Z" stroke="#22d3ee" stroke-width="1.6" stroke-linejoin="round"/><circle cx="16" cy="14.2" r="2.9" fill="#22d3ee"/><path d="M16 17.1v3.6" stroke="#22d3ee" stroke-width="1.4" stroke-linecap="round"/></svg>
-          <div><strong style="letter-spacing:.12em">WORLD MONITOR</strong><br><span class="muted small">Security Assessment Platform</span></div>
+      <div class="auth-hero">
+        <div class="auth-hero-content">
+          <div class="auth-logo">
+            <svg width="48" height="48" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0b1630"/><path d="M16 4.2L25 8.3v6.7c0 5.7-3.7 9.6-9 12.6C10.7 24.6 7 20.7 7 15V8.3L16 4.2Z" stroke="#22d3ee" stroke-width="1.6" stroke-linejoin="round"/><circle cx="16" cy="14.2" r="2.9" fill="#22d3ee"/><path d="M16 17.1v3.6" stroke="#22d3ee" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <div>
+              <strong style="letter-spacing:.12em;font-size:22px;font-weight:800;background:linear-gradient(135deg,#eef2ff 0%,#80e3fc 45%,#c084fc 100%);-webkit-background-clip:text;background-clip:text;color:transparent;">WORLD MONITOR</strong>
+              <br><span class="muted small">Security Assessment Platform</span>
+            </div>
+          </div>
+          <span class="auth-badge"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect width="16" height="16" rx="3" fill="currentColor"/></svg> ${isLogin ? "Sign In" : "Create Account"}</span>
+          <h1 class="auth-title">${isLogin ? "Welcome back" : "Create your account"}</h1>
+          <p class="auth-sub">${isLogin ? "Sign in to your security workspace." : "Analyst accounts can run assessments."}</p>
+          <form id="authForm" novalidate class="auth-form">
+            <div class="field"><label for="email">Email</label><input id="email" type="email" name="email" required autocomplete="username" placeholder="you@company.com" aria-describedby="emailHelp"></div>
+            <div class="field"><label for="password">Password</label><input id="password" type="password" name="password" required minlength="${isLogin?1:12}" autocomplete="${isLogin?"current-password":"new-password"}" placeholder="${isLogin?"••••••••":"min 12 characters"}" aria-describedby="pwHelp"><div id="pwHelp" class="help" aria-live="polite"></div></div>
+            <button class="btn-primary" style="width:100%;margin-top:6px" type="submit">${isLogin ? "Sign in" : "Create account"}</button>
+            <div class="err" id="authErr" role="alert" aria-live="polite"></div>
+          </form>
+          <p class="muted small" style="margin-top:16px;text-align:center;font-size:11px;opacity:.7">Secure workspace — authorized assessment only</p>
         </div>
-        <h2 style="margin:0 0 6px;font-size:20px;font-weight:800;letter-spacing:-.02em">${isLogin ? "Welcome back" : "Create account"}</h2>
-        <p class="muted small" style="margin-bottom:18px">${isLogin ? "Sign in to your security workspace." : "Analyst accounts can run assessments."}</p>
-        <form id="authForm" novalidate>
-          <div class="field"><label for="email">Email</label><input id="email" type="email" name="email" required autocomplete="username" placeholder="you@company.com" aria-describedby="emailHelp"></div>
-          <div class="field"><label for="password">Password</label><input id="password" type="password" name="password" required minlength="${isLogin?1:12}" autocomplete="${isLogin?"current-password":"new-password"}" placeholder="${isLogin?"••••••••":"min 12 characters"}" aria-describedby="pwHelp"><div id="pwHelp" class="help" aria-live="polite"></div></div>
-          <button style="width:100%;margin-top:6px" type="submit">${isLogin ? "Sign in" : "Create account"}</button>
-          <div class="err" id="authErr" role="alert" aria-live="polite"></div>
-        </form>
-        <p class="muted small" style="margin-top:10px;text-align:center;font-size:11px;opacity:.7">Secure workspace - authorized assessment only</p>
-      </div></div>`;
+      </div>`;
     const tgAuth = document.getElementById("tgAuth"); if (tgAuth) tgAuth.onclick = e=>{ e.preventDefault(); AuthScreen(isLogin ? "register" : "login"); };
     const form=document.getElementById("authForm");
     const pwInput=document.getElementById("password");
@@ -274,13 +282,29 @@
   async function Dashboard(){
     setBreadcrumb([{label:"Dashboard"}]);
     $view.innerHTML = `
-      <div class="page-head row spread">
-        <div><h1 class="page"><span class="accent">Security Posture</span></h1><p class="sub">Live view of findings across all authorized assessments.</p></div>
-        <div class="page-actions"><button onclick="location.hash='#/assess/new'"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg> New Assessment</button><button class="ghost tiny" onclick="Dashboard()" title="Refresh">↻ Refresh</button></div>
-      </div>
       <div id="dashBody">
-        ${skeletonKpis()}
-        <div class="grid two-col mt">${skeletonCards(2)}</div>
+        <div class="hero-section">
+          <div class="hero-content">
+            <span class="hero-badge"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect width="16" height="16" rx="3" fill="currentColor"/></svg> SECURITY POSTURE</span>
+            <h1 class="hero-title"><span class="accent">Security</span> Posture Dashboard</h1>
+            <p class="hero-sub">Live view of findings across all authorized assessments. Detect, verify, score and remediate vulnerabilities on authorized targets.</p>
+            <div class="hero-actions">
+              <button onclick="location.hash='#/assess/new'" class="btn-primary">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                New Assessment
+              </button>
+              <button class="btn-ghost" onclick="Dashboard()" title="Refresh">↻ Refresh</button>
+            </div>
+          </div>
+        </div>
+        <div class="metrics-grid" id="metricsGrid">
+          ${skeletonKpis()}
+          ${skeletonCards(2)}
+        </div>
+        <div class="cards-grid" id="cardsGrid">
+          <div class="skeleton sk-card" aria-hidden="true"></div>
+          <div class="skeleton sk-card" aria-hidden="true"></div>
+        </div>
         <div class="card mt">${skeletonTable(4)}</div>
       </div>`;
     const el=$view.querySelector("#dashBody");
@@ -305,7 +329,35 @@
       return `<div class="kpi ${cls}" role="status" aria-label="${s} ${n}"><b>${n}</b><small>${s}</small><span class="kpi-sub">${sub}</span></div>`;
     }).join("");
     const heroKpi = `<div class="kpi total" role="status" aria-label="Total findings ${total}"><b>${total}</b><small>TOTAL FINDINGS</small><span class="kpi-sub">${recent.length} recent assessments</span></div>`;
-    const healthCard = `<div class="card health-hero" style="border:1px solid ${healthCol}33"><div class="row spread"><div><div class="muted small">SECURITY HEALTH</div><div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:36px;font-weight:800;color:${healthCol}">${health.score}</span><span>/100</span><span class="badge" style="background:${healthCol}">${healthLabel}</span></div><div class="muted small">Penalty ${health.penalty} | ${total} findings | FIXED ${retestSummary.FIXED||0} / STILL_PRESENT ${retestSummary.STILL_PRESENT||0}</div></div><div style="text-align:center"><div style="width:80px;height:80px;border-radius:50%;background:conic-gradient(${healthCol} ${health.score}%, #1e293b 0);display:grid;place-items:center"><span style="font-weight:800;color:${healthCol}">${health.score}%</span></div></div></div><div style="class="health-bar" style="height:8px;background:#1e293b;border-radius:8px;overflow:hidden;margin-top:8px"><div class="health-fill" style="width:${health.score}%;height:100%;background:${healthCol}"></div>${recentHealth.length>=2 ? `<div class="row mt" style="gap:6px;align-items:center;flex-wrap:wrap;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.18);padding:6px 8px;border-radius:8px"><span class="muted small">Before/after (last 2):</span><span class="mono small" style="font-weight:700">${recentHealth[1].score} &rarr; ${recentHealth[0].score}</span><span class="badge" style="background:${healthColor(recentHealth[0].score)}">${recentHealth[0].score - recentHealth[1].score >=0 ? "+" : ""}${recentHealth[0].score - recentHealth[1].score} pts</span><span class="muted small">${recentHealth[0].score>recentHealth[1].score?"Improved":"Stable"}</span></div>` : ""}</div>`;
+    
+    const healthCard = `<div class="card health-hero" style="border:1px solid ${healthCol}33">
+      <div class="row spread">
+        <div>
+          <div class="muted small">SECURITY HEALTH</div>
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <span style="font-size:36px;font-weight:800;color:${healthCol}">${health.score}</span>
+            <span>/100</span>
+            <span class="badge" style="background:${healthCol}">${healthLabel}</span>
+          </div>
+          <div class="muted small">Penalty ${health.penalty} | ${total} findings | FIXED ${retestSummary.FIXED||0} / STILL_PRESENT ${retestSummary.STILL_PRESENT||0}</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:80px;height:80px;border-radius:50%;background:conic-gradient(${healthCol} ${health.score}%, #1e293b 0);display:grid;place-items:center">
+            <span style="font-weight:800;color:${healthCol}">${health.score}%</span>
+          </div>
+        </div>
+      </div>
+      <div class="health-bar" style="height:8px;background:#1e293b;border-radius:8px;overflow:hidden;margin-top:8px">
+        <div class="health-fill" style="width:${health.score}%;height:100%;background:${healthCol}"></div>
+      </div>
+      ${recentHealth.length>=2 ? `<div class="row mt" style="gap:6px;align-items:center;flex-wrap:wrap;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.18);padding:6px 8px;border-radius:8px">
+        <span class="muted small">Before/after (last 2):</span>
+        <span class="mono small" style="font-weight:700">${recentHealth[1].score} → ${recentHealth[0].score}</span>
+        <span class="badge" style="background:${healthColor(recentHealth[0].score)}">${recentHealth[0].score - recentHealth[1].score >=0 ? "+" : ""}${recentHealth[0].score - recentHealth[1].score} pts</span>
+        <span class="muted small">${recentHealth[0].score>recentHealth[1].score?"Improved":"Stable"}</span>
+      </div>` : ""}
+    </div>`;
+    
     const releaseRisk = d.release_risk || {score: 0, status: "PENDING", reason: "No data", health: 0, has_incomplete: false, has_failed: false, policy: {}};
     const gate = d.gate || {status: releaseRisk.status, reason: releaseRisk.reason};
     const riskScore = releaseRisk.score || 0;
@@ -319,22 +371,57 @@
     const riskLabel = riskStatus === "BLOCKED" ? "BLOCKED" : riskStatus === "APPROVED" ? "APPROVED" : "PENDING";
     const policy = releaseRisk.policy || {};
 
-    const releaseHero = `<div class="card release-hero" style="border:1px solid ${riskColor}33"><div class="row spread"><div><div class="muted small">RELEASE SECURITY GATE</div><div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:36px;font-weight:800;color:${riskColor}">${riskScore}</span><span>/100</span><span class="badge" style="background:${riskColor}">${riskIcon} ${riskLabel}</span></div><div class="muted small">Health ${riskHealth}/100 ${riskHasIncomplete ? " | INCOMPLETE" : ""}${riskHasFailed ? " | FAILED" : ""}</div></div><div style="text-align:center"><div style="width:80px;height:80px;border-radius:50%;background:conic-gradient(${riskColor} ${riskScore}%, #1e293b 0);display:grid;place-items:center"><span style="font-weight:800;color:${riskColor}">${riskScore}%</span></div></div></div><div style="height:8px;background:#1e293b;border-radius:8px;overflow:hidden;margin-top:8px"><div class="health-fill" style="width:${riskScore}%;height:100%;background:${riskColor}"></div></div><div class="row mt" style="gap:8px;flex-wrap:wrap"><span class="muted small">Policy:</span>${Object.entries(policy).map(([k,v])=>`<span class="badge" style="background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3)">${k}: ${v}</span>`).join("")}</div><div class="row mt" style="gap:8px;flex-wrap:wrap"><span class="muted small">Reasons:</span>${riskReason.split("; ").map(r=>`<span class="badge" style="background:${riskColor}22;border:1px solid ${riskColor}44">${r}</span>`).join("")}</div>`;
+    const releaseHero = `<div class="card release-hero" style="border:1px solid ${riskColor}33">
+      <div class="row spread">
+        <div>
+          <div class="muted small">RELEASE SECURITY GATE</div>
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <span style="font-size:36px;font-weight:800;color:${riskColor}">${riskScore}</span>
+            <span>/100</span>
+            <span class="badge" style="background:${riskColor}">${riskIcon} ${riskLabel}</span>
+          </div>
+          <div class="muted small">Health ${riskHealth}/100 ${riskHasIncomplete ? " | INCOMPLETE" : ""}${riskHasFailed ? " | FAILED" : ""}</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:80px;height:80px;border-radius:50%;background:conic-gradient(${riskColor} ${riskScore}%, #1e293b 0);display:grid;place-items:center">
+            <span style="font-weight:800;color:${riskColor}">${riskScore}%</span>
+          </div>
+        </div>
+      </div>
+      <div style="height:8px;background:#1e293b;border-radius:8px;overflow:hidden;margin-top:8px">
+        <div class="health-fill" style="width:${riskScore}%;height:100%;background:${riskColor}"></div>
+      </div>
+      <div class="row mt" style="gap:8px;flex-wrap:wrap">
+        <span class="muted small">Policy:</span>
+        ${Object.entries(policy).map(([k,v])=>`<span class="badge" style="background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3)">${k}: ${v}</span>`).join("")}
+      </div>
+      <div class="row mt" style="gap:8px;flex-wrap:wrap">
+        <span class="muted small">Reasons:</span>
+        ${riskReason.split("; ").map(r=>`<span class="badge" style="background:${riskColor}22;border:1px solid ${riskColor}44">${r}</span>`).join("")}
+      </div>
+    </div>`;
 
-    el.innerHTML = `
+    const metricsGrid = document.getElementById("metricsGrid");
+    metricsGrid.innerHTML = `
       ${healthCard}
       ${releaseHero}
       <div class="grid kpis mb mt" style="grid-template-columns:repeat(6,1fr)">${heroKpi}${kpis}</div>
-      <div class="grid two-col">
-        <div class="card"><div class="row spread"><strong>Distribution</strong><span class="badge">${total} total</span></div>
-          <div class="row mt" style="justify-content:center;min-height:160px">${Charts.donut(counts)}</div>
-          <div class="row mt" style="gap:8px;flex-wrap:wrap;justify-content:center">
-            ${SEV.map(s=> `<span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--text-3)"><i style="width:8px;height:8px;border-radius:50%;background:${SEV_COLOR[s]};display:inline-block" aria-hidden="true"></i>${s} <strong style="color:var(--text-1)">${counts[s]??0}</strong></span>`).join("")}
-          </div>
+    `;
+
+    const cardsGrid = document.getElementById("cardsGrid");
+    cardsGrid.innerHTML = `
+      <div class="card"><div class="row spread"><strong>Distribution</strong><span class="badge">${total} total</span></div>
+        <div class="row mt" style="justify-content:center;min-height:160px">${Charts.donut(counts)}</div>
+        <div class="row mt" style="gap:8px;flex-wrap:wrap;justify-content:center">
+          ${SEV.map(s=> `<span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--text-3)"><i style="width:8px;height:8px;border-radius:50%;background:${SEV_COLOR[s]};display:inline-block" aria-hidden="true"></i>${s} <strong style="color:var(--text-1)">${counts[s]??0}</strong></span>`).join("")}
         </div>
-        <div class="card"><div class="row spread"><strong>Posture by category</strong><span class="muted small">${Object.keys(categories).length} categories</span></div><div class="mt">${Charts.catBars(categories)}</div></div>
       </div>
-      <div class="card mt">
+      <div class="card"><div class="row spread"><strong>Posture by category</strong><span class="muted small">${Object.keys(categories).length} categories</span></div><div class="mt">${Charts.catBars(categories)}</div></div>
+    `;
+
+    const tableContainer = el.querySelector(".card.mt:last-child");
+    if (tableContainer) {
+      tableContainer.innerHTML = `
         <div class="row spread"><strong>Recent assessments</strong><button class="ghost tiny" onclick="location.hash='#/history'">View history →</button></div>
         ${recent.length ? `<div class="table-wrap mt"><table><thead><tr><th>Target</th><th>Health</th><th>Status</th><th>Modules</th><th>Created</th><th></th></tr></thead><tbody>
           ${recent.map(a=> `<tr class="click" onclick="location.hash='#/assessment/${esc(a.id)}'">
@@ -345,7 +432,8 @@
             <td class="muted small mono">${a.created_at ? new Date(a.created_at).toLocaleString() : "—"}</td><td style="color:var(--text-3)" aria-hidden="true">›</td></tr>`).join("")}
         </tbody></table></div>`
         : emptyState({icon:"◈", title:"No assessments yet", hint:"Create your first authorized assessment to populate the security posture overview.", action:`<button onclick="location.hash='#/assess/new'">Create assessment</button>`})}
-      </div>`;
+      `;
+    }
   }
 
   function targetChip(target){
