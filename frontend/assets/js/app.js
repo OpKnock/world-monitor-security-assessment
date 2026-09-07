@@ -34,6 +34,23 @@
   $scrim.addEventListener("click", closeNav);
   document.addEventListener("keydown", e=>{ if(e.key==="Escape" && $sidebar.classList.contains("open")) closeNav(); });
 
+  /* ── dock auto-hide like Mac ── */
+  const dockTrigger = document.getElementById("dockTrigger");
+  const dockEl = document.getElementById("sidebar");
+  if(dockEl && dockTrigger){
+    let dockTimeout;
+    const openDock = ()=> dockEl.classList.add("dock-open");
+    const closeDock = ()=> { clearTimeout(dockTimeout); dockTimeout = setTimeout(()=> dockEl.classList.remove("dock-open"), 300); };
+    dockTrigger.addEventListener("mouseenter", openDock);
+    dockEl.addEventListener("mouseenter", ()=> { clearTimeout(dockTimeout); dockEl.classList.add("dock-open"); });
+    dockEl.addEventListener("mouseleave", closeDock);
+    dockTrigger.addEventListener("mouseleave", ()=> { if(!dockEl.matches(":hover")) closeDock(); });
+    document.addEventListener("mousemove", (e)=>{
+      if(e.clientX < 16 && API.getToken()) openDock();
+      else if(e.clientX > 240) dockEl.classList.remove("dock-open");
+    });
+  }
+
   /* ── toast ── */
   function toast(msg, ok=true){
     const el = document.createElement("div");
@@ -326,36 +343,17 @@
             <span class="col-span-9 sm:col-span-5 md:col-span-5 text-right text-ink">${esc(today)}</span>
           </div>
         </div>
-        <!-- hero editorial — no pic, huge aesthetic text + left feature box -->
+        <!-- hero editorial — huge aesthetic text, no pics, animated -->
         <div class="container-editorial pt-10 sm:pt-14 lg:pt-16 pb-12">
-          <div class="grid grid-cols-12 gap-6 lg:gap-10">
-            <div class="col-span-12 lg:col-span-3">
-              <div class="card feature-box sticky top-24" style="animation:fadeUp .6s var(--ease-soft) both">
-                <div class="label-eyebrow">Features</div>
-                <ul class="mt-4 space-y-3 text-sm">
-                  <li class="flex gap-3 items-baseline"><span class="meta-mono w-6 text-ash">01</span><span>Authentication — JWT none</span></li>
-                  <li class="flex gap-3 items-baseline"><span class="meta-mono w-6 text-ash">02</span><span>Authorization — IDOR</span></li>
-                  <li class="flex gap-3 items-baseline"><span class="meta-mono w-6 text-ash">03</span><span>Headers — CSP · HSTS</span></li>
-                  <li class="flex gap-3 items-baseline"><span class="meta-mono w-6 text-ash">04</span><span>Secrets — hard-coded</span></li>
-                  <li class="flex gap-3 items-baseline"><span class="meta-mono w-6 text-ash">05</span><span>Supply Chain — SBOM</span></li>
-                  <li class="flex gap-3 items-baseline"><span class="meta-mono w-6 text-ash">06</span><span>TLS · Rate limit</span></li>
-                </ul>
-                <div class="editorial-rule my-4"></div>
-                <div class="flex flex-wrap gap-2"><span class="pill lab">● LAB MODE</span><span class="pill env">LOOPBACK ONLY</span></div>
-                <button onclick="location.hash='#/assess/new'" class="w-full mt-4 bg-ink text-paper py-3 text-sm font-medium hover:bg-ink/90 transition-all hover:translate-y-[-1px]">Commission →</button>
-              </div>
-            </div>
-            <div class="col-span-12 lg:col-span-9">
-              <div class="flex items-center gap-4" style="animation:fadeUp .6s var(--ease-soft) .08s both">
-                <span class="meta-mono text-ash">Issue 01</span><span class="block h-px w-10 bg-ink/30"></span><span class="label-eyebrow">the surface, the signal, the fix</span>
-              </div>
-              <h1 class="font-display text-[clamp(3.5rem,9vw,7.5rem)] leading-[0.88] tracking-[-0.04em] text-ink mt-6" style="animation:fadeUp .8s var(--ease-soft) .12s both">A continuous<br><span class="display-italic text-ink/75">study</span> of your<br>attack <span class="display-italic text-ink/75">surface.</span></h1>
-              <p class="text-[17px] leading-relaxed text-ash max-w-2xl mt-8" style="animation:fadeUp .6s var(--ease-soft) .2s both">Editorial security for engineering teams. Detect, verify, score and remediate — with fail-closed gates and paper-trail evidence. Just information, nothing much, but everything you need.</p>
-              <div class="flex flex-wrap gap-3 mt-8" style="animation:fadeUp .6s var(--ease-soft) .28s both">
-                <button onclick="location.hash='#/assess/new'" class="px-7 py-3 bg-ink text-paper hover:bg-ink/90 transition-all hover:translate-y-[-1px] hover:shadow-md text-sm font-medium">Commission Assessment →</button>
-                <button onclick="Dashboard()" class="px-7 py-3 border border-ink text-ink hover:bg-ink hover:text-paper transition-all text-sm font-medium">↻ Refresh</button>
-              </div>
-            </div>
+          <div class="flex items-center gap-4" style="animation:fadeUp .6s var(--ease-soft) both">
+            <span class="meta-mono text-ash">Issue 01 — Home</span><span class="block h-px w-10 bg-ink/30"></span><span class="label-eyebrow">the surface, the signal, the fix</span>
+          </div>
+          <h1 class="font-display text-[clamp(3.5rem,10vw,8.5rem)] leading-[0.85] tracking-[-0.045em] text-ink mt-6" style="animation:fadeUp .8s var(--ease-soft) .08s both">A continuous<br><span class="display-italic text-ink/70">study</span> of your<br>attack <span class="display-italic text-ink/70">surface.</span></h1>
+          <p class="text-[18px] leading-relaxed text-ash max-w-2xl mt-8" style="animation:fadeUp .6s var(--ease-soft) .16s both">World Monitor is a <span class="text-ink font-medium">continuous study</span> of your attack surface — not a scanner. We detect, verify, score and remediate with <span class="text-ink font-medium">fail-closed</span> gates and paper-trail evidence. Just information, nothing much, but everything you need — in a neat, clean and professional editorial.</p>
+          <p class="text-[14px] leading-relaxed text-ash/80 max-w-2xl mt-4" style="animation:fadeUp .6s var(--ease-soft) .2s both">Est. MMXXIV · Independent · Security · Editorial · For engineering teams who care about the difference between a scan and a decision.</p>
+          <div class="flex flex-wrap gap-3 mt-8" style="animation:fadeUp .6s var(--ease-soft) .24s both">
+            <button onclick="location.hash='#/assess/new'" class="px-7 py-3 bg-ink text-paper hover:bg-ink/90 transition-all hover:translate-y-[-1px] hover:shadow-md text-sm font-medium">Commission Assessment →</button>
+            <button onclick="Dashboard()" class="px-7 py-3 border border-ink text-ink hover:bg-ink hover:text-paper transition-all text-sm font-medium">↻ Refresh Posture</button>
           </div>
         </div>
         <div class="container-editorial">
