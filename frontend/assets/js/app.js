@@ -341,10 +341,14 @@
               </div>
             </div>
             <div class="col-span-12 lg:col-span-5">
-              <div class="welcome-image-wrap">
-                <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1000&q=80" alt="Security Study — Threat Surface" loading="eager">
-                <div class="absolute bottom-0 left-0 right-0 bg-paper/94 backdrop-blur-[6px] border-t border-ink/10 px-5 py-4 flex flex-col gap-1">
-                  <span class="meta-mono" style="font-size:10px;letter-spacing:0.08em">Security Study — Threat Surface, Production, Worldwide</span>
+              <div class="welcome-image-wrap" style="animation:imageReveal 1.2s var(--ease-editorial) .12s both">
+                <div class="absolute inset-0 bg-bone flex items-center justify-center">
+                  <div class="w-24 h-24 rounded-full border border-ink/10 bg-paper flex items-center justify-center" style="animation:fadeUp .8s var(--ease-soft) .3s both"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" class="text-ink"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9v-5z"/><path d="M9 12l2 2 4-4"/></svg></div>
+                </div>
+                <div class="absolute inset-0 bg-gradient-to-t from-ink/5 via-transparent to-transparent"></div>
+                <div class="absolute bottom-0 left-0 right-0 bg-paper/95 backdrop-blur-sm border-t border-ink/10 p-5 flex flex-col gap-1">
+                  <span class="meta-mono" style="font-size:10px;letter-spacing:0.08em">Security Study — Threat Surface</span>
+                  <span class="font-display text-sm text-ink">Production, Worldwide — <span class="display-italic">Verified</span></span>
                 </div>
               </div>
             </div>
