@@ -37,7 +37,7 @@ router = APIRouter(tags=["misc"])
 
 
 @router.get("/dashboard")
-def dashboard(db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
+def dashboard(db: Session = Depends(get_db), user=Depends(require_role("viewer"))):
     sev_rows = db.execute(
         select(Finding.severity, func.count(Finding.id)).group_by(Finding.severity)
     ).all()
