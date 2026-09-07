@@ -306,8 +306,24 @@
     }).join("");
     const heroKpi = `<div class="kpi total" role="status" aria-label="Total findings ${total}"><b>${total}</b><small>TOTAL FINDINGS</small><span class="kpi-sub">${recent.length} recent assessments</span></div>`;
     const healthCard = `<div class="card health-hero" style="border:1px solid ${healthCol}33"><div class="row spread"><div><div class="muted small">SECURITY HEALTH</div><div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:36px;font-weight:800;color:${healthCol}">${health.score}</span><span>/100</span><span class="badge" style="background:${healthCol}">${healthLabel}</span></div><div class="muted small">Penalty ${health.penalty} | ${total} findings | FIXED ${retestSummary.FIXED||0} / STILL_PRESENT ${retestSummary.STILL_PRESENT||0}</div></div><div style="text-align:center"><div style="width:80px;height:80px;border-radius:50%;background:conic-gradient(${healthCol} ${health.score}%, #1e293b 0);display:grid;place-items:center"><span style="font-weight:800;color:${healthCol}">${health.score}%</span></div></div></div><div style="class="health-bar" style="height:8px;background:#1e293b;border-radius:8px;overflow:hidden;margin-top:8px"><div class="health-fill" style="width:${health.score}%;height:100%;background:${healthCol}"></div>${recentHealth.length>=2 ? `<div class="row mt" style="gap:6px;align-items:center;flex-wrap:wrap;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.18);padding:6px 8px;border-radius:8px"><span class="muted small">Before/after (last 2):</span><span class="mono small" style="font-weight:700">${recentHealth[1].score} &rarr; ${recentHealth[0].score}</span><span class="badge" style="background:${healthColor(recentHealth[0].score)}">${recentHealth[0].score - recentHealth[1].score >=0 ? "+" : ""}${recentHealth[0].score - recentHealth[1].score} pts</span><span class="muted small">${recentHealth[0].score>recentHealth[1].score?"Improved":"Stable"}</span></div>` : ""}</div>`;
+    const releaseRisk = d.release_risk || {score: 0, status: "PENDING", reason: "No data", health: 0, has_incomplete: false, has_failed: false, policy: {}};
+    const gate = d.gate || {status: releaseRisk.status, reason: releaseRisk.reason};
+    const riskScore = releaseRisk.score || 0;
+    const riskStatus = gate.status || "PENDING";
+    const riskReason = gate.reason || releaseRisk.reason || "—";
+    const riskHealth = releaseRisk.health || health.score;
+    const riskHasIncomplete = releaseRisk.has_incomplete || false;
+    const riskHasFailed = releaseRisk.has_failed || false;
+    const riskColor = riskStatus === "BLOCKED" ? "var(--crit)" : riskStatus === "APPROVED" ? "var(--ok)" : "var(--warn)";
+    const riskIcon = riskStatus === "BLOCKED" ? "🛑" : riskStatus === "APPROVED" ? "✅" : "⏳";
+    const riskLabel = riskStatus === "BLOCKED" ? "BLOCKED" : riskStatus === "APPROVED" ? "APPROVED" : "PENDING";
+    const policy = releaseRisk.policy || {};
+
+    const releaseHero = `<div class="card release-hero" style="border:1px solid ${riskColor}33"><div class="row spread"><div><div class="muted small">RELEASE SECURITY GATE</div><div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:36px;font-weight:800;color:${riskColor}">${riskScore}</span><span>/100</span><span class="badge" style="background:${riskColor}">${riskIcon} ${riskLabel}</span></div><div class="muted small">Health ${riskHealth}/100 ${riskHasIncomplete ? " | INCOMPLETE" : ""}${riskHasFailed ? " | FAILED" : ""}</div></div><div style="text-align:center"><div style="width:80px;height:80px;border-radius:50%;background:conic-gradient(${riskColor} ${riskScore}%, #1e293b 0);display:grid;place-items:center"><span style="font-weight:800;color:${riskColor}">${riskScore}%</span></div></div></div><div style="height:8px;background:#1e293b;border-radius:8px;overflow:hidden;margin-top:8px"><div class="health-fill" style="width:${riskScore}%;height:100%;background:${riskColor}"></div></div><div class="row mt" style="gap:8px;flex-wrap:wrap"><span class="muted small">Policy:</span>${Object.entries(policy).map(([k,v])=>`<span class="badge" style="background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3)">${k}: ${v}</span>`).join("")}</div><div class="row mt" style="gap:8px;flex-wrap:wrap"><span class="muted small">Reasons:</span>${riskReason.split("; ").map(r=>`<span class="badge" style="background:${riskColor}22;border:1px solid ${riskColor}44">${r}</span>`).join("")}</div>`;
+
     el.innerHTML = `
       ${healthCard}
+      ${releaseHero}
       <div class="grid kpis mb mt" style="grid-template-columns:repeat(6,1fr)">${heroKpi}${kpis}</div>
       <div class="grid two-col">
         <div class="card"><div class="row spread"><strong>Distribution</strong><span class="badge">${total} total</span></div>

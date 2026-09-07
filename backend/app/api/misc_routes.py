@@ -61,6 +61,39 @@ def dashboard(db: Session = Depends(get_db), user=Depends(require_role("analyst"
 
     recent = db.scalars(select(Assessment).order_by(Assessment.created_at.desc()).limit(8)).all()
     health = health_breakdown(counts)
+    # Release gate - fail-closed: any incomplete/failed assessment or critical/high findings or health <70 -> BLOCK
+    # Also check recent assessments for incomplete status
+    has_incomplete = any(getattr(a, "status", "") == "incomplete" for a in recent)
+    has_failed = any(getattr(a, "status", "") == "failed" for a in recent)
+    # Health gate
+    health_block = health["score"] < 70
+    # Findings gate
+    findings_block = counts.get("CRITICAL", 0) > 0 or counts.get("HIGH", 0) > 2
+    gate_blocked = has_incomplete or has_failed or health_block or findings_block
+    # Also incomplete if any recent is incomplete
+    if has_incomplete:
+        gate_status = "BLOCKED"
+        gate_reason = f"INCOMPLETE - {len([a for a in recent if a.status=="incomplete"])} assessment(s) incomplete (scanner error/timeout)"
+    elif has_failed:
+        gate_status = "BLOCKED"
+        gate_reason = "FAILED assessment(s) present"
+    elif health_block:
+        gate_status = "BLOCKED"
+        gate_reason = f"Health {health["score"]}/100 < 70"
+    elif findings_block:
+        gate_status = "BLOCKED"
+        gate_reason = f"CRITICAL {counts.get("CRITICAL",0)} or HIGH {counts.get("HIGH",0)} >2"
+    else:
+        gate_status = "APPROVED" if recent and not gate_blocked else "PENDING"
+        gate_reason = "All checks passed" if gate_status=="APPROVED" else "No recent assessments"
+    release_risk = {
+        "score": max(0, min(100, 100 - health["score"] + (20 if has_incomplete else 0) + (counts.get("CRITICAL",0)*5))),
+        "status": gate_status,
+        "reason": gate_reason,
+        "health": health["score"],
+        "has_incomplete": has_incomplete,
+        "has_failed": has_failed,
+    }
     # per-assessment health (last 8)
     recent_health = []
     for a in recent:
@@ -81,6 +114,8 @@ def dashboard(db: Session = Depends(get_db), user=Depends(require_role("analyst"
         "categories": categories,
         "health": health,
         "recent_health": recent_health,
+        "release_risk": release_risk,
+        "gate": {"status": gate_status, "reason": gate_reason},
         "retest_summary": retest_counts,
         "recent_assessments": [{
             "id": a.id, "target": a.target, "status": a.status,

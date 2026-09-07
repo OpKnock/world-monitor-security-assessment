@@ -49,10 +49,11 @@ class TimestampMixin:
 # ---------------------------------------------------------------------------
 
 _ROLE_VALUES = ("admin", "analyst", "viewer")
-_ASSESSMENT_STATUS_VALUES = ("queued", "running", "completed", "failed")
+_ASSESSMENT_STATUS_VALUES = ("queued", "running", "completed", "failed", "incomplete")
 _SCAN_RUN_STATUS_VALUES = ("queued", "running", "completed", "failed", "skipped")
 _FINDING_SEVERITY_VALUES = ("CRITICAL", "HIGH", "MEDIUM", "LOW", "INFORMATIONAL")
 _FINDING_STATUS_VALUES = ("OPEN", "CONFIRMED", "FALSE_POSITIVE", "REMEDIATED", "RETESTED")
+_FINDING_LIFECYCLE_VALUES = ("NEW", "FIXED", "REINTRODUCED", "MOVED", "WONT_FIX", "RISK_ACCEPTED")
 _REPORT_FORMAT_VALUES = ("pdf", "json", "md", "csv")
 
 # ---------------------------------------------------------------------------
@@ -167,6 +168,28 @@ class ScanRun(Base, TimestampMixin):
         return f"<ScanRun id={self.id} scanner={self.scanner} status={self.status}>"
 
 
+class ScanBaseline(Base, TimestampMixin):
+    """Immutable baseline scan for historical comparison (diff-aware)."""
+
+    __tablename__ = "scan_baselines"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    assessment_id: Mapped[str] = mapped_column(
+        ForeignKey("assessments.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    scan_run_id: Mapped[str] = mapped_column(
+        ForeignKey("scan_runs.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(128), default="baseline", nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    assessment: Mapped[Assessment] = relationship(lazy="joined")
+    scan_run: Mapped[ScanRun] = relationship(lazy="joined")
+
+    def __repr__(self) -> str:
+        return f"<ScanBaseline id={self.id} assessment={self.assessment_id} run={self.scan_run_id}>"
+
+
 class Finding(Base, TimestampMixin):
     """Common Finding Format — every scanner normalises into this schema."""
 
@@ -174,6 +197,7 @@ class Finding(Base, TimestampMixin):
     __table_args__ = (
         CheckConstraint(f"severity IN {str(_FINDING_SEVERITY_VALUES)}", name="ck_findings_severity"),
         CheckConstraint(f"status IN {str(_FINDING_STATUS_VALUES)}", name="ck_findings_status"),
+        CheckConstraint(f"lifecycle IN {str(_FINDING_LIFECYCLE_VALUES)}", name="ck_findings_lifecycle"),
         Index("ix_findings_assessment_severity", "assessment_id", "severity"),
         Index("ix_findings_scanner_category", "scanner", "category"),
         Index("ix_findings_status_retest", "status", "retest_status"),
@@ -208,9 +232,13 @@ class Finding(Base, TimestampMixin):
     status: Mapped[str] = mapped_column(String(20), default="OPEN", nullable=False)
     authorized_target: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
+    lifecycle: Mapped[str] = mapped_column(String(20), default="NEW", nullable=False)
+
     retest_status: Mapped[str] = mapped_column(String(30), default="", nullable=False)
     retest_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     retested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    ai_provenance: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
 
     meta: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
 
@@ -289,13 +317,37 @@ class AuditLog(Base, TimestampMixin):
 
 RETEST_ORIGINAL_EVIDENCE_KEY: str = "retest_original_evidence"
 
+
+class FindingSuppression(Base, TimestampMixin):
+    """Auditable, expiring finding suppression."""
+
+    __tablename__ = "finding_suppressions"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    finding_id: Mapped[str] = mapped_column(
+        ForeignKey("findings.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    suppressed_by: Mapped[str] = mapped_column(String(255), nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    scope: Mapped[str] = mapped_column(String(64), default="global", nullable=False)  # global, assessment, project
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    finding: Mapped[Finding] = relationship(lazy="joined")
+
+    def __repr__(self) -> str:
+        return f"<FindingSuppression id={self.id} finding={self.finding_id} active={self.is_active}>"
+
+
 __all__ = [
     "Assessment",
     "AuditLog",
     "Evidence",
     "Finding",
+    "FindingSuppression",
     "Report",
     "RETEST_ORIGINAL_EVIDENCE_KEY",
+    "ScanBaseline",
     "ScanRun",
     "Target",
     "User",
