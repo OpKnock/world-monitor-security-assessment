@@ -32,7 +32,8 @@
           <a href="#/settings" data-nav class="group relative flex items-baseline gap-1.5 py-1"><span class="meta-mono">06</span><span class="text-sm font-medium tracking-tight">Studio</span></a>
         </nav>
         <div class="hidden lg:flex items-center gap-3">
-          <a href="#/assess/new" class="group inline-flex items-center gap-2 px-4 py-2 border border-ink text-ink hover:bg-ink hover:text-paper transition-colors text-sm font-medium tracking-tight">Commission <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M5 3l5 5-5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <a href="#/assess/new" id="headerCommissionBtn" class="group inline-flex items-center gap-2 px-4 py-2 border border-ink text-ink hover:bg-ink hover:text-paper transition-colors text-sm font-medium tracking-tight">Commission <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M5 3l5 5-5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <a href="#/login" id="headerLoginBtn" class="hidden inline-flex items-center gap-2 px-4 py-2 bg-ink text-paper hover:bg-ink/90 transition-colors text-sm font-medium">Sign in</a>
           <div class="userchip hidden xl:flex" id="userChip">
             <div class="avatar" aria-hidden="true">?</div>
             <div class="who"><b>—</b><span>—</span></div>
@@ -52,6 +53,7 @@
           <div class="pt-4 border-t border-ink/10 flex items-center gap-3">
             <div class="userchip" id="userChipMobile"><div class="avatar">?</div><div class="who"><b>—</b><span>—</span></div></div>
             <button id="logout" class="ml-auto text-sm border border-ink px-4 py-2 hover:bg-ink hover:text-paper transition-colors">Sign out</button>
+            <a href="#/login" id="mobileLoginBtn" class="ml-auto hidden text-sm bg-ink text-paper px-4 py-2">Sign in</a>
           </div>
           <div class="lab-row flex gap-2"><span class="pill lab">● LAB MODE</span><span class="pill env">LOOPBACK ONLY</span></div>
         </nav>

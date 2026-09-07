@@ -268,18 +268,30 @@
   async function router(){
     stopPoll(); closeNav();
     const h=location.hash || "#/dashboard";
-    if(!API.getToken()){
-      $sidebar.classList.add("hidden");
+    const hasToken = !!API.getToken();
+    // header always visible — toggle login/commission
+    $sidebar.classList.remove("hidden");
+    const hc = document.getElementById("headerCommissionBtn");
+    const hl = document.getElementById("headerLoginBtn");
+    const uc = document.getElementById("userChip");
+    const ml = document.getElementById("mobileLoginBtn");
+    const lo = document.getElementById("logout");
+    const um = document.getElementById("userChipMobile");
+    if(hc) hc.classList.toggle("hidden", !hasToken);
+    if(hl) hl.classList.toggle("hidden", hasToken);
+    if(uc) uc.classList.toggle("hidden", !hasToken);
+    if(ml) ml.classList.toggle("hidden", hasToken);
+    if(lo) lo.classList.toggle("hidden", !hasToken);
+    if(um) um.classList.toggle("hidden", !hasToken);
+    if(!hasToken){
       $topbar.classList.add("hidden");
       $footer.classList.add("hidden");
       setActiveNav();
-      // support #/register alias
       const wantRegister = h==="#/register" || h==="#/assess/new";
       AuthScreen(wantRegister && h==="#/register" ? "register" : "login");
       if(wantRegister && h==="#/assess/new") toast("Please sign in to create assessments", false);
       return;
     }
-    $sidebar.classList.remove("hidden");
     $topbar.classList.remove("hidden");
     $footer.classList.remove("hidden");
     setActiveNav();
@@ -314,38 +326,42 @@
             <span class="col-span-9 sm:col-span-5 md:col-span-5 text-right text-ink">${esc(today)}</span>
           </div>
         </div>
-        <!-- hero editorial -->
-        <div class="container-editorial pt-10 sm:pt-14 lg:pt-20 pb-16 sm:pb-24">
-          <div class="grid grid-cols-12 gap-y-12 gap-x-6 lg:gap-x-10">
-            <div class="col-span-12 lg:col-span-7 flex flex-col justify-between gap-10">
-              <div class="flex items-center gap-4">
-                <span class="meta-mono text-ash">Issue 01</span><span class="block h-px w-10 bg-ink/40"></span><span class="label-eyebrow">the surface, the signal, the fix</span>
-              </div>
-              <h1 class="font-display text-[clamp(3.25rem,9.5vw,9rem)] leading-[0.92] tracking-[-0.04em] text-balance text-ink" style="animation:fadeUp .9s cubic-bezier(0.22,1,0.36,1)">A continuous <span class="display-italic text-ink/85">study</span> of your attack <span class="display-italic text-ink/85">surface.</span></h1>
-              <div class="max-w-prose">
-                <p class="text-[15px] leading-relaxed text-ash">Editorial security for engineering teams. Detect, verify, score and remediate vulnerabilities on authorized targets — with fail-closed gates and paper-trail evidence.</p>
-                <div class="flex flex-wrap gap-3 mt-6">
-                  <button onclick="location.hash='#/assess/new'" class="inline-flex items-center gap-2 px-6 py-3 bg-ink text-paper hover:bg-ink/90 transition-colors text-sm font-medium">Commission Assessment <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 3l5 5-5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-                  <button class="inline-flex items-center gap-2 px-6 py-3 border border-ink text-ink hover:bg-ink hover:text-paper transition-colors text-sm font-medium" onclick="Dashboard()">↻ Refresh Posture</button>
-                </div>
+        <!-- hero editorial — no pic, huge aesthetic text + left feature box -->
+        <div class="container-editorial pt-10 sm:pt-14 lg:pt-16 pb-12">
+          <div class="grid grid-cols-12 gap-6 lg:gap-10">
+            <div class="col-span-12 lg:col-span-3">
+              <div class="card feature-box sticky top-24" style="animation:fadeUp .6s var(--ease-soft) both">
+                <div class="label-eyebrow">Features</div>
+                <ul class="mt-4 space-y-3 text-sm">
+                  <li class="flex gap-3 items-baseline"><span class="meta-mono w-6 text-ash">01</span><span>Authentication — JWT none</span></li>
+                  <li class="flex gap-3 items-baseline"><span class="meta-mono w-6 text-ash">02</span><span>Authorization — IDOR</span></li>
+                  <li class="flex gap-3 items-baseline"><span class="meta-mono w-6 text-ash">03</span><span>Headers — CSP · HSTS</span></li>
+                  <li class="flex gap-3 items-baseline"><span class="meta-mono w-6 text-ash">04</span><span>Secrets — hard-coded</span></li>
+                  <li class="flex gap-3 items-baseline"><span class="meta-mono w-6 text-ash">05</span><span>Supply Chain — SBOM</span></li>
+                  <li class="flex gap-3 items-baseline"><span class="meta-mono w-6 text-ash">06</span><span>TLS · Rate limit</span></li>
+                </ul>
+                <div class="editorial-rule my-4"></div>
+                <div class="flex flex-wrap gap-2"><span class="pill lab">● LAB MODE</span><span class="pill env">LOOPBACK ONLY</span></div>
+                <button onclick="location.hash='#/assess/new'" class="w-full mt-4 bg-ink text-paper py-3 text-sm font-medium hover:bg-ink/90 transition-all hover:translate-y-[-1px]">Commission →</button>
               </div>
             </div>
-            <div class="col-span-12 lg:col-span-5">
-              <div class="aspect-[3/4] relative overflow-hidden bg-bone" style="animation:imageReveal 1.1s cubic-bezier(0.7,0,0.2,1)">
-                <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80" alt="Security operations editorial" class="absolute inset-0 w-full h-full object-cover" loading="lazy" style="filter: saturate(0.2) contrast(1.05)">
-                <div class="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/20 to-transparent"></div>
-                <div class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center text-paper">
-                  <div class="w-20 h-20 rounded-full bg-paper/10 backdrop-blur-md border border-paper/20 flex items-center justify-center mb-6" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1) .4s both"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9v-5z"/><path d="M9 12l2 2 4-4"/></svg></div>
-                  <div class="label-eyebrow text-paper/80" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1) .5s both">World Monitor</div>
-                  <div class="font-display text-2xl text-paper mt-2" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1) .6s both">Secure by<br><span class="display-italic text-paper/90">evidence</span> not assumption.</div>
-                  <div class="meta-mono text-paper/60 mt-6" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1) .7s both">FAIL-CLOSED · PAPER TRAIL · RETEST</div>
-                </div>
-                <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-paper/15 flex justify-between meta-mono text-paper/70 bg-ink/10 backdrop-blur-sm"><span>Est. MMXXIV</span><span>Editorial Security</span></div>
+            <div class="col-span-12 lg:col-span-9">
+              <div class="flex items-center gap-4" style="animation:fadeUp .6s var(--ease-soft) .08s both">
+                <span class="meta-mono text-ash">Issue 01</span><span class="block h-px w-10 bg-ink/30"></span><span class="label-eyebrow">the surface, the signal, the fix</span>
+              </div>
+              <h1 class="font-display text-[clamp(3.5rem,9vw,7.5rem)] leading-[0.88] tracking-[-0.04em] text-ink mt-6" style="animation:fadeUp .8s var(--ease-soft) .12s both">A continuous<br><span class="display-italic text-ink/75">study</span> of your<br>attack <span class="display-italic text-ink/75">surface.</span></h1>
+              <p class="text-[17px] leading-relaxed text-ash max-w-2xl mt-8" style="animation:fadeUp .6s var(--ease-soft) .2s both">Editorial security for engineering teams. Detect, verify, score and remediate — with fail-closed gates and paper-trail evidence. Just information, nothing much, but everything you need.</p>
+              <div class="flex flex-wrap gap-3 mt-8" style="animation:fadeUp .6s var(--ease-soft) .28s both">
+                <button onclick="location.hash='#/assess/new'" class="px-7 py-3 bg-ink text-paper hover:bg-ink/90 transition-all hover:translate-y-[-1px] hover:shadow-md text-sm font-medium">Commission Assessment →</button>
+                <button onclick="Dashboard()" class="px-7 py-3 border border-ink text-ink hover:bg-ink hover:text-paper transition-all text-sm font-medium">↻ Refresh</button>
               </div>
             </div>
           </div>
         </div>
         <div class="container-editorial">
+          <div class="flex items-baseline gap-4 mb-6" style="animation:fadeUp .6s var(--ease-soft) .32s both">
+            <span class="meta-mono">Home</span><span class="block h-px w-10 bg-ink/20"></span><span class="label-eyebrow">Overview — circle graph · findings · assessments</span>
+          </div>
           <div class="editorial-rule mb-8"></div>
           <div class="metrics-grid" id="metricsGrid">${skeletonKpis()}${skeletonCards(2)}</div>
           <div class="cards-grid" id="cardsGrid"><div class="skeleton sk-card"></div><div class="skeleton sk-card"></div></div>
