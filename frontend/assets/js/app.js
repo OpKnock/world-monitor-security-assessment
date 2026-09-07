@@ -343,17 +343,18 @@
               </div>
             </div>
             <div class="col-span-12 lg:col-span-5">
-              <div class="bg-card border border-ink/10 p-6 lg:p-8" style="animation:imageReveal 1.1s var(--ease-editorial) .12s both">
-                <div class="label-eyebrow">Editorial Note</div>
-                <div class="font-display text-xl leading-tight text-ink mt-3">Secure by <span class="display-italic text-ink/70">evidence</span> not assumption.</div>
-                <p class="text-sm leading-relaxed text-ash mt-4">Twelve scanners normalize to a canonical finding schema with CVSS 3.1 and fingerprint. Evidence is masked, files are jailed, DNS is pinned.</p>
-                <div class="editorial-rule my-6"></div>
-                <div class="grid grid-cols-2 gap-4 text-sm">
-                  <div><div class="meta-mono">01 — Detect</div><div class="text-ash mt-1">Authentication, authorization, headers…</div></div>
-                  <div><div class="meta-mono">02 — Verify</div><div class="text-ash mt-1">Provenance, not hallucination</div></div>
-                  <div><div class="meta-mono">03 — Decide</div><div class="text-ash mt-1">BLOCKED until FIXED</div></div>
-                  <div><div class="meta-mono">Lab</div><div class="text-ash mt-1">Loopback · 10 flaws</div></div>
+              <div class="aspect-[4/3] relative overflow-hidden bg-bone border border-ink/10" style="animation:imageReveal 1.1s var(--ease-editorial) .12s both">
+                <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80" alt="Security editorial" class="absolute inset-0 w-full h-full object-cover" loading="lazy" style="filter: saturate(0.15) contrast(1.05) brightness(0.95)">
+                <div class="absolute inset-0 bg-gradient-to-t from-ink/20 via-transparent to-transparent"></div>
+                <div class="absolute bottom-0 left-0 right-0 bg-paper/95 backdrop-blur-sm border-t border-ink/10 p-4">
+                  <div class="meta-mono text-ash text-[10px]">Security Study</div>
+                  <div class="font-display text-sm text-ink">Threat Surface — <span class="display-italic">Production, Worldwide</span></div>
                 </div>
+              </div>
+              <div class="bg-card border border-ink/10 border-t-0 p-4">
+                <div class="label-eyebrow text-[10px]">Editorial Note</div>
+                <div class="font-display text-sm leading-tight text-ink mt-2">Secure by <span class="display-italic text-ink/70">evidence</span> not assumption.</div>
+                <p class="text-xs leading-relaxed text-ash mt-2">Twelve scanners · CVSS 3.1 · Fingerprint · Fail-closed</p>
               </div>
             </div>
           </div>
