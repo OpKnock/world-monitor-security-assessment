@@ -161,25 +161,46 @@
     $view.setAttribute("aria-busy","false");
     const isLogin = mode==="login";
     $view.innerHTML = `
-      <div class="auth-hero">
-        <div class="auth-hero-content">
-          <div class="auth-logo">
-            <svg width="48" height="48" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0b1630"/><path d="M16 4.2L25 8.3v6.7c0 5.7-3.7 9.6-9 12.6C10.7 24.6 7 20.7 7 15V8.3L16 4.2Z" stroke="#22d3ee" stroke-width="1.6" stroke-linejoin="round"/><circle cx="16" cy="14.2" r="2.9" fill="#22d3ee"/><path d="M16 17.1v3.6" stroke="#22d3ee" stroke-width="1.4" stroke-linecap="round"/></svg>
-            <div>
-              <strong style="letter-spacing:.12em;font-size:22px;font-weight:800;background:linear-gradient(135deg,#eef2ff 0%,#80e3fc 45%,#c084fc 100%);-webkit-background-clip:text;background-clip:text;color:transparent;">WORLD MONITOR</strong>
-              <br><span class="muted small">Security Assessment Platform</span>
+      <div class="min-h-screen grid grid-cols-12 gap-0 bg-paper">
+        <div class="col-span-12 lg:col-span-7 bg-ink text-paper relative overflow-hidden flex flex-col justify-between min-h-[420px] lg:min-h-screen">
+          <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80" alt="Editorial security" class="absolute inset-0 w-full h-full object-cover opacity-20" loading="lazy" style="filter: saturate(0) contrast(1.1)">
+          <div class="absolute inset-0 bg-gradient-to-b from-ink via-ink/40 to-ink"></div>
+          <div class="relative z-10 p-8 lg:p-12">
+            <div class="flex items-center gap-3">
+              <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="4" fill="hsl(var(--paper))" fill-opacity="0.1" stroke="hsl(var(--paper))" stroke-opacity="0.2"/><path d="M16 7l6 2.5v4.5c0 4-2.5 6.5-6 8.5-3.5-2-6-4.5-6-8.5v-4.5z" stroke="hsl(var(--paper))" stroke-width="1.2" fill="none"/><circle cx="16" cy="14" r="2" fill="hsl(var(--paper))"/></svg>
+              <span class="font-display text-lg tracking-[-0.02em]">World<span class="display-italic text-paper/70"> &</span> Monitor</span>
+              <span class="meta-mono text-paper/50 hidden sm:inline">Est. MMXXIV</span>
             </div>
           </div>
-          <span class="auth-badge"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect width="16" height="16" rx="3" fill="currentColor"/></svg> ${isLogin ? "Sign In" : "Create Account"}</span>
-          <h1 class="auth-title">${isLogin ? "Welcome back" : "Create your account"}</h1>
-          <p class="auth-sub">${isLogin ? "Sign in to your security workspace." : "Analyst accounts can run assessments."}</p>
-          <form id="authForm" novalidate class="auth-form">
-            <div class="field"><label for="email">Email</label><input id="email" type="email" name="email" required autocomplete="username" placeholder="you@company.com" aria-describedby="emailHelp"></div>
-            <div class="field"><label for="password">Password</label><input id="password" type="password" name="password" required minlength="${isLogin?1:12}" autocomplete="${isLogin?"current-password":"new-password"}" placeholder="${isLogin?"••••••••":"min 12 characters"}" aria-describedby="pwHelp"><div id="pwHelp" class="help" aria-live="polite"></div></div>
-            <button class="btn-primary" style="width:100%;margin-top:6px" type="submit">${isLogin ? "Sign in" : "Create account"}</button>
-            <div class="err" id="authErr" role="alert" aria-live="polite"></div>
-          </form>
-          <p class="muted small" style="margin-top:16px;text-align:center;font-size:11px;opacity:.7">Secure workspace — authorized assessment only</p>
+          <div class="relative z-10 p-8 lg:p-12 flex-1 flex flex-col justify-center">
+            <div class="label-eyebrow text-paper/60" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1)">Secure access — Issue 01</div>
+            <h1 class="font-display text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.04em] mt-4" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1) .1s both">Secure <span class="display-italic text-paper/70">access</span><br>for verified<br><span class="display-italic text-paper/70">teams.</span></h1>
+            <p class="text-paper/65 leading-relaxed max-w-md mt-6" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1) .2s both">Fail-closed gates, paper-trail evidence, and retest until fixed. For engineering teams who care about the difference between a scan and a decision.</p>
+            <div class="grid grid-cols-3 gap-6 mt-10 border-t border-paper/10 pt-6" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1) .3s both">
+              <div><div class="font-display text-2xl text-paper">120+</div><div class="meta-mono text-paper/50">Scans run</div></div>
+              <div><div class="font-display text-2xl text-paper">38</div><div class="meta-mono text-paper/50">Rules</div></div>
+              <div><div class="font-display text-2xl text-paper">MMXXIV</div><div class="meta-mono text-paper/50">Established</div></div>
+            </div>
+          </div>
+          <div class="relative z-10 p-8 lg:p-12 border-t border-paper/10 flex justify-between meta-mono text-paper/40"><span>Los Angeles — Worldwide</span><span>LAB_MODE · LOOPBACK ONLY</span></div>
+        </div>
+        <div class="col-span-12 lg:col-span-5 bg-paper p-8 lg:p-12 flex items-center justify-center">
+          <div class="w-full max-w-md" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1) .2s both">
+            <div class="flex items-center gap-3 mb-8">
+              <div class="w-10 h-10 rounded bg-ink text-paper grid place-items-center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9v-5z"/><circle cx="12" cy="12" r="2"/></svg></div>
+              <div><div class="font-display text-lg leading-none">World Monitor</div><div class="meta-mono text-ash text-[10px]">Security Assessment Platform</div></div>
+            </div>
+            <span class="inline-flex items-center gap-2 meta-mono text-oxblood bg-oxblood/10 border border-oxblood/20 px-3 py-1 rounded-full mb-4">${isLogin ? "Sign In" : "Create Account"}</span>
+            <h2 class="font-display text-2xl font-semibold tracking-tight text-ink">${isLogin ? "Welcome back" : "Create your account"}</h2>
+            <p class="text-ash text-sm mt-2 mb-6">${isLogin ? "Sign in to your security workspace." : "Analyst accounts can run assessments."}</p>
+            <form id="authForm" novalidate class="space-y-4">
+              <div class="field"><label for="email" class="meta-mono">Email</label><input id="email" type="email" name="email" required autocomplete="username" placeholder="you@company.com" aria-describedby="emailHelp"></div>
+              <div class="field"><label for="password" class="meta-mono">Password</label><input id="password" type="password" name="password" required minlength="${isLogin?1:12}" autocomplete="${isLogin?"current-password":"new-password"}" placeholder="${isLogin?"••••••••":"min 12 characters"}" aria-describedby="pwHelp"><div id="pwHelp" class="help" aria-live="polite"></div></div>
+              <button class="w-full bg-ink text-paper hover:bg-ink/90 transition-colors py-3 font-medium" type="submit">${isLogin ? "Sign in" : "Create account"}</button>
+              <div class="err" id="authErr" role="alert" aria-live="polite"></div>
+            </form>
+            <p class="meta-mono text-ash/60 text-center mt-6">Secure workspace — authorized assessment only</p>
+          </div>
         </div>
       </div>`;
     const tgAuth = document.getElementById("tgAuth"); if (tgAuth) tgAuth.onclick = e=>{ e.preventDefault(); AuthScreen(isLogin ? "register" : "login"); };
@@ -310,14 +331,16 @@
               </div>
             </div>
             <div class="col-span-12 lg:col-span-5">
-              <div class="aspect-[3/4] bg-ink text-paper relative overflow-hidden grain-overlay" style="animation:imageReveal 1.1s cubic-bezier(0.7,0,0.2,1)">
-                <div class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-                  <div class="w-20 h-20 rounded-full border border-paper/20 flex items-center justify-center mb-6"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9v-5z"/><path d="M9 12l2 2 4-4"/></svg></div>
-                  <div class="label-eyebrow text-paper/70">World Monitor</div>
-                  <div class="font-display text-2xl text-paper mt-2">Secure by<br><span class="display-italic text-paper/80">evidence</span> not assumption.</div>
-                  <div class="meta-mono text-paper/50 mt-6">LAB_MODE · LOOPBACK ONLY · FAIL-CLOSED</div>
+              <div class="aspect-[3/4] relative overflow-hidden bg-bone" style="animation:imageReveal 1.1s cubic-bezier(0.7,0,0.2,1)">
+                <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80" alt="Security operations editorial" class="absolute inset-0 w-full h-full object-cover" loading="lazy" style="filter: saturate(0.2) contrast(1.05)">
+                <div class="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/20 to-transparent"></div>
+                <div class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center text-paper">
+                  <div class="w-20 h-20 rounded-full bg-paper/10 backdrop-blur-md border border-paper/20 flex items-center justify-center mb-6" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1) .4s both"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9v-5z"/><path d="M9 12l2 2 4-4"/></svg></div>
+                  <div class="label-eyebrow text-paper/80" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1) .5s both">World Monitor</div>
+                  <div class="font-display text-2xl text-paper mt-2" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1) .6s both">Secure by<br><span class="display-italic text-paper/90">evidence</span> not assumption.</div>
+                  <div class="meta-mono text-paper/60 mt-6" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1) .7s both">FAIL-CLOSED · PAPER TRAIL · RETEST</div>
                 </div>
-                <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-paper/10 flex justify-between meta-mono text-paper/60"><span>Est. MMXXIV</span><span>Los Angeles — Worldwide</span></div>
+                <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-paper/15 flex justify-between meta-mono text-paper/70 bg-ink/10 backdrop-blur-sm"><span>Est. MMXXIV</span><span>Editorial Security</span></div>
               </div>
             </div>
           </div>
