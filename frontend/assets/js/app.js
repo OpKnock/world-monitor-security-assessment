@@ -280,32 +280,54 @@
 
   /* ═══════════ DASHBOARD ═══════════ */
   async function Dashboard(){
+    const today = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"}).toUpperCase();
     setBreadcrumb([{label:"Dashboard"}]);
     $view.innerHTML = `
-      <div id="dashBody">
-        <div class="hero-section">
-          <div class="hero-content">
-            <span class="hero-badge"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect width="16" height="16" rx="3" fill="currentColor"/></svg> SECURITY POSTURE</span>
-            <h1 class="hero-title"><span class="accent">Security</span> Posture Dashboard</h1>
-            <p class="hero-sub">Live view of findings across all authorized assessments. Detect, verify, score and remediate vulnerabilities on authorized targets.</p>
-            <div class="hero-actions">
-              <button onclick="location.hash='#/assess/new'" class="btn-primary">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-                New Assessment
-              </button>
-              <button class="btn-ghost" onclick="Dashboard()" title="Refresh">↻ Refresh</button>
+      <div id="dashBody" class="bg-paper">
+        <!-- meta bar like HomePage -->
+        <div class="container-editorial pt-6 sm:pt-8">
+          <div class="grid grid-cols-12 gap-x-4 sm:gap-x-6 items-baseline meta-mono text-ash border-b border-ink/15 pb-3">
+            <span class="col-span-3 sm:col-span-2 text-ink">W&M</span>
+            <span class="hidden sm:block sm:col-span-2 text-ink/70">Vol. I</span>
+            <span class="hidden md:block md:col-span-3 text-ink/70">Independent · Security · Editorial</span>
+            <span class="col-span-9 sm:col-span-5 md:col-span-5 text-right text-ink">${esc(today)}</span>
+          </div>
+        </div>
+        <!-- hero editorial -->
+        <div class="container-editorial pt-10 sm:pt-14 lg:pt-20 pb-16 sm:pb-24">
+          <div class="grid grid-cols-12 gap-y-12 gap-x-6 lg:gap-x-10">
+            <div class="col-span-12 lg:col-span-7 flex flex-col justify-between gap-10">
+              <div class="flex items-center gap-4">
+                <span class="meta-mono text-ash">Issue 01</span><span class="block h-px w-10 bg-ink/40"></span><span class="label-eyebrow">the surface, the signal, the fix</span>
+              </div>
+              <h1 class="font-display text-[clamp(3.25rem,9.5vw,9rem)] leading-[0.92] tracking-[-0.04em] text-balance text-ink" style="animation:fadeUp .9s cubic-bezier(0.22,1,0.36,1)">A continuous <span class="display-italic text-ink/85">study</span> of your attack <span class="display-italic text-ink/85">surface.</span></h1>
+              <div class="max-w-prose">
+                <p class="text-[15px] leading-relaxed text-ash">Editorial security for engineering teams. Detect, verify, score and remediate vulnerabilities on authorized targets — with fail-closed gates and paper-trail evidence.</p>
+                <div class="flex flex-wrap gap-3 mt-6">
+                  <button onclick="location.hash='#/assess/new'" class="inline-flex items-center gap-2 px-6 py-3 bg-ink text-paper hover:bg-ink/90 transition-colors text-sm font-medium">Commission Assessment <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 3l5 5-5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                  <button class="inline-flex items-center gap-2 px-6 py-3 border border-ink text-ink hover:bg-ink hover:text-paper transition-colors text-sm font-medium" onclick="Dashboard()">↻ Refresh Posture</button>
+                </div>
+              </div>
+            </div>
+            <div class="col-span-12 lg:col-span-5">
+              <div class="aspect-[3/4] bg-ink text-paper relative overflow-hidden grain-overlay" style="animation:imageReveal 1.1s cubic-bezier(0.7,0,0.2,1)">
+                <div class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
+                  <div class="w-20 h-20 rounded-full border border-paper/20 flex items-center justify-center mb-6"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9v-5z"/><path d="M9 12l2 2 4-4"/></svg></div>
+                  <div class="label-eyebrow text-paper/70">World Monitor</div>
+                  <div class="font-display text-2xl text-paper mt-2">Secure by<br><span class="display-italic text-paper/80">evidence</span> not assumption.</div>
+                  <div class="meta-mono text-paper/50 mt-6">LAB_MODE · LOOPBACK ONLY · FAIL-CLOSED</div>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-paper/10 flex justify-between meta-mono text-paper/60"><span>Est. MMXXIV</span><span>Los Angeles — Worldwide</span></div>
+              </div>
             </div>
           </div>
         </div>
-        <div class="metrics-grid" id="metricsGrid">
-          ${skeletonKpis()}
-          ${skeletonCards(2)}
+        <div class="container-editorial">
+          <div class="editorial-rule mb-8"></div>
+          <div class="metrics-grid" id="metricsGrid">${skeletonKpis()}${skeletonCards(2)}</div>
+          <div class="cards-grid" id="cardsGrid"><div class="skeleton sk-card"></div><div class="skeleton sk-card"></div></div>
+          <div class="card mt">${skeletonTable(4)}</div>
         </div>
-        <div class="cards-grid" id="cardsGrid">
-          <div class="skeleton sk-card" aria-hidden="true"></div>
-          <div class="skeleton sk-card" aria-hidden="true"></div>
-        </div>
-        <div class="card mt">${skeletonTable(4)}</div>
       </div>`;
     const el=$view.querySelector("#dashBody");
     let d;

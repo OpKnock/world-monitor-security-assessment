@@ -281,291 +281,133 @@ def handle_500(e):  # type: ignore[no-untyped-def]
 # ═════════════════════════════════════════════════════════════════════════
 # PREMIUM DARK TECH THEME — Wix-inspired
 # ═════════════════════════════════════════════════════════════════════════
-PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>World Monitor Lab — Vulnerable Playground</title>
+PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="theme-color" content="#0E0E10"><title>World Monitor Lab — A deliberately vulnerable playground</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#050912;
-  --bg-elev:#0b1220;
-  --card:rgba(17,26,48,.9);
-  --card-2:rgba(22,34,62,.85);
-  --border:rgba(32,48,82,.9);
-  --border-bright:rgba(45,66,107,.95);
-  --text:#f0f4ff;
-  --text-muted:#a8b8d8;
-  --text-dim:#526488;
-  --cyan:#22d3ee;
-  --cyan-2:#06b6d4;
-  --cyan-3:#0891b2;
-  --blue:#3b82f6;
-  --blue-2:#2563eb;
-  --violet:#a855f7;
-  --violet-2:#9333ea;
-  --green:#22c55e;
-  --amber:#f59e0b;
-  --orange:#f97316;
-  --red:#ef4444;
-  --crit:#ef4444;
-  --ok:#22c55e;
-  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
-  --sans:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
-  --bg-gradient:
-    radial-gradient(ellipse 80% 60% at 50% -20%,rgba(59,130,246,.12),transparent 65%),
-    radial-gradient(ellipse 50% 50% at 90% 90%,rgba(168,85,247,.08),transparent 65%),
-    radial-gradient(ellipse 35% 35% at 10% 90%,rgba(34,211,238,.06),transparent 50%);
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{
-  font-family:var(--sans);
-  background:var(--bg);
-  color:var(--text);
-  line-height:1.6;
-  min-height:100vh;
-  background-image:var(--bg-gradient);
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-}
-a{color:var(--cyan);text-decoration:none;transition:color .15s}
-a:hover{color:var(--cyan-2);text-decoration:underline;text-underline-offset:2px}
-code{
-  background:rgba(34,211,238,.15);
-  color:var(--cyan);
-  padding:2px 7px;
-  border-radius:6px;
-  font-size:.85em;
-  font-family:var(--mono);
-}
-.badge{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:3px 10px;border-radius:9999px;
-  font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-  background:rgba(239,68,68,.14);color:#ef4444;border:1px solid rgba(239,68,68,.22)
-}
-.badge.warn{background:rgba(245,158,11,.14);color:#f59e0b;border-color:rgba(245,158,11,.22)}
-.badge.ok{background:rgba(34,197,94,.14);color:#22c55e;border-color:rgba(34,197,94,.22)}
-h1{
-  font-size:1.875rem;font-weight:800;letter-spacing:-.02em;margin:0 0 .5rem;
-  display:flex;align-items:center;gap:.875rem;
-}
-h1 .accent{
-  background:linear-gradient(135deg,#eef2ff 0%,#80e3fc 45%,#c084fc 100%);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-}
-.card{
-  background:linear-gradient(165deg,rgba(17,26,48,.96),rgba(11,15,28,.96));
-  border:1px solid var(--border);border-radius:16px;padding:22px;margin:1.5rem 0;
-  box-shadow:0 8px 32px rgba(0,0,0,.4),0 0 0 1px rgba(34,211,238,.06);
-  position:relative;overflow:hidden;
-  animation:lab-enter .5s cubic-bezier(.21,1.02,.73,1) both;
-}
-.card::before{
-  content:"";position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(34,211,238,.28),transparent);opacity:.7
-}
-.warn{
-  background:rgba(239,68,68,.06);
-  border:1px solid rgba(239,68,68,.18);
-  color:#ef4444;
-  border-radius:12px;padding:16px;margin:1.25rem 0;
-  display:flex;align-items:flex-start;gap:1rem;
-}
-.warn svg{flex-shrink:0;margin-top:.125rem}
-p{margin:1rem 0;color:#d1d5db}
-.muted{color:var(--text-muted);font-size:.875rem}
-.card-title{
-  font-size:1.05rem;font-weight:700;margin:0 0 1.25rem;
-  display:flex;align-items:center;gap:.625rem
-}
-.card-title svg{width:1.375rem;height:1.375rem;color:var(--cyan)}
-ul{margin:.75rem 0;padding-left:1.5rem}
-li{margin:.5rem 0;color:#d1d5db}
-li code{background:rgba(34,211,238,.12);color:#22d3ee;padding:2px 9px;border-radius:6px}
-input,button,select,textarea{font-family:inherit;font-size:.9375rem}
-input[type="text"],input[type="email"],input[type="password"]{
-  width:100%;
-  background:rgba(11,15,28,.9);
-  border:1px solid var(--border);
-  color:#f3f4f6;
-  padding:.75rem 1rem;
-  border-radius:10px;
-  transition:border-color .15s,box-shadow .15s
-}
-input:focus{
-  outline:none;
-  border-color:var(--cyan);
-  box-shadow:0 0 0 3px rgba(34,211,238,.25)
-}
-button{
-  cursor:pointer;
-  font-weight:650;
-  transition:all .2s cubic-bezier(.4,0,.2,1)
-}
-.btn-primary{
-  background:linear-gradient(135deg,var(--cyan),var(--cyan-3));
-  background-size:200% 100%;
-  color:#050912;
-  border:none;
-  padding:.8rem 1.5rem;
-  border-radius:11px;
-  font-weight:650;
-  box-shadow:0 4px 18px rgba(34,211,238,.3);
-  animation:gradient-shift 4s ease infinite;
-}
-@keyframes gradient-shift{
-  0%,100%{background-position:0% 50%}
-  50%{background-position:100% 50%}
-}
-.btn-primary:hover{
-  filter:brightness(1.1);
-  box-shadow:0 8px 28px rgba(34,211,238,.4);
-  transform:translateY(-2px)
-}
-.btn-primary:active{transform:translateY(0) scale(.98)}
-.btn-primary:disabled{opacity:.42;cursor:not-allowed;box-shadow:none;transform:none;filter:none;animation:none}
-.btn-ghost{
-  background:rgba(17,26,48,.7);
-  border:1px solid var(--border-bright);
-  color:var(--text-muted);
-  padding:.65rem 1.1rem;
-  border-radius:9px;
-  font-weight:550;
-  backdrop-filter:blur(8px);
-}
-.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(34,211,238,.08)}
-label{
-  display:block;
-  font-size:.78rem;
-  font-weight:600;
-  color:#9ca3af;
-  margin-bottom:.4375rem
-}
-.help{font-size:.75rem;color:var(--text-dim);margin-top:.4375rem;line-height:1.5}
-.field{margin-bottom:1.25rem}
-.field:last-child{margin-bottom:0}
-.input-row{display:flex;gap:.75rem}
-.input-row > *{flex:1}
-pre{
-  background:#0a0f1a;
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:16px;
-  overflow:auto;
-  white-space:pre-wrap;
-  word-break:break-word;
-  color:var(--text-muted);
-  font-size:.8rem;
-  line-height:1.65
-}
-@keyframes lab-enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes lab-glow{0%,100%{opacity:.55}50%{opacity:1}}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-@keyframes shimmer{to{background-position:-200% 0}}
-#bg-glow{
-  position:fixed;inset:0;pointer-events:none;
-  background:var(--bg-gradient);
-  animation:lab-glow 8s ease infinite;
-  opacity:.55;
-}
-.card:nth-child(1){animation-delay:.05s}
-.card:nth-child(2){animation-delay:.12s}
-.card:nth-child(3){animation-delay:.19s}
-.card:nth-child(4){animation-delay:.26s}
-.card:nth-child(5){animation-delay:.33s}
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation:none!important;transition:none!important}
-  #bg-glow{animation:none}
-}
+:root{--paper:42 28% 93%;--ink:240 7% 6%;--bone:42 30% 87%;--ash:36 7% 33%;--oxblood:0 59% 30%;--border:36 14% 78%;--card:42 32% 96%;--mono:"JetBrains Mono",monospace;--sans:"Inter Tight",system-ui,sans-serif;--display:"Fraunces",serif}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:hsl(var(--paper));color:hsl(var(--ink));line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
+a{color:hsl(var(--ink));text-decoration:none;border-bottom:1px solid hsl(var(--ink)/0.2)}a:hover{border-bottom-color:hsl(var(--ink))}
+code{font-family:var(--mono);background:hsl(var(--ink)/0.06);padding:2px 6px;border-radius:2px;font-size:.85em}
+.container-editorial{width:100%;max-width:1320px;margin:0 auto;padding:0 1.25rem}
+@media(min-width:640px){.container-editorial{padding:0 1.5rem}}
+@media(min-width:1024px){.container-editorial{padding:0 2.5rem}}
+.meta-mono{font-family:var(--mono);font-size:.6875rem;letter-spacing:.04em;text-transform:uppercase;color:hsl(var(--ash))}
+.label-eyebrow{font-family:var(--sans);font-size:.6875rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:hsl(var(--ink))}
+.display-italic{font-family:var(--display);font-style:italic;font-weight:300}
+.font-display{font-family:var(--display)}
+.editorial-rule{height:1px;background:hsl(var(--ink)/0.18);width:100%}
+.card{background:hsl(var(--card));border:1px solid hsl(var(--border));padding:20px;border-radius:2px}
+header.sticky{position:sticky;top:0;z-index:40;background:hsl(var(--paper)/0.9);backdrop-filter:blur(8px);border-bottom:1px solid hsl(var(--ink)/0.1)}
+.grain{position:relative}
+.grain::after{content:"";position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.14 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;mix-blend-mode:multiply;opacity:.5}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes imageReveal{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0% 0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.reveal{animation:imageReveal 1.1s cubic-bezier(0.7,0,0.2,1) forwards}
+input,button{font-family:inherit}
+input[type="text"],input[type="password"]{width:100%;background:hsl(var(--paper));border:1px solid hsl(var(--border));padding:10px 12px;border-radius:2px;color:hsl(var(--ink))}
+input:focus{outline:none;border-color:hsl(var(--ink));box-shadow:0 0 0 1px hsl(var(--ink))}
+button.btn{cursor:pointer;font-weight:500;transition:all .2s}
+.btn-primary{background:hsl(var(--ink));color:hsl(var(--paper));border:1px solid hsl(var(--ink));padding:10px 18px;border-radius:2px}
+.btn-primary:hover{background:hsl(var(--ink)/0.92)}
+.btn-ghost{background:hsl(var(--paper));color:hsl(var(--ink));border:1px solid hsl(var(--ink));padding:8px 14px;border-radius:2px}
+.btn-ghost:hover{background:hsl(var(--ink));color:hsl(var(--paper))}
+.warn{border:1px solid hsl(0 70% 42% /0.2);background:hsl(0 70% 42% /0.06);color:hsl(0 70% 42%);padding:14px;border-radius:2px;display:flex;gap:12px}
+pre{background:hsl(var(--ink));color:hsl(var(--paper));padding:14px;border-radius:2px;overflow:auto;font-family:var(--mono);font-size:.8rem;white-space:pre-wrap;word-break:break-word}
 </style>
 </head>
 <body>
-<div id="bg-glow" aria-hidden="true"></div>
-<main style="max-width:880px;margin:0 auto;padding:3.5rem 1.75rem 4.5rem">
-<header style="margin-bottom:2.5rem">
-<h1>World Monitor <span class="accent">Lab</span> <span class="badge">VULNERABLE</span></h1>
-<p style="color:var(--text-muted);font-size:1.1rem;margin-top:.625rem">Deliberately vulnerable playground · Assessment target · Localhost only</p>
+<header class="sticky">
+  <div class="container-editorial">
+    <div style="display:flex;align-items:center;justify-content:space-between;height:64px">
+      <a href="/" style="display:flex;align-items:baseline;gap:12px;border:none"><span class="font-display" style="font-size:22px;letter-spacing:-0.02em">World<span class="display-italic" style="color:hsl(var(--ink)/0.7);margin:0 4px">&</span>Monitor</span><span class="meta-mono" style="display:none">Est. MMXXIV</span></a>
+      <nav style="display:flex;gap:28px" class="meta-mono"><a href="/" style="color:hsl(var(--oxblood));border:none">01 Index</a><a href="/health" style="border:none">02 Health</a><a href="/api/monitor" style="border:none">03 Monitor</a><a href="#demo" style="border:none">04 Demo</a></nav>
+      <a href="#login" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid hsl(var(--ink));font-size:13px;font-weight:500">Commission <span>↗</span></a>
+    </div>
+  </div>
 </header>
-<div class="warn" role="alert"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L22.11 3.86a2 2 0 0 0-1.71-3H3.71a2 2 0 0 0-1.71 3z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-<div><strong>⚠️ Intentionally insecure playground</strong> — runs on loopback for authorized assessment only. Do not expose beyond localhost.</div>
-</div>
-<div class="card" style="margin-top:1.75rem">
-<div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span>Demo accounts</span></div>
-<ul>
-<li><code>alice / user123</code> <span style="color:var(--text-muted);margin-left:.5rem">— regular user</span></li>
-<li><code>bob / user456</code> <span style="color:var(--text-muted);margin-left:.5rem">— regular user</span></li>
-<li><code>admin / admin123</code> <span style="color:var(--text-muted);margin-left:.5rem">— administrator</span></li>
-</ul>
-<div style="margin-top:1.25rem;display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;font-size:.875rem;color:var(--text-muted)">
-<span>API base: <code>/api</code></span><span>Auth: <code>Bearer JWT</code> or cookie <code>wm_lab_user</code></span>
-<a href="/health" style="margin-left:auto" class="btn-ghost">Health check</a><span style="margin-left:.75rem">·</span><a href="/api/monitor" class="btn-ghost">Monitor</a>
-</div>
-</div>
-<div class="card" style="margin-top:1.75rem">
-<div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg><span>Try login (browser)</span></div>
-<form id="loginForm" onsubmit="event.preventDefault();loginSubmit();">
-<div class="input-row">
-<div class="field"><label for="u">Username</label><input type="text" id="u" placeholder="alice" autocomplete="username" required></div>
-<div class="field"><label for="p">Password</label><input type="password" id="p" placeholder="user123" autocomplete="current-password" required></div>
-</div>
-<button type="submit" class="btn-primary" style="width:100%;margin-top:.25rem" id="loginBtn">Sign in</button>
-</form>
-<pre id="out" aria-live="polite" style="margin-top:1.25rem;min-height:3.5rem">(no request yet)</pre>
-<p class="help">Tip: <code>curl -X POST http://127.0.0.1:8080/login -H 'Content-Type: application/json' -d '{"username":"alice","password":"user123"}'</code></p>
-</div>
-<div class="card" style="margin-top:1.75rem">
-<div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v-4M12 11l-4-4M12 11h8"></path></svg><span>Fix toggles (restart lab with env)</span></div>
-<pre style="margin-top:.875rem;line-height:1.85">WM_LAB_PATCH_IDOR=1    — enforce ownership on /api/reports/<id>
+<main>
+  <div class="container-editorial" style="padding-top:24px">
+    <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:16px;border-bottom:1px solid hsl(var(--ink)/0.15);padding-bottom:12px" class="meta-mono">
+      <span style="grid-column:span 2;color:hsl(var(--ink))">W&M</span><span style="grid-column:span 2;color:hsl(var(--ink)/0.7)">Vol. II</span><span style="grid-column:span 3;color:hsl(var(--ink)/0.7)">Independent · Security · Editorial</span><span style="grid-column:span 5;text-align:right;color:hsl(var(--ink))" id="labDate"></span>
+    </div>
+  </div>
+  <div class="container-editorial" style="padding-top:48px;padding-bottom:48px">
+    <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:40px">
+      <div style="grid-column:span 7;display:flex;flex-direction:column;gap:32px">
+        <div style="display:flex;align-items:center;gap:16px"><span class="meta-mono">Issue 02 — Lab</span><span style="display:block;height:1px;width:40px;background:hsl(var(--ink)/0.4)"></span><span class="label-eyebrow">the flaw, the fix, the proof</span></div>
+        <h1 class="font-display" style="font-size:clamp(2.8rem,8vw,5.5rem);line-height:0.92;letter-spacing:-0.04em">A deliberately <span class="display-italic" style="color:hsl(var(--ink)/0.85)">vulnerable</span> playground.</h1>
+        <p style="max-width:520px;color:hsl(var(--ash));font-size:15px">Isolated World Monitor target for authorized assessment. Every flaw is intentional, labeled, and confined to loopback. Never expose beyond localhost.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap"><a href="#login" class="btn-primary" style="text-decoration:none">Try login — alice/user123</a><a href="/health" class="btn-ghost" style="text-decoration:none">Health check</a></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding-top:16px;border-top:1px solid hsl(var(--ink)/0.1)" class="meta-mono"><div><div style="font-family:var(--display);font-size:24px;color:hsl(var(--ink))">10</div>Flaws W01–W10</div><div><div style="font-family:var(--display);font-size:24px;color:hsl(var(--ink))">4</div>Patch toggles</div><div><div style="font-family:var(--display);font-size:24px;color:hsl(var(--ink))">127.0.0.1:8080</div>Loopback only</div></div>
+      </div>
+      <div style="grid-column:span 5">
+        <div class="reveal grain" style="aspect-ratio:3/4;background:hsl(var(--ink));color:hsl(var(--paper));position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center">
+          <div style="width:80px;height:80px;border:1px solid hsl(var(--paper)/0.2);border-radius:50%;display:grid;place-items:center;margin-bottom:20px"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9v-5z"/><path d="M12 8v8"/><path d="M9 12h6"/></svg></div>
+          <div class="label-eyebrow" style="color:hsl(var(--paper)/0.7)">World Monitor Lab</div>
+          <div class="font-display" style="font-size:22px;color:hsl(var(--paper));margin-top:8px">Secure by<br><span class="display-italic" style="color:hsl(var(--paper)/0.8)">evidence</span> not assumption.</div>
+          <div class="meta-mono" style="color:hsl(var(--paper)/0.5);margin-top:16px">INTENTIONALLY VULNERABLE · LOCAL ONLY</div>
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 16px;border-top:1px solid hsl(var(--paper)/0.1);display:flex;justify-content:space-between" class="meta-mono"><span>Est. MMXXIV</span><span>Loopback</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container-editorial"><div class="editorial-rule" style="margin-bottom:24px"></div></div>
+  <div class="container-editorial" style="display:grid;grid-template-columns:1fr 1fr;gap:20px" id="demo">
+    <div class="card">
+      <div class="label-eyebrow" style="margin-bottom:12px">Demo accounts</div>
+      <ul style="list-style:none;padding:0;margin:0;display:grid;gap:8px;font-size:14px"><li style="display:flex;justify-content:space-between;border-bottom:1px solid hsl(var(--border));padding:8px 0"><code>alice / user123</code><span class="meta-mono">regular user</span></li><li style="display:flex;justify-content:space-between;border-bottom:1px solid hsl(var(--border));padding:8px 0"><code>bob / user456</code><span class="meta-mono">regular user</span></li><li style="display:flex;justify-content:space-between;padding:8px 0"><code>admin / admin123</code><span class="meta-mono">administrator</span></li></ul>
+      <div style="margin-top:12px;display:flex;gap:8px;font-size:12px" class="meta-mono"><span>API base: <code>/api</code></span><span>Auth: <code>Bearer JWT</code></span></div>
+    </div>
+    <div class="card" id="login">
+      <div class="label-eyebrow" style="margin-bottom:12px">Try login (browser)</div>
+      <form id="loginForm" onsubmit="event.preventDefault();loginSubmit();">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div><label class="meta-mono">Username</label><input type="text" id="u" placeholder="alice" autocomplete="username" required></div>
+          <div><label class="meta-mono">Password</label><input type="password" id="p" placeholder="user123" autocomplete="current-password" required></div>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%;margin-top:12px" id="loginBtn">Sign in</button>
+      </form>
+      <pre id="out" style="margin-top:12px;min-height:48px">(no request yet)</pre>
+      <p style="font-size:11px;color:hsl(var(--ash));margin-top:8px">Tip: <code>curl -X POST http://127.0.0.1:8080/login -H 'Content-Type: application/json' -d '{"username":"alice","password":"user123"}'</code></p>
+    </div>
+  </div>
+  <div class="container-editorial" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px">
+    <div class="card">
+      <div class="label-eyebrow" style="margin-bottom:12px">Fix toggles (restart lab with env)</div>
+      <pre style="background:hsl(var(--paper));color:hsl(var(--ink));border:1px solid hsl(var(--border))">WM_LAB_PATCH_IDOR=1    — enforce ownership on /api/reports/&lt;id&gt;
 WM_LAB_FIX_HEADERS=1   — enable security headers (HSTS, CSP, etc.)
 WM_LAB_PATCH_SQLI=1    — parametrized query on /api/search
 WM_LAB_RATELIMIT=1     — 20 req/min per IP on /api/*
-WM_LAB_JWT_SECRET=...  — override weak JWT secret (rotation test)</pre>
-</div>
-<div class="card" style="margin-top:1.75rem">
-<div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="18" y2="9"></line></svg><span>API quick ref (Bearer JWT)</span></div>
-<pre style="margin-top:.875rem;line-height:1.9">GET  /api/              — API root (auth required)
-GET  /api/users         — W01: lists all users + password hashes
+WM_LAB_JWT_SECRET=...  — override weak JWT secret</pre>
+    </div>
+    <div class="card">
+      <div class="label-eyebrow" style="margin-bottom:12px">API quick ref (Bearer JWT)</div>
+      <pre style="background:hsl(var(--paper));color:hsl(var(--ink));border:1px solid hsl(var(--border))">GET  /api/              — API root (auth required)
+GET  /api/users         — W01: lists all users + hashes
 GET  /api/reports       — W02: lists own reports (IDOR on /:id)
 GET  /api/reports/:id   — W02: IDOR across users
 GET  /api/search?id=1   — W03: boolean-blind SQLi
 GET  /api/monitor       — telemetry + internals leak
 GET  /greet?name=test   — W04: reflected XSS indicator
 GET  /health            — health check
-POST /login             — issues JWT (weak secret) + cookie</pre>
-</div>
-<footer style="margin-top:3.5rem;padding-top:2.25rem;border-top:1px solid var(--border);text-align:center;color:var(--text-dim);font-size:.78rem">
-<p>World Monitor Vulnerable Lab · <strong>AGPL-3.0</strong> · <a href="https://github.com/koala73/worldmonitor" target="_blank" rel="noopener">Target upstream: koala73/worldmonitor</a></p>
-<p style="margin-top:.625rem">Deliberately vulnerable · Assessment target only · Loopback only · <strong>Do not expose</strong></p>
-</footer>
+POST /login             — issues JWT + cookie</pre>
+    </div>
+  </div>
 </main>
+<footer style="border-top:1px solid hsl(var(--border));margin-top:48px">
+  <div class="container-editorial" style="padding:24px 0;display:flex;justify-content:space-between;gap:16px" class="meta-mono"><span>World Monitor Vulnerable Lab · AGPL-3.0 · <a href="https://github.com/koala73/worldmonitor" target="_blank">koala73/worldmonitor</a></span><span>Deliberately vulnerable · Loopback only</span></div>
+</footer>
 <script>
-// Login form handler with loading state
-const form = document.getElementById('loginForm');
-const out = document.getElementById('out');
-const loginBtn = document.getElementById('loginBtn');
-
-async function loginSubmit() {
-  const u = document.getElementById('u').value;
-  const p = document.getElementById('p').value;
-  const orig = loginBtn.innerHTML;
-  loginBtn.disabled = true;
-  loginBtn.innerHTML = '<span style="display:inline-block;width:1em;height:1em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite;margin-right:.5rem;vertical-align:-.125em"></span> Signing in…';
-  try {
-    const res = await fetch('/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u, password:p})});
-    const data = await res.json();
-    if (res.ok && data.access_token) {
-      out.textContent = '✓ token OK — length ' + data.access_token.length + ' · role: ' + data.role;
-    } else {
-      out.textContent = '✗ login failed: ' + (data.error || JSON.stringify(data));
-    }
-  } catch (e) {
-    out.textContent = 'error: ' + e.message;
-  } finally {
-    loginBtn.disabled = false; loginBtn.innerHTML = 'Sign in';
-  }
+(function(){var el=document.getElementById('labDate');if(el)el.textContent=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'}).toUpperCase();})();
+async function loginSubmit(){
+  var u=document.getElementById('u').value, p=document.getElementById('p').value;
+  var btn=document.getElementById('loginBtn'), out=document.getElementById('out');
+  var orig=btn.innerHTML; btn.disabled=true; btn.innerHTML='<span style="display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite;margin-right:8px;vertical-align:-2px"></span> Signing in…';
+  try{var res=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});var data=await res.json();if(res.ok&&data.access_token){out.textContent='✓ token OK — length '+data.access_token.length+' · role: '+data.role}else{out.textContent='✗ login failed: '+(data.error||JSON.stringify(data))}}catch(e){out.textContent='error: '+e.message}finally{btn.disabled=false;btn.innerHTML=orig}
 }
-
-const style = document.createElement('style');
-style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
-document.head.appendChild(style);
+document.getElementById('loginForm')?.addEventListener('submit',function(e){e.preventDefault();loginSubmit();});
 </script>
 </body></html>"""
 
