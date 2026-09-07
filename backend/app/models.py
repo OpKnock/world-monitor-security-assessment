@@ -168,6 +168,28 @@ class ScanRun(Base, TimestampMixin):
         return f"<ScanRun id={self.id} scanner={self.scanner} status={self.status}>"
 
 
+class ScanBaseline(Base, TimestampMixin):
+    """Immutable baseline scan for historical comparison (diff-aware)."""
+
+    __tablename__ = "scan_baselines"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    assessment_id: Mapped[str] = mapped_column(
+        ForeignKey("assessments.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    scan_run_id: Mapped[str] = mapped_column(
+        ForeignKey("scan_runs.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(128), default="baseline", nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    assessment: Mapped[Assessment] = relationship(lazy="joined")
+    scan_run: Mapped[ScanRun] = relationship(lazy="joined")
+
+    def __repr__(self) -> str:
+        return f"<ScanBaseline id={self.id} assessment={self.assessment_id} run={self.scan_run_id}>"
+
+
 class Finding(Base, TimestampMixin):
     """Common Finding Format — every scanner normalises into this schema."""
 
@@ -295,13 +317,37 @@ class AuditLog(Base, TimestampMixin):
 
 RETEST_ORIGINAL_EVIDENCE_KEY: str = "retest_original_evidence"
 
+
+class FindingSuppression(Base, TimestampMixin):
+    """Auditable, expiring finding suppression."""
+
+    __tablename__ = "finding_suppressions"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    finding_id: Mapped[str] = mapped_column(
+        ForeignKey("findings.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    suppressed_by: Mapped[str] = mapped_column(String(255), nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    scope: Mapped[str] = mapped_column(String(64), default="global", nullable=False)  # global, assessment, project
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    finding: Mapped[Finding] = relationship(lazy="joined")
+
+    def __repr__(self) -> str:
+        return f"<FindingSuppression id={self.id} finding={self.finding_id} active={self.is_active}>"
+
+
 __all__ = [
     "Assessment",
     "AuditLog",
     "Evidence",
     "Finding",
+    "FindingSuppression",
     "Report",
     "RETEST_ORIGINAL_EVIDENCE_KEY",
+    "ScanBaseline",
     "ScanRun",
     "Target",
     "User",
