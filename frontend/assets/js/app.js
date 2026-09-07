@@ -229,7 +229,7 @@
         API.setToken(data.access_token);
         toast(isLogin ? "Welcome back" : "Account created — signed in");
         loadUserChip();
-        if(location.hash==="#/dashboard") router(); else location.hash="#/dashboard";
+        if(location.hash==="#/welcome") router(); else location.hash="#/welcome";
       }catch(err){
         const msg = String(err.message||"Request failed");
         // map common server messages to friendlier text
@@ -245,6 +245,7 @@
 
   /* ── router ── */
   const ROUTES = {
+    "#/welcome": Welcome,
     "#/dashboard": Dashboard,
     "#/assess/new": NewAssessment,
     "#/findings": FindingsList,
@@ -262,10 +263,9 @@
   }
   async function router(){
     stopPoll(); closeNav();
-    const h=location.hash || "#/dashboard";
+    const rawH=location.hash || "";
     const hasToken = !!API.getToken();
     // header always visible — toggle login/commission
-    $sidebar.classList.remove("hidden");
     const hc = document.getElementById("headerCommissionBtn");
     const hl = document.getElementById("headerLoginBtn");
     const uc = document.getElementById("userChip");
@@ -279,16 +279,19 @@
     if(lo) lo.classList.toggle("hidden", !hasToken);
     if(um) um.classList.toggle("hidden", !hasToken);
     if(!hasToken){
+      $sidebar.classList.add("hidden");
       $topbar.classList.add("hidden");
       $footer.classList.add("hidden");
       setActiveNav();
-      const wantRegister = h==="#/register" || h==="#/assess/new";
-      AuthScreen(wantRegister && h==="#/register" ? "register" : "login");
-      if(wantRegister && h==="#/assess/new") toast("Please sign in to create assessments", false);
+      const wantRegister = rawH==="#/register" || rawH==="#/assess/new";
+      AuthScreen(wantRegister && rawH==="#/register" ? "register" : "login");
+      if(wantRegister && rawH==="#/assess/new") toast("Please sign in to create assessments", false);
       return;
     }
+    $sidebar.classList.remove("hidden");
     $topbar.classList.remove("hidden");
     $footer.classList.remove("hidden");
+    const h = rawH || "#/welcome";
     setActiveNav();
     loadUserChip();
     refreshHealth();
@@ -298,7 +301,7 @@
       if(ROUTES[h]) await ROUTES[h]();
       else if(h.startsWith("#/assessment/")) await AssessmentDetail(h.split("/")[2]);
       else if(h.startsWith("#/finding/")) await FindingDetail(h.split("/")[2]);
-      else await Dashboard();
+      else await Welcome();
     }catch(e){
       $view.innerHTML = `<div class="card">${errorState(e.message || "Failed to load view", router)}</div>`;
     }finally{
@@ -306,7 +309,49 @@
     }
   }
 
-  /* ═══════════ DASHBOARD ═══════════ */
+  /* ═══════════ WELCOME (Apex replica, no pics) ═══════════ */
+  function Welcome(){
+    const today = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"}).toUpperCase();
+    setBreadcrumb([{label:"Welcome"}]);
+    $view.innerHTML = `
+      <div class="bg-paper">
+        <div class="container-editorial pt-6 sm:pt-8">
+          <div class="grid grid-cols-12 gap-x-4 sm:gap-x-6 items-baseline meta-mono text-ash border-b border-ink/15 pb-3">
+            <span class="col-span-3 sm:col-span-2 text-ink">World Monitor</span>
+            <span class="hidden sm:block sm:col-span-2 text-ink/70">Vol. I</span>
+            <span class="hidden md:block md:col-span-3 text-ink/70">Independent · Security · Editorial</span>
+            <span class="col-span-9 sm:col-span-5 md:col-span-5 text-right text-ink">${esc(today)}</span>
+          </div>
+        </div>
+        <div class="container-editorial pt-10 sm:pt-14 lg:pt-16 pb-8">
+          <div class="flex items-center gap-4" style="animation:fadeUp .6s var(--ease-soft) both">
+            <span class="meta-mono text-ash">Issue 01 — Platform</span><span class="block h-px w-10 bg-ink/30"></span><span class="label-eyebrow">the surface, the signal, the fix</span>
+          </div>
+          <h1 class="font-display text-[clamp(3.2rem,9vw,8rem)] leading-[0.88] tracking-[-0.04em] text-ink mt-6" style="animation:fadeUp .8s var(--ease-soft) .08s both">A continuous<br><span class="display-italic text-ink/70">study</span> of your<br>attack <span class="display-italic text-ink/70">surface.</span></h1>
+          <p class="text-[16px] leading-relaxed text-ash max-w-2xl mt-8" style="animation:fadeUp .6s var(--ease-soft) .16s both">World Monitor is a <span class="text-ink font-medium">continuous study</span> of your attack surface — not a scanner. We detect, verify, score and remediate with <span class="text-ink font-medium">fail-closed</span> gates and paper-trail evidence. A neat, clean and professional editorial for engineering teams who care about the difference between a scan and a decision.</p>
+          <p class="text-[14px] leading-relaxed text-ash/80 max-w-2xl mt-4" style="animation:fadeUp .6s var(--ease-soft) .2s both">Est. MMXXIV · Independent · Security · Editorial · For teams who ship securely. Every assessment is authorized, every finding has provenance, every report is retetable.</p>
+          <div class="flex flex-wrap gap-3 mt-8" style="animation:fadeUp .6s var(--ease-soft) .24s both">
+            <a href="#/dashboard" class="px-7 py-3 bg-ink text-paper hover:bg-ink/90 transition-all hover:translate-y-[-1px] hover:shadow-md text-sm font-medium">Enter Home →</a>
+            <a href="#/assess/new" class="px-7 py-3 border border-ink text-ink hover:bg-ink hover:text-paper transition-all text-sm font-medium">Commission Assessment</a>
+          </div>
+          <div class="grid grid-cols-3 gap-6 mt-10 pt-6 border-t border-ink/10 max-w-xl" style="animation:fadeUp .6s var(--ease-soft) .28s both">
+            <div><div class="font-display text-2xl text-ink">46</div><div class="meta-mono text-ash">Tests passing</div></div>
+            <div><div class="font-display text-2xl text-ink">8</div><div class="meta-mono text-ash">Modules</div></div>
+            <div><div class="font-display text-2xl text-ink">MMXXIV</div><div class="meta-mono text-ash">Established</div></div>
+          </div>
+        </div>
+        <div class="container-editorial"><div class="editorial-rule"></div></div>
+        <div class="container-editorial py-8">
+          <div class="grid grid-cols-12 gap-6 text-sm leading-relaxed">
+            <div class="col-span-12 md:col-span-4"><div class="label-eyebrow">01 — Detect</div><p class="text-ash mt-2">Twelve scanners — authentication, authorization, headers, TLS, secrets, supply-chain — normalize to a canonical finding schema with CVSS 3.1 and fingerprint.</p></div>
+            <div class="col-span-12 md:col-span-4"><div class="label-eyebrow">02 — Verify</div><p class="text-ash mt-2">Evidence is masked, files are jailed, DNS is pinned. Every finding carries provenance, not AI hallucination.</p></div>
+            <div class="col-span-12 md:col-span-4"><div class="label-eyebrow">03 — Decide</div><p class="text-ash mt-2">Fail-closed gates: <span class="text-ink font-medium">BLOCKED</span> until health, findings and scans pass. Retest until <span class="text-ink font-medium">FIXED</span>.</p></div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  /* ═══════════ DASHBOARD (Home) — health, circle, history ═══════════ */
   async function Dashboard(){
     const today = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"}).toUpperCase();
     setBreadcrumb([{label:"Dashboard"}]);
@@ -321,21 +366,13 @@
             <span class="col-span-9 sm:col-span-3 md:col-span-3 text-right text-ink">${esc(today)}</span>
           </div>
         </div>
-        <!-- hero editorial — huge aesthetic text, no pics, animated -->
-        <div class="container-editorial pt-10 sm:pt-14 lg:pt-16 pb-12">
-          <div class="flex items-center gap-4" style="animation:fadeUp .6s var(--ease-soft) both">
-            <span class="meta-mono text-ash">Issue 01 — Home</span><span class="block h-px w-10 bg-ink/30"></span><span class="label-eyebrow">the surface, the signal, the fix</span>
-          </div>
-          <h1 class="font-display text-[clamp(3.5rem,10vw,8.5rem)] leading-[0.85] tracking-[-0.045em] text-ink mt-6" style="animation:fadeUp .8s var(--ease-soft) .08s both">A continuous<br><span class="display-italic text-ink/70">study</span> of your<br>attack <span class="display-italic text-ink/70">surface.</span></h1>
-          <p class="text-[18px] leading-relaxed text-ash max-w-2xl mt-8" style="animation:fadeUp .6s var(--ease-soft) .16s both">World Monitor is a <span class="text-ink font-medium">continuous study</span> of your attack surface — not a scanner. We detect, verify, score and remediate with <span class="text-ink font-medium">fail-closed</span> gates and paper-trail evidence. Just information, nothing much, but everything you need — in a neat, clean and professional editorial.</p>
-          <p class="text-[14px] leading-relaxed text-ash/80 max-w-2xl mt-4" style="animation:fadeUp .6s var(--ease-soft) .2s both">Est. MMXXIV · Independent · Security · Editorial · For engineering teams who care about the difference between a scan and a decision.</p>
-          <div class="flex flex-wrap gap-3 mt-8" style="animation:fadeUp .6s var(--ease-soft) .24s both">
-            <button onclick="location.hash='#/assess/new'" class="px-7 py-3 bg-ink text-paper hover:bg-ink/90 transition-all hover:translate-y-[-1px] hover:shadow-md text-sm font-medium">Commission Assessment →</button>
-            <button onclick="Dashboard()" class="px-7 py-3 border border-ink text-ink hover:bg-ink hover:text-paper transition-all text-sm font-medium">↻ Refresh Posture</button>
+        <div class="container-editorial pt-8 pb-2">
+          <div class="flex items-baseline gap-4">
+            <span class="meta-mono">Home — Dashboard</span><span class="block h-px w-10 bg-ink/20"></span><span class="label-eyebrow">health · ranking · history</span>
           </div>
         </div>
         <div class="container-editorial">
-          <div class="flex items-baseline gap-4 mb-6" style="animation:fadeUp .6s var(--ease-soft) .32s both">
+          <div class="flex items-baseline gap-4 mb-6" style="animation:fadeUp .6s var(--ease-soft) .1s both">
             <span class="meta-mono">Home</span><span class="block h-px w-10 bg-ink/20"></span><span class="label-eyebrow">Overview — circle graph · findings · assessments</span>
           </div>
           <div class="editorial-rule mb-8"></div>
