@@ -132,8 +132,13 @@ img,svg{display:block;max-width:100%}
 #sidebar.dock:hover .dock-item span, #sidebar.dock.dock-open .dock-item span{opacity:1;transform:translateX(0)}
 .dock-item:hover{background:hsl(var(--bone));color:hsl(var(--ink))}
 .dock-item:hover svg{opacity:1}
-.dock-item.active{background:hsl(var(--ink));color:hsl(var(--paper))}
-.dock-item.active svg{opacity:1;color:hsl(var(--paper))}
+.dock-item.active{background:hsl(var(--bone));color:hsl(var(--ink));border:1px solid hsl(var(--ink)/0.12)}
+.dock-item.active svg{opacity:1;color:hsl(var(--ink))}
+/* bubble animation like Mac dock */
+.dock-item{transition:all .35s cubic-bezier(0.34,1.56,0.64,1);transform-origin:center bottom}
+.dock-item:hover{transform:scale(1.18) translateY(-3px);box-shadow:0 6px 20px hsl(var(--ink)/0.12);z-index:2}
+.dock-nav:hover .dock-item:not(:hover){transform:scale(0.92);opacity:.85}
+.dock-item:active{transform:scale(0.96)}
 .dock-foot{margin-top:8px;padding-top:10px;border-top:1px solid hsl(var(--ink)/0.08);display:flex;flex-direction:column;gap:8px;align-items:center;width:100%}
 #sidebar.dock:hover .dock-foot, #sidebar.dock.dock-open .dock-foot{align-items:stretch}
 .dock-foot .userchip{width:40px;height:40px;padding:0;justify-content:center;border-radius:10px;overflow:hidden;transition:all .3s}

@@ -178,40 +178,18 @@
     $view.setAttribute("aria-busy","false");
     const isLogin = mode==="login";
     $view.innerHTML = `
-      <div class="min-h-screen grid grid-cols-12 gap-0 bg-paper">
-        <div class="col-span-12 lg:col-span-7 bg-ink text-paper relative overflow-hidden flex flex-col justify-between min-h-[420px] lg:min-h-screen">
-          <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80" alt="Editorial security" class="absolute inset-0 w-full h-full object-cover opacity-20" loading="lazy" style="filter: saturate(0) contrast(1.1)">
-          <div class="absolute inset-0 bg-gradient-to-b from-ink via-ink/40 to-ink"></div>
-          <div class="relative z-10 p-8 lg:p-12">
-            <div class="flex items-center gap-3">
-              <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="4" fill="hsl(var(--paper))" fill-opacity="0.1" stroke="hsl(var(--paper))" stroke-opacity="0.2"/><path d="M16 7l6 2.5v4.5c0 4-2.5 6.5-6 8.5-3.5-2-6-4.5-6-8.5v-4.5z" stroke="hsl(var(--paper))" stroke-width="1.2" fill="none"/><circle cx="16" cy="14" r="2" fill="hsl(var(--paper))"/></svg>
-              <span class="font-display text-lg tracking-[-0.02em]">World<span class="display-italic text-paper/70"> &</span> Monitor</span>
-              <span class="meta-mono text-paper/50 hidden sm:inline">Est. MMXXIV</span>
-            </div>
+      <div class="min-h-[70vh] flex items-center justify-center p-6 bg-paper">
+        <div class="w-full max-w-md bg-card border border-ink/10 p-8" style="animation:fadeUp .6s var(--ease-soft) both">
+          <div class="text-center mb-8">
+            <div class="w-12 h-12 mx-auto bg-ink text-paper grid place-items-center rounded" style="font-family:var(--display);font-weight:600">W</div>
+            <div class="font-display text-xl mt-3">World Monitor</div>
+            <div class="meta-mono text-ash">Security Assessment Platform</div>
+            <span class="inline-flex items-center gap-2 meta-mono text-ash border border-ink/10 px-3 py-1 rounded-full mt-4">${isLogin ? "Sign In" : "Create Account"}</span>
+            <h1 class="font-display text-2xl font-semibold tracking-tight text-ink mt-3">${isLogin ? "Welcome back" : "Create your account"}</h1>
+            <p class="text-ash text-sm mt-2">${isLogin ? "Sign in to your security workspace." : "Analyst accounts can run assessments."}</p>
           </div>
-          <div class="relative z-10 p-8 lg:p-12 flex-1 flex flex-col justify-center">
-            <div class="label-eyebrow text-paper/60" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1)">Secure access — Issue 01</div>
-            <h1 class="font-display text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.04em] mt-4" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1) .1s both">Secure <span class="display-italic text-paper/70">access</span><br>for verified<br><span class="display-italic text-paper/70">teams.</span></h1>
-            <p class="text-paper/65 leading-relaxed max-w-md mt-6" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1) .2s both">Fail-closed gates, paper-trail evidence, and retest until fixed. For engineering teams who care about the difference between a scan and a decision.</p>
-            <div class="grid grid-cols-3 gap-6 mt-10 border-t border-paper/10 pt-6" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1) .3s both">
-              <div><div class="font-display text-2xl text-paper">120+</div><div class="meta-mono text-paper/50">Scans run</div></div>
-              <div><div class="font-display text-2xl text-paper">38</div><div class="meta-mono text-paper/50">Rules</div></div>
-              <div><div class="font-display text-2xl text-paper">MMXXIV</div><div class="meta-mono text-paper/50">Established</div></div>
-            </div>
-          </div>
-          <div class="relative z-10 p-8 lg:p-12 border-t border-paper/10 flex justify-between meta-mono text-paper/40"><span>Los Angeles — Worldwide</span><span>LAB_MODE · LOOPBACK ONLY</span></div>
-        </div>
-        <div class="col-span-12 lg:col-span-5 bg-paper p-8 lg:p-12 flex items-center justify-center">
-          <div class="w-full max-w-md" style="animation:fadeUp .7s cubic-bezier(0.22,1,0.36,1) .2s both">
-            <div class="flex items-center gap-3 mb-8">
-              <div class="w-10 h-10 rounded bg-ink text-paper grid place-items-center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9v-5z"/><circle cx="12" cy="12" r="2"/></svg></div>
-              <div><div class="font-display text-lg leading-none">World Monitor</div><div class="meta-mono text-ash text-[10px]">Security Assessment Platform</div></div>
-            </div>
-            <span class="inline-flex items-center gap-2 meta-mono text-oxblood bg-oxblood/10 border border-oxblood/20 px-3 py-1 rounded-full mb-4">${isLogin ? "Sign In" : "Create Account"}</span>
-            <h2 class="font-display text-2xl font-semibold tracking-tight text-ink">${isLogin ? "Welcome back" : "Create your account"}</h2>
-            <p class="text-ash text-sm mt-2 mb-6">${isLogin ? "Sign in to your security workspace." : "Analyst accounts can run assessments."}</p>
-            <form id="authForm" novalidate class="space-y-4">
-              <div class="field"><label for="email" class="meta-mono">Email</label><input id="email" type="email" name="email" required autocomplete="username" placeholder="you@company.com" aria-describedby="emailHelp"></div>
+          <form id="authForm" novalidate class="space-y-4">
+            <div class="field"><label for="email" class="meta-mono">Email</label><input id="email" type="email" name="email" required autocomplete="username" placeholder="you@company.com" aria-describedby="emailHelp"></div>
               <div class="field"><label for="password" class="meta-mono">Password</label><input id="password" type="password" name="password" required minlength="${isLogin?1:12}" autocomplete="${isLogin?"current-password":"new-password"}" placeholder="${isLogin?"••••••••":"min 12 characters"}" aria-describedby="pwHelp"><div id="pwHelp" class="help" aria-live="polite"></div></div>
               <button class="w-full bg-ink text-paper hover:bg-ink/90 transition-colors py-3 font-medium" type="submit">${isLogin ? "Sign in" : "Create account"}</button>
               <div class="err" id="authErr" role="alert" aria-live="polite"></div>
@@ -337,10 +315,10 @@
         <!-- meta bar like HomePage -->
         <div class="container-editorial pt-6 sm:pt-8">
           <div class="grid grid-cols-12 gap-x-4 sm:gap-x-6 items-baseline meta-mono text-ash border-b border-ink/15 pb-3">
-            <span class="col-span-3 sm:col-span-2 text-ink">W&M</span>
-            <span class="hidden sm:block sm:col-span-2 text-ink/70">Vol. I</span>
-            <span class="hidden md:block md:col-span-3 text-ink/70">Independent · Security · Editorial</span>
-            <span class="col-span-9 sm:col-span-5 md:col-span-5 text-right text-ink">${esc(today)}</span>
+            <span class="col-span-3 sm:col-span-4 text-ink">World Monitor</span>
+            <span class="hidden sm:block sm:col-span-3 text-ink/70">Vol. I — Home</span>
+            <span class="hidden md:block md:col-span-2 text-ink/70">Security · Editorial</span>
+            <span class="col-span-9 sm:col-span-3 md:col-span-3 text-right text-ink">${esc(today)}</span>
           </div>
         </div>
         <!-- hero editorial — huge aesthetic text, no pics, animated -->
@@ -389,25 +367,16 @@
     }).join("");
     const heroKpi = `<div class="kpi total" role="status" aria-label="Total findings ${total}"><b>${total}</b><small>TOTAL FINDINGS</small><span class="kpi-sub">${recent.length} recent assessments</span></div>`;
     
-    const healthCard = `<div class="card health-hero" style="border:1px solid ${healthCol}33">
-      <div class="row spread">
-        <div>
-          <div class="muted small">SECURITY HEALTH</div>
-          <div style="display:flex;align-items:baseline;gap:8px">
-            <span style="font-size:36px;font-weight:800;color:${healthCol}">${health.score}</span>
-            <span>/100</span>
-            <span class="badge" style="background:${healthCol}">${healthLabel}</span>
-          </div>
-          <div class="muted small">Penalty ${health.penalty} | ${total} findings | FIXED ${retestSummary.FIXED||0} / STILL_PRESENT ${retestSummary.STILL_PRESENT||0}</div>
-        </div>
-        <div style="text-align:center">
-          <div style="width:80px;height:80px;border-radius:50%;background:conic-gradient(${healthCol} ${health.score}%, #1e293b 0);display:grid;place-items:center">
-            <span style="font-weight:800;color:${healthCol}">${health.score}%</span>
-          </div>
-        </div>
+    const healthCard = `<div class="card health-hero" style="border:1px solid hsl(var(--border))">
+      <div class="flex items-baseline gap-3">
+        <span style="font-size:32px;font-weight:800;color:${healthCol};font-family:var(--display)">${health.score}</span>
+        <span class="text-ash">/100</span>
+        <span class="badge" style="background:${healthCol};color:white">${healthLabel}</span>
+        <span class="meta-mono text-ash ml-auto">Penalty ${health.penalty}</span>
       </div>
-      <div class="health-bar" style="height:8px;background:#1e293b;border-radius:8px;overflow:hidden;margin-top:8px">
-        <div class="health-fill" style="width:${health.score}%;height:100%;background:${healthCol}"></div>
+      <div class="meta-mono text-ash mt-2">${total} findings · FIXED ${retestSummary.FIXED||0} / STILL_PRESENT ${retestSummary.STILL_PRESENT||0}</div>
+      <div class="health-bar mt-3" style="height:6px;background:hsl(var(--bone));border-radius:99px;overflow:hidden;border:1px solid hsl(var(--border))">
+        <div class="health-fill" style="width:${health.score}%;height:100%;background:${healthCol};transition:width 1s var(--ease-soft)"></div>
       </div>
       ${recentHealth.length>=2 ? `<div class="row mt" style="gap:6px;align-items:center;flex-wrap:wrap;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.18);padding:6px 8px;border-radius:8px">
         <span class="muted small">Before/after (last 2):</span>
@@ -439,16 +408,11 @@
             <span>/100</span>
             <span class="badge" style="background:${riskColor}">${riskIcon} ${riskLabel}</span>
           </div>
-          <div class="muted small">Health ${riskHealth}/100 ${riskHasIncomplete ? " | INCOMPLETE" : ""}${riskHasFailed ? " | FAILED" : ""}</div>
-        </div>
-        <div style="text-align:center">
-          <div style="width:80px;height:80px;border-radius:50%;background:conic-gradient(${riskColor} ${riskScore}%, #1e293b 0);display:grid;place-items:center">
-            <span style="font-weight:800;color:${riskColor}">${riskScore}%</span>
-          </div>
+          <div class="meta-mono text-ash mt-1">Health ${riskHealth}/100 ${riskHasIncomplete ? " · INCOMPLETE" : ""}${riskHasFailed ? " · FAILED" : ""}</div>
         </div>
       </div>
-      <div style="height:8px;background:#1e293b;border-radius:8px;overflow:hidden;margin-top:8px">
-        <div class="health-fill" style="width:${riskScore}%;height:100%;background:${riskColor}"></div>
+      <div class="health-bar mt-3" style="height:6px;background:hsl(var(--bone));border-radius:99px;overflow:hidden;border:1px solid hsl(var(--border))">
+        <div class="health-fill" style="width:${riskScore}%;height:100%;background:${riskColor};transition:width 1s var(--ease-soft)"></div>
       </div>
       <div class="row mt" style="gap:8px;flex-wrap:wrap">
         <span class="muted small">Policy:</span>
