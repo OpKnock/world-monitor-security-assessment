@@ -371,22 +371,18 @@
     setBreadcrumb([{label:"Home"}]);
     $view.innerHTML = `
       <div id="dashBody" class="bg-paper">
-        <div class="container-editorial pt-6 sm:pt-7">
-          <div class="dash-meta grid grid-cols-12 gap-x-4 sm:gap-x-6 items-baseline meta-mono">
-            <span class="col-span-3 sm:col-span-4 text-ink font-bold" style="font-size:11px;letter-spacing:-0.01em">World Monitor Security Assessment</span>
+        <div class="container-editorial pt-4">
+          <div class="grid grid-cols-12 gap-x-4 items-baseline meta-mono text-ash border-b border-ink/10 pb-2">
+            <span class="col-span-4 sm:col-span-3 text-ink font-bold text-[11px]">World Monitor</span>
             <span class="hidden sm:block sm:col-span-3 text-ink/60">Vol. I — Home</span>
-            <span class="hidden md:block md:col-span-2 text-ink/60">Security · Editorial</span>
-            <span class="col-span-9 sm:col-span-5 md:col-span-3 text-right text-ink" style="font-size:11px">${esc(today)}</span>
+            <span class="hidden md:block md:col-span-3 text-ink/60">Health · Ranking · History</span>
+            <span class="col-span-8 sm:col-span-6 md:col-span-3 text-right text-ink text-[11px]">${esc(today)}</span>
           </div>
         </div>
-        <div class="container-editorial pt-5 pb-6">
-          <div class="dash-title-row" style="animation:fadeUp .5s var(--ease-soft) both">
-            <span class="meta-mono" style="color:hsl(var(--ash))">Home — Dashboard</span><span class="block h-px w-10 bg-ink/15"></span><span class="label-eyebrow" style="font-size:10px">health · ranking · history</span>
-          </div>
-          <div class="editorial-rule mt-4 mb-6"></div>
-          <div id="metricsGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-5">${skeletonCards(2)}</div>
-          <div id="kpiGrid" class="kpis mt-5">${skeletonKpis()}</div>
-          <div id="dashCards" class="dash-cards grid mt-5"><div class="skeleton sk-card"></div><div class="skeleton sk-card"></div></div>
+        <div class="container-editorial py-4">
+          <div id="metricsGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-4">${skeletonCards(2)}</div>
+          <div id="kpiGrid" class="kpis mt-4">${skeletonKpis()}</div>
+          <div id="dashCards" class="dash-cards grid mt-4"><div class="skeleton sk-card"></div><div class="skeleton sk-card"></div></div>
         </div>
       </div>`;
     const el=$view.querySelector("#dashBody");
