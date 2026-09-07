@@ -103,23 +103,23 @@ img,svg{display:block;max-width:100%}
 /* Dock — auto-hide like Mac, 64px collapsed left:12px top:50% opacity 0.45, expands 240px */
 #dockTrigger{position:fixed;left:0;top:0;bottom:0;width:18px;z-index:35;pointer-events:auto}
 #sidebar.dock{
-  position:fixed;left:10px;top:50%;transform:translateY(-50%) translateX(-6px);
-  width:56px;z-index:40;
-  background:hsl(var(--paper) / 0.93);backdrop-filter:blur(20px) saturate(1.3);
-  border:1px solid hsl(var(--ink)/0.08);border-radius:16px;
-  box-shadow:0 10px 32px hsl(var(--ink)/0.13), 0 1px 3px hsl(var(--ink)/0.06);
-  padding:10px 8px;opacity:0.48;transition:all 0.5s cubic-bezier(0.22,1,0.36,1);
+  position:fixed;left:8px;top:50%;transform:translateY(-50%) translateX(-6px);
+  width:52px;z-index:40;
+  background:hsl(var(--paper) / 0.94);backdrop-filter:blur(18px) saturate(1.3);
+  border:1px solid hsl(var(--ink)/0.06);border-radius:14px;
+  box-shadow:0 8px 24px hsl(var(--ink)/0.1), 0 1px 2px hsl(var(--ink)/0.05);
+  padding:8px 6px;opacity:0.5;transition:all 0.5s cubic-bezier(0.22,1,0.36,1);
   pointer-events:auto;
 }
 #sidebar.dock:hover, #sidebar.dock.dock-open, #dockTrigger:hover + #sidebar.dock{
   transform:translateY(-50%) translateX(0);
-  width:200px;opacity:1;
-  background:hsl(var(--paper));box-shadow:0 20px 50px hsl(var(--ink)/0.16);
+  width:190px;opacity:1;
+  background:hsl(var(--paper));box-shadow:0 16px 40px hsl(var(--ink)/0.14);
 }
 .dock-inner{display:flex;flex-direction:column;gap:12px;align-items:center}
 #sidebar.dock:hover .dock-inner, #sidebar.dock.dock-open .dock-inner{align-items:stretch}
-.dock-logo{width:48px;height:48px;display:grid;place-items:center;border:1px solid hsl(var(--ink)/0.15);border-radius:14px;background:hsl(var(--ink));color:hsl(var(--paper));font-family:"Fraunces",serif;font-weight:700;transition:all .5s}
-#sidebar.dock:hover .dock-logo, #sidebar.dock.dock-open .dock-logo{width:auto;height:auto;padding:14px 18px;border-radius:14px;gap:12px}
+.dock-logo{width:40px;height:40px;display:grid;place-items:center;border:1px solid hsl(var(--ink)/0.12);border-radius:10px;background:hsl(var(--ink));color:hsl(var(--paper));font-family:"Fraunces",serif;font-weight:700;transition:all .4s}
+#sidebar.dock:hover .dock-logo, #sidebar.dock.dock-open .dock-logo{width:auto;height:auto;padding:10px 14px;border-radius:10px;gap:10px}
 .dock-nav{display:flex;flex-direction:column;gap:8px;width:100%}
 .dock-item{
   display:flex;align-items:center;gap:16px;
