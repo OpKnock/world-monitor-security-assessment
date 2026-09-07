@@ -324,20 +324,38 @@
           </div>
         </div>
         <div class="container-editorial pt-10 sm:pt-14 lg:pt-16 pb-8">
-          <div class="flex items-center gap-4" style="animation:fadeUp .6s var(--ease-soft) both">
-            <span class="meta-mono text-ash">Issue 01 — Platform</span><span class="block h-px w-10 bg-ink/30"></span><span class="label-eyebrow">the surface, the signal, the fix</span>
-          </div>
-          <h1 class="font-display text-[clamp(3.2rem,9vw,8rem)] leading-[0.88] tracking-[-0.04em] text-ink mt-6" style="animation:fadeUp .8s var(--ease-soft) .08s both">A continuous<br><span class="display-italic text-ink/70">study</span> of your<br>attack <span class="display-italic text-ink/70">surface.</span></h1>
-          <p class="text-[16px] leading-relaxed text-ash max-w-2xl mt-8" style="animation:fadeUp .6s var(--ease-soft) .16s both">World Monitor is a <span class="text-ink font-medium">continuous study</span> of your attack surface — not a scanner. We detect, verify, score and remediate with <span class="text-ink font-medium">fail-closed</span> gates and paper-trail evidence. A neat, clean and professional editorial for engineering teams who care about the difference between a scan and a decision.</p>
-          <p class="text-[14px] leading-relaxed text-ash/80 max-w-2xl mt-4" style="animation:fadeUp .6s var(--ease-soft) .2s both">Est. MMXXIV · Independent · Security · Editorial · For teams who ship securely. Every assessment is authorized, every finding has provenance, every report is retetable.</p>
-          <div class="flex flex-wrap gap-3 mt-8" style="animation:fadeUp .6s var(--ease-soft) .24s both">
-            <a href="#/dashboard" class="px-7 py-3 bg-ink text-paper hover:bg-ink/90 transition-all hover:translate-y-[-1px] hover:shadow-md text-sm font-medium">Enter Home →</a>
-            <a href="#/assess/new" class="px-7 py-3 border border-ink text-ink hover:bg-ink hover:text-paper transition-all text-sm font-medium">Commission Assessment</a>
-          </div>
-          <div class="grid grid-cols-3 gap-6 mt-10 pt-6 border-t border-ink/10 max-w-xl" style="animation:fadeUp .6s var(--ease-soft) .28s both">
-            <div><div class="font-display text-2xl text-ink">46</div><div class="meta-mono text-ash">Tests passing</div></div>
-            <div><div class="font-display text-2xl text-ink">8</div><div class="meta-mono text-ash">Modules</div></div>
-            <div><div class="font-display text-2xl text-ink">MMXXIV</div><div class="meta-mono text-ash">Established</div></div>
+          <div class="grid grid-cols-12 gap-6 lg:gap-10">
+            <div class="col-span-12 lg:col-span-7">
+              <div class="flex items-center gap-4" style="animation:fadeUp .6s var(--ease-soft) both">
+                <span class="meta-mono text-ash">Issue 01 — Platform</span><span class="block h-px w-10 bg-ink/30"></span><span class="label-eyebrow">the surface, the signal, the fix</span>
+              </div>
+              <h1 class="font-display text-[clamp(3rem,8vw,6.5rem)] leading-[0.88] tracking-[-0.04em] text-ink mt-6" style="animation:fadeUp .8s var(--ease-soft) .08s both">A continuous<br><span class="display-italic text-ink/70">study</span> of your<br>attack <span class="display-italic text-ink/70">surface.</span></h1>
+              <p class="text-[15px] leading-relaxed text-ash max-w-xl mt-6" style="animation:fadeUp .6s var(--ease-soft) .14s both">World Monitor is a <span class="text-ink font-medium">continuous study</span> of your attack surface — not a scanner. We detect, verify, score and remediate with <span class="text-ink font-medium">fail-closed</span> gates and paper-trail evidence.</p>
+              <p class="text-[13px] leading-relaxed text-ash/80 max-w-xl mt-3" style="animation:fadeUp .6s var(--ease-soft) .18s both">A neat, clean and professional editorial for engineering teams who care about the difference between a scan and a decision. Every assessment is authorized, every finding has provenance, every report is retetable.</p>
+              <div class="flex flex-wrap gap-3 mt-7" style="animation:fadeUp .6s var(--ease-soft) .22s both">
+                <a href="#/dashboard" class="px-6 py-3 bg-ink text-paper hover:bg-ink/90 transition-all hover:translate-y-[-1px] hover:shadow-md text-sm font-medium">Enter Home →</a>
+                <a href="#/assess/new" class="px-6 py-3 border border-ink text-ink hover:bg-ink hover:text-paper transition-all text-sm font-medium">Commission Assessment</a>
+              </div>
+              <div class="grid grid-cols-3 gap-6 mt-8 pt-6 border-t border-ink/10 max-w-lg" style="animation:fadeUp .6s var(--ease-soft) .26s both">
+                <div><div class="font-display text-xl text-ink">46</div><div class="meta-mono text-ash text-[10px]">Tests passing</div></div>
+                <div><div class="font-display text-xl text-ink">8</div><div class="meta-mono text-ash text-[10px]">Modules</div></div>
+                <div><div class="font-display text-xl text-ink">MMXXIV</div><div class="meta-mono text-ash text-[10px]">Established</div></div>
+              </div>
+            </div>
+            <div class="col-span-12 lg:col-span-5">
+              <div class="bg-card border border-ink/10 p-6 lg:p-8" style="animation:imageReveal 1.1s var(--ease-editorial) .12s both">
+                <div class="label-eyebrow">Editorial Note</div>
+                <div class="font-display text-xl leading-tight text-ink mt-3">Secure by <span class="display-italic text-ink/70">evidence</span> not assumption.</div>
+                <p class="text-sm leading-relaxed text-ash mt-4">Twelve scanners normalize to a canonical finding schema with CVSS 3.1 and fingerprint. Evidence is masked, files are jailed, DNS is pinned.</p>
+                <div class="editorial-rule my-6"></div>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                  <div><div class="meta-mono">01 — Detect</div><div class="text-ash mt-1">Authentication, authorization, headers…</div></div>
+                  <div><div class="meta-mono">02 — Verify</div><div class="text-ash mt-1">Provenance, not hallucination</div></div>
+                  <div><div class="meta-mono">03 — Decide</div><div class="text-ash mt-1">BLOCKED until FIXED</div></div>
+                  <div><div class="meta-mono">Lab</div><div class="text-ash mt-1">Loopback · 10 flaws</div></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="container-editorial"><div class="editorial-rule"></div></div>
