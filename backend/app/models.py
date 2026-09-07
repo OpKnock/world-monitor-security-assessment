@@ -49,7 +49,7 @@ class TimestampMixin:
 # ---------------------------------------------------------------------------
 
 _ROLE_VALUES = ("admin", "analyst", "viewer")
-_ASSESSMENT_STATUS_VALUES = ("queued", "running", "completed", "failed")
+_ASSESSMENT_STATUS_VALUES = ("queued", "running", "completed", "failed", "incomplete")
 _SCAN_RUN_STATUS_VALUES = ("queued", "running", "completed", "failed", "skipped")
 _FINDING_SEVERITY_VALUES = ("CRITICAL", "HIGH", "MEDIUM", "LOW", "INFORMATIONAL")
 _FINDING_STATUS_VALUES = ("OPEN", "CONFIRMED", "FALSE_POSITIVE", "REMEDIATED", "RETESTED")
