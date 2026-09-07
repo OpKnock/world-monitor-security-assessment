@@ -105,52 +105,52 @@ img,svg{display:block;max-width:100%}
 #sidebar.dock{
   position:fixed;left:12px;top:50%;transform:translateY(-50%) translateX(-8px);
   width:64px;z-index:40;
-  background:hsl(var(--paper) / 0.9);backdrop-filter:blur(20px) saturate(1.3);
-  border:1px solid hsl(var(--ink)/0.1);border-radius:18px;
-  box-shadow:0 12px 40px hsl(var(--ink)/0.15), 0 2px 4px hsl(var(--ink)/0.08);
-  padding:12px 10px;opacity:0.45;transition:all 0.5s cubic-bezier(0.22,1,0.36,1);
+  background:hsl(var(--paper) / 0.95);backdrop-filter:blur(24px) saturate(1.4);
+  border:1px solid hsl(var(--ink)/0.12);border-radius:20px;
+  box-shadow:0 16px 50px hsl(var(--ink)/0.18), 0 2px 8px hsl(var(--ink)/0.1);
+  padding:14px 12px;opacity:0.4;transition:all 0.55s cubic-bezier(0.22,1,0.36,1);
   pointer-events:auto;
 }
 #sidebar.dock:hover, #sidebar.dock.dock-open, #dockTrigger:hover + #sidebar.dock{
   transform:translateY(-50%) translateX(0);
-  width:240px;opacity:1;
-  background:hsl(var(--paper));box-shadow:0 20px 60px hsl(var(--ink)/0.18);
+  width:260px;opacity:1;
+  background:hsl(var(--paper));box-shadow:0 24px 70px hsl(var(--ink)/0.2);
 }
-.dock-inner{display:flex;flex-direction:column;gap:10px;align-items:center}
+.dock-inner{display:flex;flex-direction:column;gap:12px;align-items:center}
 #sidebar.dock:hover .dock-inner, #sidebar.dock.dock-open .dock-inner{align-items:stretch}
-.dock-logo{width:44px;height:44px;display:grid;place-items:center;border:1px solid hsl(var(--ink)/0.12);border-radius:12px;background:hsl(var(--ink));color:hsl(var(--paper));font-family:"Fraunces",serif;font-weight:700;transition:all .4s}
-#sidebar.dock:hover .dock-logo, #sidebar.dock.dock-open .dock-logo{width:auto;height:auto;padding:12px 16px;border-radius:12px;gap:10px}
-.dock-nav{display:flex;flex-direction:column;gap:6px;width:100%}
+.dock-logo{width:48px;height:48px;display:grid;place-items:center;border:1px solid hsl(var(--ink)/0.15);border-radius:14px;background:hsl(var(--ink));color:hsl(var(--paper));font-family:"Fraunces",serif;font-weight:700;transition:all .5s}
+#sidebar.dock:hover .dock-logo, #sidebar.dock.dock-open .dock-logo{width:auto;height:auto;padding:14px 18px;border-radius:14px;gap:12px}
+.dock-nav{display:flex;flex-direction:column;gap:8px;width:100%}
 .dock-item{
-  display:flex;align-items:center;gap:14px;
-  padding:12px 14px;border-radius:12px;
-  color:hsl(var(--ash));transition:all .25s cubic-bezier(0.22,1,0.36,1);
+  display:flex;align-items:center;gap:16px;
+  padding:14px 16px;border-radius:14px;
+  color:hsl(var(--ash));transition:all .3s cubic-bezier(0.22,1,0.36,1);
   white-space:nowrap;overflow:hidden;
 }
-.dock-item svg{flex-shrink:0;opacity:.6;transition:all .25s}
-.dock-item span{opacity:0;transform:translateX(-10px);transition:all .4s cubic-bezier(0.22,1,0.36,1);font-size:14px;font-weight:500;letter-spacing:-0.01em}
+.dock-item svg{flex-shrink:0;opacity:.5;transition:all .3s}
+.dock-item span{opacity:0;transform:translateX(-12px);transition:all .5s cubic-bezier(0.22,1,0.36,1);font-size:15px;font-weight:500;letter-spacing:-0.01em}
 #sidebar.dock:hover .dock-item span, #sidebar.dock.dock-open .dock-item span{opacity:1;transform:translateX(0)}
 .dock-item:hover{background:hsl(var(--bone));color:hsl(var(--ink))}
 .dock-item:hover svg{opacity:1}
-.dock-item.active{background:hsl(var(--bone));color:hsl(var(--ink));border:1px solid hsl(var(--ink)/0.15)}
+.dock-item.active{background:hsl(var(--bone));color:hsl(var(--ink));border:1px solid hsl(var(--ink)/0.18)}
 .dock-item.active svg{opacity:1;color:hsl(var(--ink))}
 /* bubble animation like Mac dock */
-.dock-item{transition:all .4s cubic-bezier(0.34,1.56,0.64,1);transform-origin:center bottom}
-.dock-item:hover{transform:scale(1.22) translateY(-4px);box-shadow:0 8px 28px hsl(var(--ink)/0.15);z-index:3}
-.dock-nav:hover .dock-item:not(:hover){transform:scale(0.9);opacity:.8}
-.dock-item:active{transform:scale(0.94)}
-.dock-foot{margin-top:12px;padding-top:12px;border-top:1px solid hsl(var(--ink)/0.1);display:flex;flex-direction:column;gap:10px;align-items:center;width:100%}
+.dock-item{transition:all .45s cubic-bezier(0.34,1.56,0.64,1);transform-origin:center bottom}
+.dock-item:hover{transform:scale(1.25) translateY(-5px);box-shadow:0 10px 32px hsl(var(--ink)/0.18);z-index:4}
+.dock-nav:hover .dock-item:not(:hover){transform:scale(0.88);opacity:.75}
+.dock-item:active{transform:scale(0.92)}
+.dock-foot{margin-top:16px;padding-top:16px;border-top:1px solid hsl(var(--ink)/0.12);display:flex;flex-direction:column;gap:12px;align-items:center;width:100%}
 #sidebar.dock:hover .dock-foot, #sidebar.dock.dock-open .dock-foot{align-items:stretch}
-.dock-foot .userchip{width:44px;height:44px;padding:0;justify-content:center;border-radius:12px;overflow:hidden;transition:all .4s}
-#sidebar.dock:hover .dock-foot .userchip, #sidebar.dock.dock-open .dock-foot .userchip{width:100%;height:auto;padding:12px 14px;border-radius:12px;justify-content:flex-start}
-.dock-foot .userchip .who{opacity:0;transition:opacity .3s}
+.dock-foot .userchip{width:48px;height:48px;padding:0;justify-content:center;border-radius:14px;overflow:hidden;transition:all .5s}
+#sidebar.dock:hover .dock-foot .userchip, #sidebar.dock.dock-open .dock-foot .userchip{width:100%;height:auto;padding:14px 16px;border-radius:14px;justify-content:flex-start}
+.dock-foot .userchip .who{opacity:0;transition:opacity .35s}
 #sidebar.dock:hover .dock-foot .userchip .who, #sidebar.dock.dock-open .dock-foot .userchip .who{opacity:1}
 .dock-logout,.dock-login{
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  padding:12px 14px;border-radius:12px;border:1px solid hsl(var(--ink)/0.12);
-  font-size:14px;font-weight:500;transition:all .25s;white-space:nowrap;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  padding:14px 16px;border-radius:14px;border:1px solid hsl(var(--ink)/0.15);
+  font-size:15px;font-weight:500;transition:all .3s;white-space:nowrap;overflow:hidden;
 }
-.dock-logout span,.dock-login span{opacity:0;transition:opacity .25s}
+.dock-logout span,.dock-login span{opacity:0;transition:opacity .3s}
 #sidebar.dock:hover .dock-logout span, #sidebar.dock.dock-open .dock-logout span,
 #sidebar.dock:hover .dock-login span, #sidebar.dock.dock-open .dock-login span{opacity:1}
 .dock-logout{background:hsl(var(--paper));color:hsl(var(--ink))}
@@ -171,7 +171,7 @@ img,svg{display:block;max-width:100%}
 /* Header logo bold */
 #topHeader .font-display{font-weight:800 !important}
 
-/* Fix header menu - remove black background */
+/* Fix header menu - remove black background, make clean */
 #topHeader{background:hsl(var(--paper)) !important; border-color:hsl(var(--ink)/0.1) !important}
 #topHeader .meta-mono{color:hsl(var(--ash))}
 #topHeader .text-ink{color:hsl(var(--ink))}
@@ -181,6 +181,12 @@ img,svg{display:block;max-width:100%}
 #topHeader .text-paper{color:hsl(var(--paper))}
 #topHeader .hover\:bg-ink:hover{background:hsl(var(--ink)/0.9)}
 #topHeader .hover\:text-paper:hover{color:hsl(var(--paper))}
+
+/* Remove menu button from dashboard - only show on mobile */
+#menuBtn{display:none}
+@media(max-width:1024px){
+  #menuBtn{display:flex}
+}
 
 /* Topbar meta bar like HomePage */
 #topbar{font-family:"JetBrains Mono",monospace}

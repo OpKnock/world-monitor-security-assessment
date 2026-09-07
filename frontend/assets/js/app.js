@@ -365,7 +365,7 @@
       </div>`;
   }
 
-  /* ═══════════ DASHBOARD (Home) — health, circle, history ═══════════ */
+/* ═══════════ DASHBOARD (Home) — health, circle graphs ranked, history scroll only ═══════════ */
   async function Dashboard(){
     const today = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"}).toUpperCase();
     setBreadcrumb([{label:"Home"}]);
@@ -387,7 +387,7 @@
         </div>
         <div class="container-editorial">
           <div class="flex items-baseline gap-4 mb-6" style="animation:fadeUp .6s var(--ease-soft) .1s both">
-            <span class="meta-mono">Home</span><span class="block h-px w-10 bg-ink/20"></span><span class="label-eyebrow">Overview — circle graph · findings · assessments</span>
+            <span class="meta-mono">Home</span><span class="block h-px w-10 bg-ink/20"></span><span class="label-eyebrow">Overview — circle graphs · findings · assessments</span>
           </div>
           <div class="editorial-rule mb-8"></div>
           <div class="metrics-grid" id="metricsGrid">${skeletonKpis()}${skeletonCards(2)}</div>
@@ -446,7 +446,7 @@
       </div>` : ""}
     </div>`;
     
-const releaseRisk = d.release_risk || {score: 0, status: "PENDING", reason: "No data", health: 0, has_incomplete: false, has_failed: false, policy: {}};
+    const releaseRisk = d.release_risk || {score: 0, status: "PENDING", reason: "No data", health: 0, has_incomplete: false, has_failed: false, policy: {}};
     const gate = d.gate || {status: releaseRisk.status, reason: releaseRisk.reason};
     const riskScore = releaseRisk.score || 0;
     const riskStatus = gate.status || "PENDING";
@@ -510,6 +510,7 @@ const releaseRisk = d.release_risk || {score: 0, status: "PENDING", reason: "No 
       </div>
     `;
 
+    
     const tableContainer = el.querySelector(".card.mt:last-child");
     if (tableContainer) {
       tableContainer.innerHTML = `
