@@ -329,7 +329,7 @@
               <div class="flex items-center gap-4" style="animation:fadeUp .6s var(--ease-soft) both">
                 <span class="meta-mono text-ash">Issue 01 — Platform</span><span class="block h-px w-10 bg-ink/30"></span><span class="label-eyebrow">the surface, the signal, the fix</span>
               </div>
-              <h1 class="font-display text-[clamp(3rem,8vw,6.5rem)] leading-[0.88] tracking-[-0.04em] text-ink mt-6" style="animation:fadeUp .8s var(--ease-soft) .08s both">A continuous<br><span class="display-italic text-ink/70">study</span> of your<br>attack <span class="display-italic text-ink/70">surface.</span></h1>
+              <h1 class="font-display text-[clamp(3.25rem,9.5vw,8.5rem)] leading-[0.90] tracking-[-0.04em] text-ink mt-6" style="animation:fadeUp .8s var(--ease-soft) .08s both">A continuous<br><span class="display-italic text-ink/70">study</span> of your<br>attack <span class="display-italic text-ink/70">surface.</span></h1>
               <p class="text-[15px] leading-relaxed text-ash max-w-xl mt-6" style="animation:fadeUp .6s var(--ease-soft) .14s both">World Monitor is a <span class="text-ink font-medium">continuous study</span> of your attack surface — not a scanner. We detect, verify, score and remediate with <span class="text-ink font-medium">fail-closed</span> gates and paper-trail evidence.</p>
               <p class="text-[13px] leading-relaxed text-ash/80 max-w-xl mt-3" style="animation:fadeUp .6s var(--ease-soft) .18s both">A neat, clean and professional editorial for engineering teams who care about the difference between a scan and a decision. Every assessment is authorized, every finding has provenance, every report is retetable.</p>
               <div class="flex flex-wrap gap-3 mt-7" style="animation:fadeUp .6s var(--ease-soft) .22s both">
@@ -343,18 +343,12 @@
               </div>
             </div>
             <div class="col-span-12 lg:col-span-5">
-              <div class="aspect-[4/3] relative overflow-hidden bg-bone border border-ink/10" style="animation:imageReveal 1.1s var(--ease-editorial) .12s both">
-                <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80" alt="Security editorial" class="absolute inset-0 w-full h-full object-cover" loading="lazy" style="filter: saturate(0.15) contrast(1.05) brightness(0.95)">
-                <div class="absolute inset-0 bg-gradient-to-t from-ink/20 via-transparent to-transparent"></div>
-                <div class="absolute bottom-0 left-0 right-0 bg-paper/95 backdrop-blur-sm border-t border-ink/10 p-4">
+              <div class="aspect-[3/4] relative overflow-hidden bg-bone border border-ink/10" style="animation:imageReveal 1.1s var(--ease-editorial) .12s both">
+                <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80" alt="Security editorial" class="absolute inset-0 w-full h-full object-cover" loading="lazy" style="filter: saturate(0.12) contrast(1.08) brightness(0.98)">
+                <div class="absolute bottom-0 left-0 right-0 bg-paper/92 backdrop-blur-sm border-t border-ink/10 p-4">
                   <div class="meta-mono text-ash text-[10px]">Security Study</div>
                   <div class="font-display text-sm text-ink">Threat Surface — <span class="display-italic">Production, Worldwide</span></div>
                 </div>
-              </div>
-              <div class="bg-card border border-ink/10 border-t-0 p-4">
-                <div class="label-eyebrow text-[10px]">Editorial Note</div>
-                <div class="font-display text-sm leading-tight text-ink mt-2">Secure by <span class="display-italic text-ink/70">evidence</span> not assumption.</div>
-                <p class="text-xs leading-relaxed text-ash mt-2">Twelve scanners · CVSS 3.1 · Fingerprint · Fail-closed</p>
               </div>
             </div>
           </div>
