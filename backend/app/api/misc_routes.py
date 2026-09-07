@@ -125,7 +125,7 @@ def dashboard(db: Session = Depends(get_db), user=Depends(require_role("viewer")
 
 
 @router.get("/scanners")
-def scanners_meta(user=Depends(require_role("analyst"))):
+def scanners_meta(user=Depends(require_role("viewer"))):
     return {
         "modules": [
             {"key": key, **meta, "available": True}
@@ -208,8 +208,11 @@ def audit_logs(db: Session = Depends(get_db), user=Depends(require_role("admin")
 
 
 @router.get("/settings")
-def platform_settings(user=Depends(require_role("analyst"))):
+def platform_settings(user=Depends(require_role("viewer"))):
     from pathlib import Path as _P
+    import platform as _plat
+    _ext = ".exe" if _plat.system() == "Windows" else ""
+    _chain = settings.BIN_DIR / f"chainscanner{_ext}"
     return {
         "app": settings.APP_NAME,
         "version": settings.VERSION,
@@ -223,5 +226,6 @@ def platform_settings(user=Depends(require_role("analyst"))):
         "binaries_present": {
             "portia": (_P(settings.SECRETS_SCANNER_BIN) if settings.SECRETS_SCANNER_BIN else settings.BIN_DIR / "portia.exe").exists(),
             "bomber": (_P(settings.SBOM_SCANNER_BIN) if settings.SBOM_SCANNER_BIN else settings.BIN_DIR / "bomber.exe").exists(),
+            "chainscanner": _chain.exists(),
         },
     }

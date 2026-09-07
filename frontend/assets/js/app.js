@@ -290,6 +290,9 @@
     $topbar.classList.remove("hidden");
     $footer.classList.remove("hidden");
     const h = rawH || "#/welcome";
+    // Welcome + Home have their own editorial meta row — hide breadcrumb bar to save upper space
+    if(h==="#/welcome"||h==="#/dashboard"||h==="") { if($topbar) $topbar.style.display="none"; }
+    else { if($topbar) $topbar.style.display=""; }
     setActiveNav();
     loadUserChip();
     refreshHealth();
@@ -307,79 +310,88 @@
     }
   }
 
-  /* ═══════════ WELCOME — 7-5 lab exact, clamp 3.5rem 9vw 8.5rem leading 0.90, study/surface italic, imageReveal 1.2s saturate 0.12 ═══════════ */
+  /* ═══════════ WELCOME — exact copy of vulnerable-lab PAGE, inline styles, no Tailwind ═══════════ */
   function Welcome(){
     const today = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"}).toUpperCase();
-    setBreadcrumb([{label:"Welcome"}]);
+    setBreadcrumb([]);
+    if($topbar) $topbar.style.display="none";
     $view.innerHTML = `
-      <div class="bg-paper">
-        <div class="container-editorial pt-6 sm:pt-7">
-          <div class="grid grid-cols-12 gap-x-4 sm:gap-x-6 items-baseline meta-mono border-b border-ink/15 pb-3">
-            <span class="col-span-3 sm:col-span-4 text-ink font-bold" style="letter-spacing:-0.01em">World Monitor Security Assessment</span>
-            <span class="hidden sm:block sm:col-span-2 text-ink/70">Vol. I</span>
-            <span class="hidden md:block md:col-span-3 text-ink/60">Independent · Security · Editorial</span>
-            <span class="col-span-9 sm:col-span-6 md:col-span-3 text-right text-ink">${esc(today)}</span>
+      <div style="background:hsl(var(--paper));color:hsl(var(--ink))">
+        <div class="container-editorial" style="padding-top:24px">
+          <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:16px;border-bottom:1px solid hsl(var(--ink)/0.15);padding-bottom:12px" class="meta-mono">
+            <span style="grid-column:span 4;color:hsl(var(--ink));font-weight:700;letter-spacing:-0.01em">World Monitor Security Assessment</span>
+            <span style="grid-column:span 2;color:hsl(var(--ink)/0.7)">Vol. I</span>
+            <span style="grid-column:span 3;color:hsl(var(--ink)/0.7)">Independent · Security · Editorial</span>
+            <span style="grid-column:span 3;text-align:right;color:hsl(var(--ink))">${esc(today)}</span>
           </div>
         </div>
-        <div class="container-editorial pt-10 sm:pt-12 lg:pt-14 pb-10">
-          <div class="welcome-grid grid">
-            <div class="col-span-12 lg:col-span-7 flex flex-col gap-8">
-              <div class="flex items-center gap-4" style="animation:fadeUp .6s var(--ease-soft) both">
-                <span class="meta-mono" style="color:hsl(var(--ash))">Issue 01 — Platform</span><span class="block h-px w-10 bg-ink/20"></span><span class="label-eyebrow">the surface, the signal, the fix</span>
+        <div class="container-editorial" style="padding-top:48px;padding-bottom:40px">
+          <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:40px">
+            <div style="grid-column:span 7;display:flex;flex-direction:column;gap:28px">
+              <div style="display:flex;align-items:center;gap:16px;animation:fadeUp .6s var(--ease-soft) both">
+                <span class="meta-mono">Issue 01 — Platform</span>
+                <span style="display:block;height:1px;width:40px;background:hsl(var(--ink)/0.4)"></span>
+                <span class="label-eyebrow">the surface, the signal, the fix</span>
               </div>
-              <h1 class="welcome-hero-title" style="animation:fadeUp .85s var(--ease-soft) .08s both">A continuous<br><span class="display-italic">study</span> of your<br>attack <span class="display-italic">surface.</span></h1>
-              <p class="text-[15px] leading-[1.7] text-ash max-w-xl" style="animation:fadeUp .6s var(--ease-soft) .14s both">World Monitor is a <span class="text-ink font-medium">continuous study</span> of your attack surface — not a scanner. We detect, verify, score and remediate with <span class="text-ink font-medium">fail-closed</span> gates and paper-trail evidence.</p>
-              <p class="text-[13px] leading-[1.7] text-ash/80 max-w-xl" style="animation:fadeUp .6s var(--ease-soft) .16s both">A continuous study of your attack surface. A neat, clean editorial for engineering teams who care about the difference between a scan and a decision. Every assessment is authorized, every finding has provenance, every report is retetable.</p>
-              <div class="flex flex-wrap gap-3 mt-1" style="animation:fadeUp .6s var(--ease-soft) .20s both">
-                <a href="#/dashboard" class="inline-flex items-center gap-2 px-7 py-3.5 bg-ink text-paper hover:bg-ink/85 transition-all hover:-translate-y-px hover:shadow-md text-[14px] font-medium tracking-tight">Enter Home →</a>
-                <a href="#/assess/new" class="inline-flex items-center gap-2 px-7 py-3.5 border border-ink text-ink hover:bg-ink hover:text-paper transition-colors text-[14px] font-medium tracking-tight">Commission</a>
+              <h1 class="font-display" style="font-size:clamp(2.8rem,7vw,5.5rem);line-height:0.92;letter-spacing:-0.04em;margin:0;animation:fadeUp .85s var(--ease-soft) .08s both">A continuous <span class="display-italic" style="color:hsl(var(--ink)/0.85)">study</span><br>of your attack<br><span class="display-italic" style="color:hsl(var(--ink)/0.85)">surface.</span></h1>
+              <p style="max-width:520px;color:hsl(var(--ash));font-size:15px;line-height:1.7;margin:0;animation:fadeUp .6s var(--ease-soft) .14s both">World Monitor is a <strong style="color:hsl(var(--ink))">continuous study</strong> of your attack surface — not a scanner. Detect, verify, score and remediate with <strong style="color:hsl(var(--ink))">fail-closed</strong> gates and paper-trail evidence.</p>
+              <div class="card" style="max-width:560px;background:hsl(var(--card));animation:fadeUp .6s var(--ease-soft) .16s both">
+                <div class="label-eyebrow" style="margin-bottom:10px">What is this · How to use</div>
+                <div style="display:grid;gap:10px;font-size:13.5px;line-height:1.65;color:hsl(var(--ash))">
+                  <div><strong style="color:hsl(var(--ink))">What:</strong> authorized assessment platform — 12 scanners normalize to CVSS 3.1 findings with masked evidence, fingerprints, retest.</div>
+                  <div><strong style="color:hsl(var(--ink))">How:</strong> 1) Commission against 127.0.0.1:3000 / :8080 or source tree → 2) watch live progress → 3) triage Findings → 4) generate Report → 5) Retest until FIXED.</div>
+                  <div class="meta-mono" style="font-size:10px">LAB_MODE · loopback-only gate · every run audited</div>
+                </div>
               </div>
-              <div class="grid grid-cols-3 gap-6 pt-6 border-t border-ink/10 max-w-xl" style="animation:fadeUp .6s var(--ease-soft) .26s both">
-                <div><div class="font-display text-2xl text-ink leading-none">46</div><div class="meta-mono mt-1.5" style="font-size:10px">Tests passing</div></div>
-                <div><div class="font-display text-2xl text-ink leading-none">8</div><div class="meta-mono mt-1.5" style="font-size:10px">Modules</div></div>
-                <div><div class="font-display text-2xl text-ink leading-none">MMXXIV</div><div class="meta-mono mt-1.5" style="font-size:10px">Established</div></div>
+              <div style="display:flex;gap:12px;flex-wrap:wrap;animation:fadeUp .6s var(--ease-soft) .20s both">
+                <a href="#/dashboard" class="btn-primary" style="text-decoration:none">Enter Home →</a>
+                <a href="#/assess/new" class="btn-ghost" style="text-decoration:none">Commission</a>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding-top:16px;border-top:1px solid hsl(var(--ink)/0.1);max-width:560px;animation:fadeUp .6s var(--ease-soft) .26s both" class="meta-mono">
+                <div><div style="font-family:var(--display);font-size:24px;color:hsl(var(--ink))">46</div>Tests passing</div>
+                <div><div style="font-family:var(--display);font-size:24px;color:hsl(var(--ink))">12</div>Scanners</div>
+                <div><div style="font-family:var(--display);font-size:24px;color:hsl(var(--ink))">MMXXIV</div>Established</div>
               </div>
             </div>
-            <div class="col-span-12 lg:col-span-5">
-              <div class="reveal grain" style="aspect-ratio:3/4;background:hsl(var(--ink));color:hsl(var(--paper));position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;animation:imageReveal 1.2s var(--ease-editorial) .12s both">
+            <div style="grid-column:span 5">
+              <div class="reveal grain" style="aspect-ratio:3/4;background:hsl(var(--ink));color:hsl(var(--paper));position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center">
                 <div style="width:80px;height:80px;border:1px solid hsl(var(--paper)/0.2);border-radius:50%;display:grid;place-items:center;margin-bottom:20px;animation:fadeUp .8s var(--ease-soft) .3s both"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9v-5z"/><path d="M9 12l2 2 4-4"/></svg></div>
                 <div class="label-eyebrow" style="color:hsl(var(--paper)/0.7);animation:fadeUp .6s var(--ease-soft) .35s both">World Monitor</div>
-                <div class="font-display" style="font-size:22px;color:hsl(var(--paper));margin-top:8px;animation:fadeUp .6s var(--ease-soft) .4s both">Secure by<br><span class="display-italic" style="color:hsl(var(--paper)/0.8)">evidence</span> not assumption.</div>
+                <div class="font-display" style="font-size:22px;color:hsl(var(--paper));margin-top:8px;line-height:1.3;animation:fadeUp .6s var(--ease-soft) .4s both">Secure by<br><span class="display-italic" style="color:hsl(var(--paper)/0.8)">evidence</span> not assumption.</div>
                 <div class="meta-mono" style="color:hsl(var(--paper)/0.5);margin-top:16px;animation:fadeUp .6s var(--ease-soft) .45s both">CONTINUOUS STUDY · EDITORIAL</div>
                 <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 16px;border-top:1px solid hsl(var(--paper)/0.1);display:flex;justify-content:space-between" class="meta-mono"><span>Est. MMXXIV</span><span>Platform</span></div>
               </div>
             </div>
           </div>
         </div>
-        <div class="container-editorial"><div class="editorial-rule"></div></div>
-        <div class="container-editorial py-8">
-          <div class="grid grid-cols-12 gap-6 text-[13px] leading-relaxed">
-            <div class="col-span-12 md:col-span-4"><div class="label-eyebrow">01 — Detect</div><p class="text-ash mt-2.5">Twelve scanners — authentication, authorization, headers, TLS, secrets, supply-chain — normalize to a canonical finding schema with CVSS 3.1 and fingerprint.</p></div>
-            <div class="col-span-12 md:col-span-4"><div class="label-eyebrow">02 — Verify</div><p class="text-ash mt-2.5">Evidence is masked, files are jailed, DNS is pinned. Every finding carries provenance, not AI hallucination.</p></div>
-            <div class="col-span-12 md:col-span-4"><div class="label-eyebrow">03 — Decide</div><p class="text-ash mt-2.5">Fail-closed gates: <span class="text-ink font-medium">BLOCKED</span> until health, findings and scans pass. Retest until <span class="text-ink font-medium">FIXED</span>.</p></div>
-          </div>
+        <div class="container-editorial"><div class="editorial-rule" style="margin-bottom:24px"></div></div>
+        <div class="container-editorial" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding-bottom:32px">
+          <div class="card"><div class="label-eyebrow" style="margin-bottom:10px">01 — Detect</div><p style="font-size:13px;color:hsl(var(--ash));line-height:1.65;margin:0">Twelve scanners — auth, IDOR, headers, TLS, secrets, supply-chain — normalize to canonical schema with CVSS 3.1 + fingerprint.</p></div>
+          <div class="card"><div class="label-eyebrow" style="margin-bottom:10px">02 — Verify</div><p style="font-size:13px;color:hsl(var(--ash));line-height:1.65;margin:0">Evidence masked, files jailed, DNS pinned. Every finding carries provenance, not hallucination. Retest proves FIXED.</p></div>
+          <div class="card"><div class="label-eyebrow" style="margin-bottom:10px">03 — Decide</div><p style="font-size:13px;color:hsl(var(--ash));line-height:1.65;margin:0">Fail-closed gate: <strong style="color:hsl(var(--ink))">BLOCKED</strong> until health, findings and scans pass. Export PDF / JSON / MD / CSV.</p></div>
         </div>
       </div>`;
+    const st=document.createElement("style"); st.textContent="@media(max-width:900px){.container-editorial div[style*='grid-column:span 7'],.container-editorial div[style*='grid-column:span 5']{grid-column:span 12 !important}}"; $view.appendChild(st);
   }
 
-/* ═══════════ DASHBOARD (Home) — full single screen, health/circle/history, no extra scroll ═══════════ */
+/* ═══════════ DASHBOARD (Home) — single screen, one compact meta row, history scroll only ═══════════ */
   async function Dashboard(){
     const today = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"}).toUpperCase();
-    setBreadcrumb([{label:"Home"}]);
+    setBreadcrumb([]);
+    if($topbar) $topbar.style.display="none";
     $view.innerHTML = `
-      <div id="dashBody" class="bg-paper">
-        <div class="container-editorial pt-4">
-          <div class="grid grid-cols-12 gap-x-4 items-baseline meta-mono text-ash border-b border-ink/10 pb-2">
-            <span class="col-span-4 sm:col-span-3 text-ink font-bold text-[11px]">World Monitor</span>
-            <span class="hidden sm:block sm:col-span-3 text-ink/60">Vol. I — Home</span>
-            <span class="hidden md:block md:col-span-3 text-ink/60">Health · Ranking · History</span>
-            <span class="col-span-8 sm:col-span-6 md:col-span-3 text-right text-ink text-[11px]">${esc(today)}</span>
+      <div id="dashBody" style="background:hsl(var(--paper))">
+        <div class="container-editorial" style="padding-top:16px">
+          <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:12px;border-bottom:1px solid hsl(var(--ink)/0.15);padding-bottom:10px;align-items:baseline" class="meta-mono">
+            <span style="grid-column:span 3;color:hsl(var(--ink));font-weight:700;font-size:11px">Home — Dashboard</span>
+            <span style="grid-column:span 6;color:hsl(var(--ink)/0.6);font-size:10px">health · ranking · history</span>
+            <span style="grid-column:span 3;text-align:right;color:hsl(var(--ink));font-size:10px">${esc(today)}</span>
           </div>
         </div>
-        <div class="container-editorial py-4">
-          <div id="metricsGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-4">${skeletonCards(2)}</div>
-          <div id="kpiGrid" class="kpis mt-4">${skeletonKpis()}</div>
-          <div id="dashCards" class="dash-cards grid mt-4"><div class="skeleton sk-card"></div><div class="skeleton sk-card"></div></div>
+        <div class="container-editorial" style="padding-top:16px;padding-bottom:16px;display:flex;flex-direction:column;gap:14px">
+          <div id="metricsGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">${skeletonCards(2)}</div>
+          <div id="kpiGrid" class="kpis" style="margin:0">${skeletonKpis()}</div>
+          <div id="dashCards" class="dash-cards grid" style="margin:0"><div class="skeleton sk-card"></div><div class="skeleton sk-card"></div></div>
         </div>
       </div>`;
     const el=$view.querySelector("#dashBody");
@@ -995,35 +1007,51 @@
     try{ [s, sc]=await Promise.all([API.get("/settings"), API.get("/scanners")]); }
     catch(e){ $view.innerHTML+=errorState(e.message, Settings); return; }
     const appName = s.app || s.app_name || "World Monitor";
-    $view.innerHTML = `<div class="page-head"><h1 class="page">Settings</h1><p class="sub">Platform configuration and module catalog — read-only.</p></div>
+    const bin = s.binaries_present||{};
+    const chainOk = bin.chainscanner, portiaOk = bin.portia, bomberOk = bin.bomber;
+    $view.innerHTML = `<div class="page-head"><div><h1 class="page">Settings</h1><p class="sub">Workspace, toolchain and safety — live from <span class="mono">/api/settings</span>.</p></div></div>
       <div class="grid two-col">
-        <div class="card"><h3>Environment</h3>
+        <div class="card"><div class="row spread"><h3 style="margin:0">Environment</h3>${s.lab_mode?`<span class="pill lab">● LAB_MODE</span>`:`<span class="badge">prod</span>`}</div>
           <dl class="kv mt">
-            <dt>App</dt><dd style="font-weight:600">${esc(appName)}</dd>
+            <dt>App</dt><dd style="font-weight:700">${esc(appName)}</dd>
             <dt>Version</dt><dd class="mono">${esc(s.version||"—")}</dd>
-            <dt>LAB_MODE</dt><dd>${s.lab_mode ? `<span class="pill lab">● ENABLED — loopback only</span>` : `<span class="badge">disabled</span>`}</dd>
             <dt>Lab app</dt><dd class="mono small" style="word-break:break-all">${esc(s.lab_url||s.lab_app_url||"—")}</dd>
             <dt>Lab source</dt><dd class="mono small" style="word-break:break-all">${esc(s.lab_source_dir||"—")}</dd>
-            <dt>Evidence dir</dt><dd class="mono small" style="word-break:break-all">${esc(s.evidence_dir||"—")}</dd>
-            <dt>Report dir</dt><dd class="mono small" style="word-break:break-all">${esc(s.report_dir||"—")}</dd>
-            <dt>portia</dt><dd>${s.binaries_present?.portia ? `<span class="pill lab">✔ present</span>` : `<span class="badge">✘ not found</span>`}</dd>
-            <dt>bomber</dt><dd>${s.binaries_present?.bomber ? `<span class="pill lab">✔ present</span>` : `<span class="badge">✘ not found</span>`}</dd>
-            <dt>chainscanner</dt><dd>${s.binaries_present?.chainscanner ? `<span class="pill lab">✔ present</span>` : `<span class="badge">✘ not found</span>`}</dd>
-          </dl></div>
-        <div class="card"><div class="row spread"><h3 style="margin:0">Modules</h3><span class="badge">${(sc.modules||[]).length}</span></div>
-          <div class="table-wrap mt"><table><thead><tr><th>Key</th><th>Label</th><th>Needs</th></tr></thead><tbody>
-            ${(sc.modules||[]).map(m=> `<tr><td class="mono small" style="font-weight:600">${esc(m.key)}</td><td class="muted small">${esc(m.label||m.key)}</td><td class="mono small muted">${esc(m.needs||"")}</td></tr>`).join("")}
-          </tbody></table></div>
+            <dt>Evidence</dt><dd class="mono small" style="word-break:break-all">${esc(s.evidence_dir||"—")}</dd>
+            <dt>Reports</dt><dd class="mono small" style="word-break:break-all">${esc(s.report_dir||"—")}</dd>
+          </dl>
+          <div class="divider"></div>
+          <div class="label-eyebrow" style="margin-bottom:8px">Toolchain — required for full coverage</div>
+          <div style="display:grid;gap:8px">
+            <div class="row spread" style="border:1px solid hsl(var(--border));padding:10px 12px;border-radius:6px"><span class="mono small" style="font-weight:700">chainscanner <span class="muted">· supply-chain</span></span>${chainOk?`<span class="pill lab">✔ present</span>`:`<span class="badge">✘ missing — scripts/build_go_tools.ps1</span>`}</div>
+            <div class="row spread" style="border:1px solid hsl(var(--border));padding:10px 12px;border-radius:6px"><span class="mono small" style="font-weight:700">portia <span class="muted">· secrets</span></span>${portiaOk?`<span class="pill lab">✔ present</span>`:`<span class="badge">✘ missing</span>`}</div>
+            <div class="row spread" style="border:1px solid hsl(var(--border));padding:10px 12px;border-radius:6px"><span class="mono small" style="font-weight:700">bomber <span class="muted">· SBOM</span></span>${bomberOk?`<span class="pill lab">✔ present</span>`:`<span class="badge">✘ missing</span>`}</div>
+          </div></div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="card"><div class="row spread"><h3 style="margin:0">Session</h3><span class="badge">workspace</span></div>
+            <p class="muted small mt">Signed in as <strong id="setEmail" style="color:hsl(var(--ink))">…</strong> · <span id="setRole" class="mono">…</span></p>
+            <div class="row mt" style="gap:8px;flex-wrap:wrap"><button class="ghost tiny" onclick="location.hash='#/dashboard'">← Home</button><button class="ghost tiny" onclick="navigator.clipboard.writeText(localStorage.getItem('wm_token')||'').then(()=>toast('Token copied'))">⎘ Copy token</button><button class="ghost tiny danger" id="setLogout">Sign out</button></div>
+            <div class="divider"></div>
+            <div class="label-eyebrow" style="margin-bottom:8px">Danger zone</div>
+            <button class="ghost tiny danger" id="setFresh">Fresh Start — delete all history</button>
+            <p class="help">Clears assessments, findings, evidence and reports on this PC. Cannot be undone.</p></div>
+          <div class="card"><div class="row spread"><h3 style="margin:0">Modules</h3><span class="badge">${(sc.modules||[]).length}</span></div>
+            <div class="table-wrap mt" style="max-height:260px"><table><thead><tr><th>Key</th><th>Label</th></tr></thead><tbody>
+              ${(sc.modules||[]).map(m=> `<tr><td class="mono small" style="font-weight:700">${esc(m.key)}</td><td class="muted small">${esc(m.label||m.key)}</td></tr>`).join("")}
+            </tbody></table></div></div>
         </div>
       </div>
       <div class="card mt"><h3>Safety model</h3>
         <div class="prose mt">
-          <p>Scans are refused unless <strong>(1)</strong> the operator confirms authorization and <strong>(2)</strong> the target passes the gate: loopback / RFC1918 resolution or an explicit <span class="mono">ALLOWED_TARGETS</span> entry. Cloud-metadata IPs are always blocked. Filesystem scanners are jailed to the lab tree.</p>
-          <p>Evidence masks tokens, cookies and keys before storage; sensitive headers are redacted. Every assessment, scan, report and retest is written to <span class="mono">audit_logs</span>.</p>
+          <p>Scans are refused unless <strong>(1)</strong> you confirm authorization and <strong>(2)</strong> target passes gate: loopback / RFC1918 or <span class="mono">ALLOWED_TARGETS</span>. Cloud-metadata IPs always blocked. Filesystem scanners jailed to lab tree.</p>
+          <p>Evidence masks tokens/cookies/keys before storage. Every run is audited in <span class="mono">audit_logs</span>.</p>
         </div>
         <div class="divider"></div>
-        <div class="row" style="gap:8px;flex-wrap:wrap"><a class="ghost xs" href="/api/docs" target="_blank" rel="noopener">OpenAPI →</a><a class="ghost xs" href="/api/health" target="_blank" rel="noopener">/health →</a><a class="ghost xs" href="/api/openapi.json" target="_blank" rel="noopener">openapi.json →</a><span class="muted small mono">AGPL-3.0 · see NOTICE.md</span></div>
+        <div class="row" style="gap:8px;flex-wrap:wrap"><a class="ghost xs" href="/api/docs" target="_blank" rel="noopener">OpenAPI →</a><a class="ghost xs" href="/api/health" target="_blank" rel="noopener">/health →</a><a class="ghost xs" href="/api/openapi.json" target="_blank" rel="noopener">openapi.json →</a><span class="muted small mono">AGPL-3.0</span></div>
       </div>`;
+    API.get("/auth/me").then(u=>{ const e=document.getElementById("setEmail"); const r=document.getElementById("setRole"); if(e) e.textContent=u.email||"—"; if(r) r.textContent=(u.role||"").toUpperCase(); }).catch(()=>{});
+    document.getElementById("setLogout")?.addEventListener("click", ()=> document.getElementById("logout")?.click());
+    document.getElementById("setFresh")?.addEventListener("click", async ()=>{ if(!confirm("Delete ALL history?")) return; try{ await API.del("/assessments"); toast("Fresh start done"); }catch(e){ toast(e.message,false); } });
   }
 
   /* ── boot ── */
