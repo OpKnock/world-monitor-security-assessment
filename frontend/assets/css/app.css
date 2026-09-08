@@ -568,5 +568,5 @@ button:active:not(:disabled),.btn:active:not(:disabled){transform:translateY(0)}
 #modTable td{padding:11px 12px}
 #modTable tr{border-bottom:1px solid hsl(var(--border)/0.6)}
 #modTable tr:last-child{border-bottom:none}
-.preset-btn{border:1px solid hsl(var(--border));background:hsl(var(--paper));border-radius:99px;padding:7px 13px;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s}
-.preset-btn:hover{border-color:hsl(var(--ink));background:hsl(var(--bone))}
+.preset-btn{border:1px solid hsl(var(--border));background:hsl(var(--paper));color:hsl(var(--ink));border-radius:99px;padding:7px 13px;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s}
+.preset-btn:hover{border-color:hsl(var(--ink));background:hsl(var(--bone));color:hsl(var(--ink))}
