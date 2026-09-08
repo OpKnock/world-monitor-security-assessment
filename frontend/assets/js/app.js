@@ -10,6 +10,7 @@
   const $scrim = document.getElementById("scrim");
   const $menuBtn = document.getElementById("menuBtn");
   const $themeToggle = document.getElementById("themeToggle");
+  const $crumb = document.getElementById("breadcrumb");
 
   const SEV = ["CRITICAL","HIGH","MEDIUM","LOW","INFORMATIONAL"];
   const SEV_ORDER = { CRITICAL:0, HIGH:1, MEDIUM:2, LOW:3, INFORMATIONAL:4 };
