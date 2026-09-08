@@ -596,7 +596,7 @@
     const modCount=document.getElementById("modCount");
     const targetInput=document.getElementById("target");
     const targetHelp=document.getElementById("targetHelp");
-    function updateModCount(){ const n=form.querySelectorAll("input[name=mod]:checked").length; modCount.textContent=n+" selected"; modCount.style.color=n? "var(--text-1)" : "var(--crit)"; btn.disabled = !(cb.checked && n>0); }
+    function updateModCount(){ const n=form.querySelectorAll("input[name=mod]:checked").length; modCount.textContent=n+" selected"; modCount.style.color = ""; btn.disabled = !(cb.checked && n>0); }
     function validateTarget(){
       const v=targetInput.value.trim();
       // source-only is signaled by empty target + at least one source module checked
