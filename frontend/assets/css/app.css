@@ -230,11 +230,9 @@ img,svg{display:block;max-width:100%}
   width:168px;opacity:1;
   background:hsl(var(--paper));box-shadow:0 16px 40px hsl(var(--ink)/0.16);
 }
-.dock-inner{display:flex;flex-direction:column;gap:12px;align-items:center}
+.dock-inner{display:flex;flex-direction:column;gap:8px;align-items:center;padding-top:4px}
 #sidebar.dock:hover .dock-inner, #sidebar.dock.dock-open .dock-inner{align-items:stretch}
-.dock-logo{width:40px;height:40px;display:grid;place-items:center;border:1px solid hsl(var(--ink)/0.12);border-radius:10px;background:hsl(var(--ink));color:hsl(var(--paper));font-family:"Fraunces",serif;font-weight:700;transition:all .4s}
-#sidebar.dock:hover .dock-logo, #sidebar.dock.dock-open .dock-logo{width:auto;height:auto;padding:10px 14px;border-radius:10px;gap:10px}
-.dock-nav{display:flex;flex-direction:column;gap:8px;width:100%}
+.dock-nav{display:flex;flex-direction:column;gap:6px;width:100%}
 .dock-item{
   display:flex;align-items:center;gap:16px;
   padding:14px 16px;border-radius:14px;
