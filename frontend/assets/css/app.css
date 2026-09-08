@@ -1,6 +1,6 @@
-/* World Monitor — Apex & Asphalt Editorial replica — light paper theme
+﻿/* World Monitor ΓÇö Apex & Asphalt Editorial replica ΓÇö light paper theme
    Tokens exact from e219a5be template: paper 42 28% 93%, ink 240 7% 6%, bone 42 30% 87%, ash 36 7% 33%, oxblood 0 59% 30%
-   Fonts Fraunces (display) + Inter Tight (sans) + JetBrains Mono — animations easeSoft/easeEditorial — imageReveal clipPath
+   Fonts Fraunces (display) + Inter Tight (sans) + JetBrains Mono ΓÇö animations easeSoft/easeEditorial ΓÇö imageReveal clipPath
 */
 :root{
   --paper: 42 28% 93%;
@@ -208,7 +208,7 @@ img,svg{display:block;max-width:100%}
 .scrim.hidden{display:none!important}
 .scrim{position:fixed;inset:0;background:hsl(var(--ink)/0.2);backdrop-filter:blur(4px);z-index:30}
 
-/* Dock — auto-hide like Mac, 64px collapsed left:12px top:50% opacity 0.45, expands 240px */
+/* Dock ΓÇö auto-hide like Mac, 64px collapsed left:12px top:50% opacity 0.45, expands 240px */
 #dockTrigger{position:fixed;left:0;top:0;bottom:0;width:18px;z-index:35;pointer-events:auto}
 #sidebar.dock{
   position:fixed;left:12px;top:50%;transform:translateY(-50%) translateX(0);
@@ -246,7 +246,7 @@ img,svg{display:block;max-width:100%}
 .dock-item:hover svg{opacity:1}
 .dock-item.active{background:hsl(var(--bone));color:hsl(var(--ink));border:1px solid hsl(var(--ink)/0.18)}
 .dock-item.active svg{opacity:1;color:hsl(var(--ink))}
-/* bubble animation like Mac dock — scale 1.22 per spec */
+/* bubble animation like Mac dock ΓÇö scale 1.22 per spec */
 .dock-item{transition:all .45s cubic-bezier(0.34,1.56,0.64,1);transform-origin:center bottom}
 .dock-item:hover{transform:scale(1.22) translateY(-5px);box-shadow:0 10px 32px hsl(var(--ink)/0.18);z-index:4}
 .dock-nav:hover .dock-item:not(:hover){transform:scale(0.88);opacity:.75}
@@ -271,7 +271,7 @@ img,svg{display:block;max-width:100%}
 .dock-login:hover{background:hsl(var(--ink)/0.9)}
 @media(max-width:1024px){#sidebar.dock{display:none} #dockTrigger{display:none}}
 
-/* Header exact replica — 28px star grunge, font-extrabold, Commission border-ink, no black */
+/* Header exact replica ΓÇö 28px star grunge, font-extrabold, Commission border-ink, no black */
 #topHeader .font-display{font-family:"Fraunces",serif}
 #topHeader nav a{position:relative}
 #topHeader nav a.active{color:hsl(var(--oxblood))}
@@ -308,7 +308,7 @@ img,svg{display:block;max-width:100%}
 .breadcrumb{display:flex;gap:0.5rem;align-items:center}
 .breadcrumb .sep{opacity:.4}
 
-/* Cards — paper editorial */
+/* Cards ΓÇö paper editorial */
 .card{background:hsl(var(--card));border:1px solid hsl(var(--border));border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-sm);position:relative}
 .card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,hsl(var(--ink)/0.08),transparent)}
 .card:hover{box-shadow:var(--shadow-md)}
@@ -325,7 +325,7 @@ img,svg{display:block;max-width:100%}
 .kpi.total{background:hsl(var(--paper));color:hsl(var(--ink));border:1px solid hsl(var(--ink)/0.15);border-left:3px solid hsl(var(--ink))}
 .kpi.total b,.kpi.total small,.kpi.total .kpi-sub{color:hsl(var(--ink))}
 
-/* Buttons editorial — ink primary, paper secondary */
+/* Buttons editorial ΓÇö ink primary, paper secondary */
 button,.btn{font-family:"Inter Tight",sans-serif;font-weight:500;letter-spacing:-0.01em;border:1px solid hsl(var(--ink));background:hsl(var(--ink));color:hsl(var(--paper));padding:10px 18px;border-radius:var(--r-sm);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
 button:hover:not(:disabled){background:hsl(var(--ink)/0.92)}
 button:active:not(:disabled){transform:translateY(1px)}
@@ -375,7 +375,7 @@ tr.click:hover td{background:hsl(var(--bone)/0.4)}
 .chip.realsrc{border-color:hsl(var(--oxblood));color:hsl(var(--oxblood))}
 .chip.poc{border-color:hsl(var(--ash));color:hsl(var(--ash))}
 
-/* Auth — editorial centered like template */
+/* Auth ΓÇö editorial centered like template */
 .auth-hero{min-height:70vh;display:flex;align-items:center;justify-content:center;padding:40px 20px}
 .auth-hero-content{width:100%;max-width:440px;background:hsl(var(--card));border:1px solid hsl(var(--border));padding:36px 32px;border-radius:var(--r-lg);box-shadow:var(--shadow-lg);text-align:center;animation:fadeUp .7s var(--ease-soft)}
 .auth-logo{display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:20px}
@@ -385,7 +385,7 @@ tr.click:hover td{background:hsl(var(--bone)/0.4)}
 .auth-form{text-align:left}
 .err{color:hsl(var(--destructive));font-size:12px;margin-top:8px;min-height:16px}
 
-/* Hero editorial — replica HomePage hero */
+/* Hero editorial ΓÇö replica HomePage hero */
 .hero-section{border-bottom:1px solid hsl(var(--ink)/0.15);padding-bottom:24px;margin-bottom:32px}
 .hero-section .meta-bar{display:grid;grid-template-columns:repeat(12,1fr);gap:1rem;border-bottom:1px solid hsl(var(--ink)/0.15);padding-bottom:12px;margin-bottom:40px}
 .hero-title{font-family:"Fraunces",serif;font-size:clamp(3.25rem,9.5vw,9rem);line-height:0.92;letter-spacing:-0.04em;color:hsl(var(--ink));text-wrap:balance}
@@ -443,7 +443,7 @@ button:active:not(:disabled),.btn:active:not(:disabled){transform:translateY(0)}
 .font-display{font-family:"Fraunces",serif}
 .meta-mono{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:hsl(var(--ash))}
 
-/* === Professional Welcome exact like lab 7-5 — clamp(3.5rem,9vw,8.5rem) leading 0.90 === */
+/* === Professional Welcome exact like lab 7-5 ΓÇö clamp(3.5rem,9vw,8.5rem) leading 0.90 === */
 .welcome-hero-title{font-family:"Fraunces",serif;font-size:clamp(2.8rem,7vw,5.5rem);line-height:0.90;letter-spacing:-0.04em;color:hsl(var(--ink));text-wrap:balance}
 .welcome-hero-title .display-italic{font-family:"Fraunces",serif;font-style:italic;font-weight:300;color:hsl(var(--ink)/0.62)}
 .welcome-grid{grid-template-columns:repeat(12,1fr);gap:40px}
@@ -451,7 +451,7 @@ button:active:not(:disabled),.btn:active:not(:disabled){transform:translateY(0)}
 .welcome-image-wrap{aspect-ratio:3/4;position:relative;overflow:hidden;background:hsl(var(--bone));border:1px solid hsl(var(--ink)/0.10);animation:imageReveal 1.2s cubic-bezier(0.7,0,0.2,1) .15s both}
 .welcome-image-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(0.12) contrast(1.08) brightness(0.96)}
 
-/* === Dashboard single-screen editorial — no scroll except history === */
+/* === Dashboard single-screen editorial ΓÇö no scroll except history === */
 #view{max-width:1320px;margin:0 auto;width:100%;padding-bottom:24px}
 .dash-meta{border-bottom:1px solid hsl(var(--ink)/0.15);padding-bottom:12px}
 .dash-title-row{display:flex;align-items:baseline;gap:16px}
@@ -480,7 +480,7 @@ button:active:not(:disabled),.btn:active:not(:disabled){transform:translateY(0)}
 .auth-simple input{border:1px solid hsl(var(--border))}
 .auth-simple input:focus{border-color:hsl(var(--ink));box-shadow:0 0 0 1px hsl(var(--ink)/0.18)}
 
-/* === Lab-exact helpers — no Tailwind dependency === */
+/* === Lab-exact helpers ΓÇö no Tailwind dependency === */
 .reveal{animation:imageReveal 1.1s cubic-bezier(0.7,0,0.2,1) forwards}
 .grain{position:relative}
 .grain::after{content:"";position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.14 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;mix-blend-mode:multiply;opacity:.5}
@@ -503,7 +503,7 @@ button:active:not(:disabled),.btn:active:not(:disabled){transform:translateY(0)}
 @media(min-width:768px){.md\:col-span-3{grid-column:span 3/span 3}.md\:col-span-4{grid-column:span 4/span 4}.md\:block{display:block}}
 @media(min-width:1024px){.lg\:col-span-7{grid-column:span 7/span 7}.lg\:col-span-5{grid-column:span 5/span 5}.lg\:pt-14{padding-top:56px}}
 .block{display:block}.h-px{height:1px}.w-10{width:40px}.bg-ink\/20{background:hsl(var(--ink)/0.2)}
-/* Findings filter chips — visible active colour per severity */
+/* Findings filter chips ΓÇö visible active colour per severity */
 .chip-filter{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:600;letter-spacing:.04em;padding:7px 12px;border-radius:99px;border:1px solid hsl(var(--border));background:hsl(var(--paper));color:hsl(var(--ink));cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .18s}
 .chip-filter:hover{border-color:hsl(var(--ink));transform:translateY(-1px)}
 .chip-filter.active{background:hsl(var(--ink));color:hsl(var(--paper));border-color:hsl(var(--ink))}
@@ -513,7 +513,7 @@ button:active:not(:disabled),.btn:active:not(:disabled){transform:translateY(0)}
 .chip-filter.active[data-sev="LOW"]{background:#0ea5e9;border-color:#0ea5e9;color:#fff}
 .chip-filter.active[data-sev="INFORMATIONAL"]{background:hsl(var(--ash));border-color:hsl(var(--ash));color:#fff}
 .filter-bar{display:flex;gap:8px;flex-wrap:wrap}
-/* Page heads — compact single row, no wasted upper space */
+/* Page heads ΓÇö compact single row, no wasted upper space */
 .page-head{margin:0 0 16px 0}
 .page-head h1.page{font-family:"Fraunces",serif;font-size:28px;font-weight:700;letter-spacing:-0.02em;line-height:1.1;margin:0;color:hsl(var(--ink))}
 .page-head p.sub{font-size:13px;color:hsl(var(--ash));margin:6px 0 0 0;max-width:640px}
