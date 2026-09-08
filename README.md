@@ -2,7 +2,7 @@
 
 # World Monitor Security Assessment Platform
 
-**Unified · Localhost-only · 12 Scanner Modules · CVSS v3.1 · Retest-until-FIXED**
+**Unified · Localhost-only · 12 Scanner Modules · CVSS v3.1 · Retest-until-FIXED · Light/Dark Mode**
 
 [![ci](https://github.com/OpKnock/world-monitor-security-assessment/actions/workflows/ci.yml/badge.svg)](https://github.com/OpKnock/world-monitor-security-assessment/actions/workflows/ci.yml)
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)
@@ -12,8 +12,9 @@
 ![CVSS v3.1](https://img.shields.io/badge/CVSS-v3.1-orange?style=flat-square)
 ![License AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-green?style=flat-square)
 ![Security localhost-only](https://img.shields.io/badge/security-localhost--only-critical?style=flat-square)
+![Theme light/dark](https://img.shields.io/badge/theme-light%20%2F%20dark-6c5ce7?style=flat-square)
 
-_A unified security assessment platform that scans an intentionally vulnerable lab and the real World Monitor codebase, normalizes findings into one schema, scores with **CVSS v3.1**, computes a **Security Health Score 0-100** (penalty-weighted by severity), stores masked evidence, explains business impact, recommends remediation, supports **cinematic retest-until-FIXED** with `Why this matters?` and before/after health, and generates **PDF / JSON / Markdown / CSV** reports. Docker images run as non-root with healthchecks. CI runs **46 tests + pip-audit** on every push._
+_A unified security assessment platform that scans an intentionally vulnerable lab and the real World Monitor codebase, normalizes findings into one schema, scores with **CVSS v3.1**, computes a **Security Health Score 0-100** (penalty-weighted by severity), stores masked evidence, explains business impact, recommends remediation, supports **cinematic retest-until-FIXED** with `Why this matters?` and before/after health, and generates **PDF / JSON / Markdown / CSV** reports. Docker images run as non-root with healthchecks. CI runs **46 tests + pip-audit** on every push. **Editorial light/dark theme** with animated 3D star-orbit logo, clean New Assessment flow, and distinct Vulnerable Lab UI with hazard ticker._
 
 </div>
 
@@ -129,6 +130,21 @@ Optional modules (`tls`, `graphql`, `deep_scan`, `fuzzing`, `supply_chain`) degr
 | Evidence | JSON files + masking | Tokens/cookies/keys redacted before write |
 | CVSS Engine | Pure Python, FIRST v3.1 | 38 curated presets, deterministic |
 | Frontend | Vanilla JS (ES6), SVG charts | Zero build, served by FastAPI |
+
+---
+
+## UI / UX Features
+
+| Feature | Description |
+|---------|-------------|
+| **Light / Dark Mode** | OS-preference detection + manual toggle (persisted in `localStorage`), works on both platform (`:8000`) and vulnerable lab (`:8080`) |
+| **Theme Toggle** | Sun/moon icon in header; one-click switch with instant CSS variable swap |
+| **Editorial Theme** | Fraunces display + Inter Tight + JetBrains Mono; paper/ink/oxblood tokens; `imageReveal`, `fadeUp`, `floatY` animations |
+| **Animated 3D Logo** | Home hero: star + dual counter-rotating orbit rings (`spinSlow 16s` / `spinRev 26s`) with pulsing glow |
+| **Auto-hide Dock** | Mac-style left sidebar (48px collapsed → 168px expanded), content gutter prevents overlap |
+| **New Assessment Flow** | Two-section form (Target / Modules), bordered fields, preset pills, inline validation, module table with severity chips |
+| **Vulnerable Lab Distinct UI** | Hazard ticker bar, red `LOCAL ONLY` badge, blinking `vulnerable` word, pulsing ⚠️ hero, separate theme toggle |
+| **Welcome Screen** | `See your exposure. Prove your security.` headline, animated 3D logo panel, What/How card, 3-column stats, Scan/Score/Secure cards |
 
 ---
 

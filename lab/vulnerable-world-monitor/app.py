@@ -285,6 +285,26 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name=
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--paper:42 28% 93%;--ink:240 7% 6%;--bone:42 30% 87%;--ash:36 7% 33%;--oxblood:0 59% 30%;--border:36 14% 78%;--card:42 32% 96%;--mono:"JetBrains Mono",monospace;--sans:"Inter Tight",system-ui,sans-serif;--display:"Fraunces",serif}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: 240 7% 6%;
+    --ink: 42 28% 93%;
+    --bone: 240 10% 12%;
+    --ash: 42 15% 65%;
+    --oxblood: 0 65% 55%;
+    --border: 240 10% 20%;
+    --card: 240 10% 10%;
+  }
+}
+:root[data-theme="light"] {
+  --paper: 42 28% 93%;
+  --ink: 240 7% 6%;
+  --bone: 42 30% 87%;
+  --ash: 36 7% 33%;
+  --oxblood: 0 59% 30%;
+  --border: 36 14% 78%;
+  --card: 42 32% 96%;
+}
 *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
 body{font-family:var(--sans);background:hsl(var(--paper));color:hsl(var(--ink));line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
 a{color:hsl(var(--ink));text-decoration:none;border-bottom:1px solid hsl(var(--ink)/0.2)}a:hover{border-bottom-color:hsl(var(--ink))}
@@ -336,7 +356,10 @@ pre{background:hsl(var(--ink));color:hsl(var(--paper));padding:14px;border-radiu
     <div style="display:flex;align-items:center;justify-content:space-between;height:64px;gap:12px">
       <a href="/" style="display:flex;align-items:center;gap:10px;border:none"><span style="width:32px;height:32px;display:grid;place-items:center;background:hsl(0 70% 42%);color:#fff;border-radius:8px;font-weight:800">!</span><span class="font-display" style="font-size:20px;letter-spacing:-0.02em;font-weight:700">Vulnerable Lab</span><span class="lab-badge"><i></i>LOCAL ONLY</span></a>
       <nav style="display:flex;gap:28px" class="meta-mono"><a href="/" style="color:hsl(var(--oxblood));border:none">01 Index</a><a href="/health" style="border:none">02 Health</a><a href="/api/monitor" style="border:none">03 Monitor</a><a href="#demo" style="border:none">04 Demo</a></nav>
-      <a href="#login" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid hsl(0 70% 42%);color:hsl(0 70% 42%);font-size:13px;font-weight:700">Try Login <span>↗</span></a>
+      <div style="display:flex;align-items:center;gap:8px">
+        <a href="#login" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid hsl(0 70% 42%);color:hsl(0 70% 42%);font-size:13px;font-weight:700">Try Login <span>↗</span></a>
+        <button id="labThemeToggle" class="btn-ghost" style="padding:8px 10px;font-size:13px" aria-label="Toggle theme" title="Toggle light/dark mode"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
+      </div>
     </div>
   </div>
 </header>
@@ -416,6 +439,26 @@ POST /login             — issues JWT + cookie</pre>
 </footer>
 <script>
 (function(){var el=document.getElementById('labDate');if(el)el.textContent=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'}).toUpperCase();})();
+function initLabTheme(){
+  var saved=localStorage.getItem("wm_lab_theme");
+  if(saved){document.documentElement.setAttribute("data-theme",saved);}
+  else if(window.matchMedia("(prefers-color-scheme: dark)").matches && !localStorage.getItem("wm_lab_theme")){document.documentElement.setAttribute("data-theme","dark");}
+  updateLabThemeIcon();
+}
+function updateLabThemeIcon(){
+  var btn=document.getElementById("labThemeToggle");
+  if(!btn) return;
+  var isDark=document.documentElement.getAttribute("data-theme")==="dark";
+  btn.innerHTML=isDark?'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>':'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+}
+initLabTheme();
+document.getElementById("labThemeToggle")?.addEventListener("click",function(){
+  var isDark=document.documentElement.getAttribute("data-theme")==="dark";
+  var next=isDark?"light":"dark";
+  document.documentElement.setAttribute("data-theme",next);
+  localStorage.setItem("wm_lab_theme",next);
+  updateLabThemeIcon();
+});
 async function loginSubmit(){
   var u=document.getElementById('u').value, p=document.getElementById('p').value;
   var btn=document.getElementById('loginBtn'), out=document.getElementById('out');

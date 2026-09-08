@@ -11,6 +11,7 @@
   const $crumb = document.getElementById("breadcrumb");
   const $health = document.getElementById("healthDot");
   const $menuBtn = document.getElementById("menuBtn");
+  const $themeToggle = document.getElementById("themeToggle");
 
   const SEV = ["CRITICAL","HIGH","MEDIUM","LOW","INFORMATIONAL"];
   const SEV_ORDER = { CRITICAL:0, HIGH:1, MEDIUM:2, LOW:3, INFORMATIONAL:4 };
@@ -50,6 +51,29 @@
       else if(e.clientX > 240) dockEl.classList.remove("dock-open");
     });
   }
+
+  /* ── theme toggle ── */
+  function initTheme(){
+    const saved = localStorage.getItem("wm_theme");
+    if(saved){ document.documentElement.setAttribute("data-theme", saved); }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches && !localStorage.getItem("wm_theme")){ document.documentElement.setAttribute("data-theme", "dark"); }
+    updateThemeIcon();
+  }
+  function updateThemeIcon(){
+    if(!$themeToggle) return;
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    $themeToggle.innerHTML = isDark ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>` : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+  }
+  if($themeToggle){
+    $themeToggle.addEventListener("click", ()=>{
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      const next = isDark ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("wm_theme", next);
+      updateThemeIcon();
+    });
+  }
+  initTheme();
 
   /* ── toast ── */
   function toast(msg, ok=true){
@@ -528,7 +552,7 @@
   function NewAssessment(){
     setBreadcrumb([{label:"Dashboard", href:"#/dashboard"}, {label:"New Assessment"}]);
     $view.innerHTML = `
-      <div class="page-head"><div><h1 class="page">New Assessment</h1><p class="sub">Authorized scans only — loopback / RFC1918 gate, cloud metadata always blocked.</p></div><span class="badge" id="modCount">6 selected</span></div>
+      <div class="page-head"><div><h1 class="page">New Assessment</h1><p class="sub" style="color:hsl(var(--ink));opacity:0.75">Authorized scans only — loopback / RFC1918 gate, cloud metadata always blocked.</p></div><span class="badge" id="modCount">6 selected</span></div>
       <form id="assessForm" class="grid two-col" style="gap:20px;align-items:start" novalidate>
         <div class="card assess-card">
           <div class="label-eyebrow" style="margin-bottom:12px">01 — Target</div>
@@ -537,33 +561,33 @@
             <button type="button" class="preset-btn" id="presetLab">🧪 Playground :8080</button>
             <button type="button" class="preset-btn" id="presetSource">📁 Source only</button>
           </div>
-          <div class="field"><label for="target">Target URL — authorized & reachable</label>
-            <input type="text" id="target" value="http://127.0.0.1:3000" placeholder="http://127.0.0.1:3000" spellcheck="false" autocomplete="off" aria-describedby="targetHelp"><div id="targetHelp" class="help" aria-live="polite"></div></div>
-          <div class="field"><label for="sourcePath">Filesystem scope — secrets / SBOM / supply-chain</label>
-            <input type="text" id="sourcePath" placeholder="lab/vulnerable-world-monitor" spellcheck="false" aria-describedby="sourceHelp"><div id="sourceHelp" class="help">Defaults to lab source when source modules selected.</div></div>
-          <div class="field"><label for="labToken">Lab token <button type="button" class="ghost xs" id="fetchToken" style="margin-left:8px">fetch from lab</button></label>
-            <input type="text" id="labToken" placeholder="optional — authenticated checks" spellcheck="false" autocomplete="off">
-            <div class="help"><span class="mono">POST /lab/token</span> · alice/user123 · never persisted.</div>
+          <div class="field"><label for="target" style="color:hsl(var(--ink))">Target URL — authorized & reachable</label>
+            <input type="text" id="target" value="http://127.0.0.1:3000" placeholder="http://127.0.0.1:3000" spellcheck="false" autocomplete="off" aria-describedby="targetHelp" style="color:hsl(var(--ink))"><div id="targetHelp" class="help" aria-live="polite" style="color:hsl(var(--ash));font-size:11.5px"></div></div>
+          <div class="field"><label for="sourcePath" style="color:hsl(var(--ink))">Filesystem scope — secrets / SBOM / supply-chain</label>
+            <input type="text" id="sourcePath" placeholder="lab/vulnerable-world-monitor" spellcheck="false" aria-describedby="sourceHelp" style="color:hsl(var(--ink))"><div id="sourceHelp" class="help" style="color:hsl(var(--ash));font-size:11.5px">Defaults to lab source when source modules selected.</div></div>
+          <div class="field"><label for="labToken" style="color:hsl(var(--ink))">Lab token <button type="button" class="ghost xs" id="fetchToken" style="margin-left:8px">fetch from lab</button></label>
+            <input type="text" id="labToken" placeholder="optional — authenticated checks" spellcheck="false" autocomplete="off" style="color:hsl(var(--ink))">
+            <div class="help" style="color:hsl(var(--ash));font-size:11.5px"><span class="mono">POST /lab/token</span> · alice/user123 · never persisted.</div>
           </div>
-          <details style="border:1px solid hsl(var(--border));border-radius:8px;padding:12px 14px;background:hsl(var(--paper))"><summary style="cursor:pointer;font-size:13px;font-weight:600">Advanced — per-module overrides</summary>
-            <div class="field" style="margin-top:12px"><label for="t-authorization">IDOR → reports</label><input type="text" id="t-authorization" placeholder="http://127.0.0.1:8080/api/reports" spellcheck="false"></div>
-            <div class="field"><label for="t-api">Rate limit → monitor</label><input type="text" id="t-api" placeholder="http://127.0.0.1:8080/api/monitor" spellcheck="false"></div>
-            <div class="field"><label for="t-sqli">SQLi → search</label><input type="text" id="t-sqli" placeholder="http://127.0.0.1:8080/api/search?id=1" spellcheck="false"></div>
-            <div class="field" style="margin-bottom:0"><label for="t-input_validation">XSS → greet</label><input type="text" id="t-input_validation" placeholder="http://127.0.0.1:8080/greet?name=x" spellcheck="false"></div>
+          <details style="border:1px solid hsl(var(--border));border-radius:8px;padding:12px 14px;background:hsl(var(--paper))"><summary style="cursor:pointer;font-size:13px;font-weight:600;color:hsl(var(--ink))">Advanced — per-module overrides</summary>
+            <div class="field" style="margin-top:12px"><label for="t-authorization" style="color:hsl(var(--ink))">IDOR → reports</label><input type="text" id="t-authorization" placeholder="http://127.0.0.1:8080/api/reports" spellcheck="false" style="color:hsl(var(--ink))"></div>
+            <div class="field"><label for="t-api" style="color:hsl(var(--ink))">Rate limit → monitor</label><input type="text" id="t-api" placeholder="http://127.0.0.1:8080/api/monitor" spellcheck="false" style="color:hsl(var(--ink))"></div>
+            <div class="field"><label for="t-sqli" style="color:hsl(var(--ink))">SQLi → search</label><input type="text" id="t-sqli" placeholder="http://127.0.0.1:8080/api/search?id=1" spellcheck="false" style="color:hsl(var(--ink))"></div>
+            <div class="field" style="margin-bottom:0"><label for="t-input_validation" style="color:hsl(var(--ink))">XSS → greet</label><input type="text" id="t-input_validation" placeholder="http://127.0.0.1:8080/greet?name=x" spellcheck="false" style="color:hsl(var(--ink))"></div>
           </details>
           <label style="display:flex;gap:10px;cursor:pointer;margin-top:14px;background:hsl(var(--bone)/0.5);border:1px solid hsl(var(--border));padding:12px 14px;border-radius:8px;align-items:flex-start">
-            <input type="checkbox" id="authorized" style="width:16px;height:16px;margin-top:2px" aria-describedby="authHelp">
-            <span style="font-size:12.5px;line-height:1.55">I confirm this target is <strong>authorized</strong> for security testing.</span>
+            <input type="checkbox" id="authorized" style="width:16px;height:16px;margin-top:2px;accent-color:hsl(var(--ink))" aria-describedby="authHelp">
+            <span style="font-size:12.5px;line-height:1.55;color:hsl(var(--ink))">I confirm this target is <strong>authorized</strong> for security testing.</span>
           </label>
-          <div class="help" style="margin-top:6px">Server enforces the gate regardless of UI.</div>
+          <div class="help" style="margin-top:6px;color:hsl(var(--ash));font-size:11.5px">Server enforces the gate regardless of UI.</div>
           <div style="margin-top:14px"><button type="submit" id="startBtn" disabled style="width:100%;padding:13px;font-size:14px" aria-describedby="startHelp">▶ Start Scan →</button>
-            <p id="startHelp" class="help" style="text-align:center">Check authorized + pick ≥1 module.</p></div>
+            <p id="startHelp" class="help" style="text-align:center;color:hsl(var(--ash));font-size:11.5px">Check authorized + pick ≥1 module.</p></div>
         </div>
         <div class="card assess-card"><div class="row spread"><span class="label-eyebrow">02 — Modules</span><button type="button" class="ghost xs" id="selAll">All</button><button type="button" class="ghost xs" id="selNone">Clear</button></div>
-          <p class="muted small" style="margin:8px 0 12px">Baseline: first six. Add source & supply-chain for full coverage.</p>
-          <div style="display:flex;gap:8px;margin-bottom:12px"><input id="modFilter" type="text" placeholder="Filter modules…" style="flex:1" aria-label="Filter modules"></div>
-          <div class="table-wrap" style="max-height:560px;border-radius:8px"><table><thead><tr><th style="width:36px"></th><th>Module</th><th>Coverage</th></tr></thead><tbody id="modTable">
-            ${MODULES.map(([k,l,d],i)=> `<tr data-mod="${esc(k)}"><td style="text-align:center"><input type="checkbox" name="mod" value="${esc(k)}" style="width:auto" ${i<6?"checked":""} aria-label="${esc(l)}"></td><td><strong style="font-size:12.5px">${esc(l)}</strong><div class="mono muted small">${esc(k)}</div></td><td class="muted small mono">${esc(d)}</td></tr>`).join("")}
+          <p style="margin:8px 0 12px;color:hsl(var(--ink));opacity:0.75;font-size:13px">Baseline: first six. Add source & supply-chain for full coverage.</p>
+          <div style="display:flex;gap:8px;margin-bottom:12px"><input id="modFilter" type="text" placeholder="Filter modules…" style="flex:1;color:hsl(var(--ink))" aria-label="Filter modules"></div>
+          <div class="table-wrap" style="max-height:560px;border-radius:8px"><table><thead><tr><th style="width:36px;color:hsl(var(--ink))"></th><th style="color:hsl(var(--ink))">Module</th><th style="color:hsl(var(--ink))">Coverage</th></tr></thead><tbody id="modTable">
+            ${MODULES.map(([k,l,d],i)=> `<tr data-mod="${esc(k)}"><td style="text-align:center"><input type="checkbox" name="mod" value="${esc(k)}" style="width:auto;accent-color:hsl(var(--ink))" ${i<6?"checked":""} aria-label="${esc(l)}"></td><td><strong style="font-size:12.5px;color:hsl(var(--ink))">${esc(l)}</strong><div style="color:hsl(var(--ink));opacity:0.6;font-size:11px;font-family:var(--mono)">${esc(k)}</div></td><td style="color:hsl(var(--ink));opacity:0.6;font-size:11px;font-family:var(--mono)">${esc(d)}</td></tr>`).join("")}
           </tbody></table></div>
         </div>
       </form>`;
