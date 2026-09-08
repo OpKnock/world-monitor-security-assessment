@@ -201,8 +201,8 @@ img,svg{display:block;max-width:100%}
 /* Layout */
 #app{min-height:100vh;display:flex;flex-direction:column}
 .main-wrap{flex:1;display:flex;flex-direction:column;min-width:0}
-#main{flex:1;overflow:auto}
-#view{max-width:1320px;margin:0 auto;width:100%}
+#main{flex:1;overflow:auto;overflow-x:hidden}
+#view{max-width:1320px;margin:0 auto;width:100%;overflow-x:hidden}
 #view > *{animation:view-enter .5s var(--ease-soft)}
 .hidden{display:none!important}
 .scrim.hidden{display:none!important}
