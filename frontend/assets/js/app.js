@@ -8,6 +8,7 @@
   const $footer = document.getElementById("appFooter");
   const $banner = document.getElementById("runBanner");
   const $scrim = document.getElementById("scrim");
+  const $crumb = document.getElementById("breadcrumb");
   const $menuBtn = document.getElementById("menuBtn");
   const $themeToggle = document.getElementById("themeToggle");
 
