@@ -304,7 +304,19 @@ header.sticky{position:sticky;top:0;z-index:40;background:hsl(var(--paper)/0.9);
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 @keyframes imageReveal{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0% 0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes blinkRed{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes pulseRed{0%,100%{box-shadow:0 0 0 0 hsl(0 70% 42% /0.45)}50%{box-shadow:0 0 0 8px hsl(0 70% 42% /0)}}
+@keyframes floatY{0%,100%{transform:translateY(-6px)}50%{transform:translateY(6px)}}
 .reveal{animation:imageReveal 1.1s cubic-bezier(0.7,0,0.2,1) forwards}
+.lab-ticker{background:repeating-linear-gradient(-45deg,#0E0E10 0 18px,#EAB308 18px 36px);padding:6px}
+.lab-ticker-inner{background:#0E0E10;color:#F2EBD8;overflow:hidden;white-space:nowrap}
+.lab-ticker-track{display:inline-block;padding:8px 0;animation:ticker 22s linear infinite;font-family:var(--mono);font-size:11px;letter-spacing:.08em}
+.lab-badge{display:inline-flex;align-items:center;gap:8px;background:hsl(0 70% 42%);color:#fff;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;padding:5px 12px;border-radius:99px;animation:pulseRed 2.2s infinite}
+.lab-badge i{width:8px;height:8px;border-radius:50%;background:#fff;animation:blinkRed 1.1s infinite}
+.lab-hero-warn{border-left:4px solid hsl(0 70% 42%);background:hsl(0 70% 42% /0.06);padding:12px 14px;border-radius:0 6px 6px 0}
+.lab-hazard{border:2px solid hsl(0 70% 42%);box-shadow:0 0 0 4px hsl(0 70% 42% /0.12)}
+.lab-float{animation:floatY 5s ease-in-out infinite}
 input,button{font-family:inherit}
 input[type="text"],input[type="password"]{width:100%;background:hsl(var(--paper));border:1px solid hsl(var(--border));padding:10px 12px;border-radius:2px;color:hsl(var(--ink))}
 input:focus{outline:none;border-color:hsl(var(--ink));box-shadow:0 0 0 1px hsl(var(--ink))}
@@ -318,37 +330,40 @@ pre{background:hsl(var(--ink));color:hsl(var(--paper));padding:14px;border-radiu
 </style>
 </head>
 <body>
-<header class="sticky">
+<div class="lab-ticker"><div class="lab-ticker-inner"><span class="lab-ticker-track">⚠️ INTENTIONALLY VULNERABLE — LOCALHOST ONLY — NEVER DEPLOY — AUTHORIZED TESTING ONLY — W01…W10 ACTIVE — ⚠️ INTENTIONALLY VULNERABLE — LOCALHOST ONLY — NEVER DEPLOY — AUTHORIZED TESTING ONLY — W01…W10 ACTIVE —&nbsp;</span></div></div>
+<header class="sticky" style="border-bottom:2px solid hsl(0 70% 42%)">
   <div class="container-editorial">
-    <div style="display:flex;align-items:center;justify-content:space-between;height:64px">
-      <a href="/" style="display:flex;align-items:baseline;gap:12px;border:none"><span class="font-display" style="font-size:22px;letter-spacing:-0.02em">World<span class="display-italic" style="color:hsl(var(--ink)/0.7);margin:0 4px">&</span>Monitor</span><span class="meta-mono" style="display:none">Est. MMXXIV</span></a>
+    <div style="display:flex;align-items:center;justify-content:space-between;height:64px;gap:12px">
+      <a href="/" style="display:flex;align-items:center;gap:10px;border:none"><span style="width:32px;height:32px;display:grid;place-items:center;background:hsl(0 70% 42%);color:#fff;border-radius:8px;font-weight:800">!</span><span class="font-display" style="font-size:20px;letter-spacing:-0.02em;font-weight:700">Vulnerable Lab</span><span class="lab-badge"><i></i>LOCAL ONLY</span></a>
       <nav style="display:flex;gap:28px" class="meta-mono"><a href="/" style="color:hsl(var(--oxblood));border:none">01 Index</a><a href="/health" style="border:none">02 Health</a><a href="/api/monitor" style="border:none">03 Monitor</a><a href="#demo" style="border:none">04 Demo</a></nav>
-      <a href="#login" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid hsl(var(--ink));font-size:13px;font-weight:500">Commission <span>↗</span></a>
+      <a href="#login" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid hsl(0 70% 42%);color:hsl(0 70% 42%);font-size:13px;font-weight:700">Try Login <span>↗</span></a>
     </div>
   </div>
 </header>
 <main>
   <div class="container-editorial" style="padding-top:24px">
     <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:16px;border-bottom:1px solid hsl(var(--ink)/0.15);padding-bottom:12px" class="meta-mono">
-      <span style="grid-column:span 2;color:hsl(var(--ink))">W&M</span><span style="grid-column:span 2;color:hsl(var(--ink)/0.7)">Vol. II</span><span style="grid-column:span 3;color:hsl(var(--ink)/0.7)">Independent · Security · Editorial</span><span style="grid-column:span 5;text-align:right;color:hsl(var(--ink))" id="labDate"></span>
+      <span style="grid-column:span 2;color:hsl(0 70% 42%);font-weight:700">⚠ LAB</span><span style="grid-column:span 2;color:hsl(var(--ink)/0.7)">Exploit Target</span><span style="grid-column:span 3;color:hsl(var(--ink)/0.7)">W01–W10 · Loopback only</span><span style="grid-column:span 5;text-align:right;color:hsl(var(--ink))" id="labDate"></span>
     </div>
   </div>
   <div class="container-editorial" style="padding-top:48px;padding-bottom:48px">
     <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:40px">
       <div style="grid-column:span 7;display:flex;flex-direction:column;gap:32px">
-        <div style="display:flex;align-items:center;gap:16px"><span class="meta-mono">Issue 02 — Lab</span><span style="display:block;height:1px;width:40px;background:hsl(var(--ink)/0.4)"></span><span class="label-eyebrow">the flaw, the fix, the proof</span></div>
-        <h1 class="font-display" style="font-size:clamp(2.8rem,8vw,5.5rem);line-height:0.92;letter-spacing:-0.04em">A deliberately <span class="display-italic" style="color:hsl(var(--ink)/0.85)">vulnerable</span> playground.</h1>
-        <p style="max-width:520px;color:hsl(var(--ash));font-size:15px">Isolated World Monitor target for authorized assessment. Every flaw is intentional, labeled, and confined to loopback. Never expose beyond localhost.</p>
-        <div style="display:flex;gap:12px;flex-wrap:wrap"><a href="#login" class="btn-primary" style="text-decoration:none">Try login — alice/user123</a><a href="/health" class="btn-ghost" style="text-decoration:none">Health check</a></div>
+        <div style="display:flex;align-items:center;gap:16px;animation:fadeUp .6s ease both"><span class="lab-badge"><i></i>CAUTION — LIVE FLAWS</span><span class="label-eyebrow" style="color:hsl(0 70% 42%)">the flaw, the fix, the proof</span></div>
+        <h1 class="font-display" style="font-size:clamp(2.8rem,8vw,5.5rem);line-height:0.92;letter-spacing:-0.04em;animation:fadeUp .8s ease .08s both">A deliberately <span class="display-italic" style="color:hsl(0 70% 42%);animation:blinkRed 2.4s infinite">vulnerable</span> playground.</h1>
+        <div class="lab-hero-warn" style="max-width:560px;animation:fadeUp .6s ease .14s both"><strong style="color:hsl(0 70% 42%)">⚠ Caution:</strong> <span style="font-size:13.5px;color:hsl(var(--ash))">every endpoint here is exploitable on purpose (W01–W10). Localhost only — never expose, never scan anything you don't own.</span></div>
+        <p style="max-width:520px;color:hsl(var(--ash));font-size:15px;animation:fadeUp .6s ease .16s both">Isolated target for the assessment platform. Flip patch toggles to prove fixes, then retest until FIXED.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;animation:fadeUp .6s ease .2s both"><a href="#login" class="btn-primary" style="text-decoration:none;border-color:hsl(0 70% 42%);background:hsl(0 70% 42%)">Try login — alice/user123</a><a href="/health" class="btn-ghost" style="text-decoration:none">Health check</a></div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding-top:16px;border-top:1px solid hsl(var(--ink)/0.1)" class="meta-mono"><div><div style="font-family:var(--display);font-size:24px;color:hsl(var(--ink))">10</div>Flaws W01–W10</div><div><div style="font-family:var(--display);font-size:24px;color:hsl(var(--ink))">4</div>Patch toggles</div><div><div style="font-family:var(--display);font-size:24px;color:hsl(var(--ink))">127.0.0.1:8080</div>Loopback only</div></div>
       </div>
       <div style="grid-column:span 5">
-        <div class="reveal grain" style="aspect-ratio:3/4;background:hsl(var(--ink));color:hsl(var(--paper));position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center">
-          <div style="width:80px;height:80px;border:1px solid hsl(var(--paper)/0.2);border-radius:50%;display:grid;place-items:center;margin-bottom:20px"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9v-5z"/><path d="M12 8v8"/><path d="M9 12h6"/></svg></div>
-          <div class="label-eyebrow" style="color:hsl(var(--paper)/0.7)">World Monitor Lab</div>
-          <div class="font-display" style="font-size:22px;color:hsl(var(--paper));margin-top:8px">Secure by<br><span class="display-italic" style="color:hsl(var(--paper)/0.8)">evidence</span> not assumption.</div>
-          <div class="meta-mono" style="color:hsl(var(--paper)/0.5);margin-top:16px">INTENTIONALLY VULNERABLE · LOCAL ONLY</div>
-          <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 16px;border-top:1px solid hsl(var(--paper)/0.1);display:flex;justify-content:space-between" class="meta-mono"><span>Est. MMXXIV</span><span>Loopback</span></div>
+        <div class="reveal grain lab-hazard lab-float" style="aspect-ratio:3/4;background:linear-gradient(160deg,#1a0505,#3d0a0a 60%,#0E0E10);color:hsl(var(--paper));position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center">
+          <div class="lab-badge" style="margin-bottom:16px"><i></i>DO NOT DEPLOY</div>
+          <div style="width:88px;height:88px;border:2px solid hsl(0 70% 60% /0.6);border-radius:50%;display:grid;place-items:center;margin-bottom:18px;background:hsl(0 70% 42% /0.15);animation:pulseRed 2.2s infinite"><span style="font-size:40px">⚠️</span></div>
+          <div class="label-eyebrow" style="color:#FCA5A5">Vulnerable Lab · W01–W10</div>
+          <div class="font-display" style="font-size:22px;color:hsl(var(--paper));margin-top:8px">Break it here.<br><span class="display-italic" style="color:#FCA5A5">safely.</span></div>
+          <div class="meta-mono" style="color:hsl(var(--paper)/0.6);margin-top:14px">PATCH TOGGLES · RETEST LOOP</div>
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 16px;border-top:1px solid hsl(0 70% 60% /0.3);display:flex;justify-content:space-between;background:hsl(0 0% 0% /0.35)" class="meta-mono"><span>Loopback</span><span>127.0.0.1:8080</span></div>
         </div>
       </div>
     </div>

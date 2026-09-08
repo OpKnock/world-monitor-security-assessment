@@ -310,7 +310,7 @@
     }
   }
 
-  /* ═══════════ WELCOME — exact copy of vulnerable-lab PAGE, inline styles, no Tailwind ═══════════ */
+  /* ═══════════ WELCOME — platform editorial, distinct from lab, animated 3D star+orbit, no Tailwind ═══════════ */
   function Welcome(){
     const today = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"}).toUpperCase();
     setBreadcrumb([]);
@@ -320,55 +320,61 @@
         <div class="container-editorial" style="padding-top:24px">
           <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:16px;border-bottom:1px solid hsl(var(--ink)/0.15);padding-bottom:12px" class="meta-mono">
             <span style="grid-column:span 4;color:hsl(var(--ink));font-weight:700;letter-spacing:-0.01em">World Monitor Security Assessment</span>
-            <span style="grid-column:span 2;color:hsl(var(--ink)/0.7)">Vol. I</span>
-            <span style="grid-column:span 3;color:hsl(var(--ink)/0.7)">Independent · Security · Editorial</span>
+            <span style="grid-column:span 2;color:hsl(var(--ink)/0.7)">Assessment Vol. I</span>
+            <span style="grid-column:span 3;color:hsl(var(--ink)/0.7)">Scan · Score · Secure</span>
             <span style="grid-column:span 3;text-align:right;color:hsl(var(--ink))">${esc(today)}</span>
           </div>
         </div>
-        <div class="container-editorial" style="padding-top:48px;padding-bottom:40px">
+        <div class="container-editorial" style="padding-top:44px;padding-bottom:36px">
           <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:40px">
-            <div style="grid-column:span 7;display:flex;flex-direction:column;gap:28px">
+            <div style="grid-column:span 7;display:flex;flex-direction:column;gap:26px">
               <div style="display:flex;align-items:center;gap:16px;animation:fadeUp .6s var(--ease-soft) both">
-                <span class="meta-mono">Issue 01 — Platform</span>
+                <span class="meta-mono">Security Assessment Platform</span>
                 <span style="display:block;height:1px;width:40px;background:hsl(var(--ink)/0.4)"></span>
-                <span class="label-eyebrow">the surface, the signal, the fix</span>
+                <span class="label-eyebrow">scan · score · secure</span>
               </div>
-              <h1 class="font-display" style="font-size:clamp(2.8rem,7vw,5.5rem);line-height:0.92;letter-spacing:-0.04em;margin:0;animation:fadeUp .85s var(--ease-soft) .08s both">A continuous <span class="display-italic" style="color:hsl(var(--ink)/0.85)">study</span><br>of your attack<br><span class="display-italic" style="color:hsl(var(--ink)/0.85)">surface.</span></h1>
-              <p style="max-width:520px;color:hsl(var(--ash));font-size:15px;line-height:1.7;margin:0;animation:fadeUp .6s var(--ease-soft) .14s both">World Monitor is a <strong style="color:hsl(var(--ink))">continuous study</strong> of your attack surface — not a scanner. Detect, verify, score and remediate with <strong style="color:hsl(var(--ink))">fail-closed</strong> gates and paper-trail evidence.</p>
+              <h1 class="font-display" style="font-size:clamp(2.6rem,6.5vw,5rem);line-height:0.94;letter-spacing:-0.04em;margin:0;animation:fadeUp .85s var(--ease-soft) .08s both">See your <span class="display-italic" style="color:hsl(var(--oxblood))">exposure.</span><br>Prove your <span class="display-italic" style="color:hsl(var(--ink)/0.85)">security.</span></h1>
+              <p style="max-width:520px;color:hsl(var(--ash));font-size:15px;line-height:1.7;margin:0;animation:fadeUp .6s var(--ease-soft) .14s both">World Monitor Security Assessment runs <strong style="color:hsl(var(--ink))">authorized scans</strong>, scores every finding with CVSS 3.1, and gates releases <strong style="color:hsl(var(--ink))">fail-closed</strong> — BLOCKED until health, findings and evidence pass.</p>
               <div class="card" style="max-width:560px;background:hsl(var(--card));animation:fadeUp .6s var(--ease-soft) .16s both">
                 <div class="label-eyebrow" style="margin-bottom:10px">What is this · How to use</div>
                 <div style="display:grid;gap:10px;font-size:13.5px;line-height:1.65;color:hsl(var(--ash))">
-                  <div><strong style="color:hsl(var(--ink))">What:</strong> authorized assessment platform — 12 scanners normalize to CVSS 3.1 findings with masked evidence, fingerprints, retest.</div>
-                  <div><strong style="color:hsl(var(--ink))">How:</strong> 1) Commission against 127.0.0.1:3000 / :8080 or source tree → 2) watch live progress → 3) triage Findings → 4) generate Report → 5) Retest until FIXED.</div>
-                  <div class="meta-mono" style="font-size:10px">LAB_MODE · loopback-only gate · every run audited</div>
+                  <div><strong style="color:hsl(var(--ink))">What:</strong> 12 scanners (auth, IDOR, headers, TLS, secrets, SBOM, supply-chain…) → normalized findings with masked evidence + retest proof.</div>
+                  <div><strong style="color:hsl(var(--ink))">How:</strong> 1) Start New Assessment on 127.0.0.1:3000 / :8080 or source → 2) watch live → 3) triage Findings → 4) export Report → 5) Retest to FIXED.</div>
+                  <div class="meta-mono" style="font-size:10px">Authorized targets only · loopback gate · fully audited</div>
                 </div>
               </div>
               <div style="display:flex;gap:12px;flex-wrap:wrap;animation:fadeUp .6s var(--ease-soft) .20s both">
                 <a href="#/dashboard" class="btn-primary" style="text-decoration:none">Enter Home →</a>
-                <a href="#/assess/new" class="btn-ghost" style="text-decoration:none">Commission</a>
+                <a href="#/assess/new" class="btn-ghost" style="text-decoration:none">＋ New Assessment</a>
               </div>
               <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding-top:16px;border-top:1px solid hsl(var(--ink)/0.1);max-width:560px;animation:fadeUp .6s var(--ease-soft) .26s both" class="meta-mono">
-                <div><div style="font-family:var(--display);font-size:24px;color:hsl(var(--ink))">46</div>Tests passing</div>
-                <div><div style="font-family:var(--display);font-size:24px;color:hsl(var(--ink))">12</div>Scanners</div>
-                <div><div style="font-family:var(--display);font-size:24px;color:hsl(var(--ink))">MMXXIV</div>Established</div>
+                <div><div style="font-family:var(--display);font-size:24px;color:hsl(var(--ink))">12</div>Security scanners</div>
+                <div><div style="font-family:var(--display);font-size:24px;color:hsl(var(--ink))">46</div>Checks passing</div>
+                <div><div style="font-family:var(--display);font-size:24px;color:hsl(var(--ink))">${new Date().getFullYear()}</div>Live assessments</div>
               </div>
             </div>
             <div style="grid-column:span 5">
-              <div class="reveal grain" style="aspect-ratio:3/4;background:hsl(var(--ink));color:hsl(var(--paper));position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center">
-                <div style="width:80px;height:80px;border:1px solid hsl(var(--paper)/0.2);border-radius:50%;display:grid;place-items:center;margin-bottom:20px;animation:fadeUp .8s var(--ease-soft) .3s both"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9v-5z"/><path d="M9 12l2 2 4-4"/></svg></div>
-                <div class="label-eyebrow" style="color:hsl(var(--paper)/0.7);animation:fadeUp .6s var(--ease-soft) .35s both">World Monitor</div>
-                <div class="font-display" style="font-size:22px;color:hsl(var(--paper));margin-top:8px;line-height:1.3;animation:fadeUp .6s var(--ease-soft) .4s both">Secure by<br><span class="display-italic" style="color:hsl(var(--paper)/0.8)">evidence</span> not assumption.</div>
-                <div class="meta-mono" style="color:hsl(var(--paper)/0.5);margin-top:16px;animation:fadeUp .6s var(--ease-soft) .45s both">CONTINUOUS STUDY · EDITORIAL</div>
-                <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 16px;border-top:1px solid hsl(var(--paper)/0.1);display:flex;justify-content:space-between" class="meta-mono"><span>Est. MMXXIV</span><span>Platform</span></div>
+              <div class="reveal grain" style="aspect-ratio:3/4;background:radial-gradient(120% 100% at 50% 0%, hsl(var(--ink)) 40%, #1a1a1e 100%);color:hsl(var(--paper));position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center">
+                <div class="wm-float" style="position:relative;width:230px;height:230px;display:grid;place-items:center;margin-bottom:18px">
+                  <div class="wm-orbit-ring" style="inset:0;width:230px;height:230px"><span class="wm-orbit-dot"></span></div>
+                  <div class="wm-orbit-ring dashed" style="inset:28px;width:174px;height:174px;margin:28px"><span class="wm-orbit-dot" style="width:6px;height:6px;background:hsl(var(--oxblood));margin-left:-3px"></span></div>
+                  <div class="wm-pulse" style="width:118px;height:118px;border-radius:50%;background:hsl(var(--paper)/0.06);border:1px solid hsl(var(--paper)/0.22);display:grid;place-items:center">
+                    <svg width="72" height="72" viewBox="0 0 100 100" fill="none"><g fill="hsl(var(--paper))"><path d="M50 8 L57 28 L77 28 L60 40 L67 62 L50 52 L33 62 L40 40 L23 28 L43 28 Z" stroke="hsl(var(--paper))" stroke-width="2" stroke-linejoin="round"/><path d="M18 58 C28 75, 50 88, 78 58 L82 62 C52 92, 22 80, 16 60 Z"/><path d="M78 58 C70 40, 48 18, 22 32 L18 28 C50 12, 78 36, 82 58 Z" opacity="0.85"/></g></svg>
+                  </div>
+                </div>
+                <div class="label-eyebrow" style="color:hsl(var(--paper)/0.7);animation:fadeUp .6s var(--ease-soft) .35s both">World Monitor · Live</div>
+                <div class="font-display" style="font-size:22px;color:hsl(var(--paper));margin-top:8px;line-height:1.3;animation:fadeUp .6s var(--ease-soft) .4s both">Scan. Score.<br><span class="display-italic" style="color:hsl(var(--paper)/0.85)">Secure.</span></div>
+                <div class="meta-mono" style="color:hsl(var(--paper)/0.5);margin-top:14px;animation:fadeUp .6s var(--ease-soft) .45s both">FAIL-CLOSED · EVIDENCE-BACKED</div>
+                <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 16px;border-top:1px solid hsl(var(--paper)/0.1);display:flex;justify-content:space-between" class="meta-mono"><span>Security Assessment</span><span>Platform</span></div>
               </div>
             </div>
           </div>
         </div>
         <div class="container-editorial"><div class="editorial-rule" style="margin-bottom:24px"></div></div>
         <div class="container-editorial" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding-bottom:32px">
-          <div class="card"><div class="label-eyebrow" style="margin-bottom:10px">01 — Detect</div><p style="font-size:13px;color:hsl(var(--ash));line-height:1.65;margin:0">Twelve scanners — auth, IDOR, headers, TLS, secrets, supply-chain — normalize to canonical schema with CVSS 3.1 + fingerprint.</p></div>
-          <div class="card"><div class="label-eyebrow" style="margin-bottom:10px">02 — Verify</div><p style="font-size:13px;color:hsl(var(--ash));line-height:1.65;margin:0">Evidence masked, files jailed, DNS pinned. Every finding carries provenance, not hallucination. Retest proves FIXED.</p></div>
-          <div class="card"><div class="label-eyebrow" style="margin-bottom:10px">03 — Decide</div><p style="font-size:13px;color:hsl(var(--ash));line-height:1.65;margin:0">Fail-closed gate: <strong style="color:hsl(var(--ink))">BLOCKED</strong> until health, findings and scans pass. Export PDF / JSON / MD / CSV.</p></div>
+          <div class="card"><div class="label-eyebrow" style="margin-bottom:10px">01 — Scan</div><p style="font-size:13px;color:hsl(var(--ash));line-height:1.65;margin:0">Authorized scans on loopback / source — rate-limit, TLS, secrets, SBOM, supply-chain with DNS pinning and jailed files.</p></div>
+          <div class="card"><div class="label-eyebrow" style="margin-bottom:10px">02 — Score</div><p style="font-size:13px;color:hsl(var(--ash));line-height:1.65;margin:0">CVSS 3.1 + fingerprint + masked evidence. Health 0–100, release gate BLOCKED / APPROVED with reasons.</p></div>
+          <div class="card"><div class="label-eyebrow" style="margin-bottom:10px">03 — Secure</div><p style="font-size:13px;color:hsl(var(--ash));line-height:1.65;margin:0">Export PDF / JSON / MD / CSV, remediate, then Retest until FIXED. Every step audited.</p></div>
         </div>
       </div>`;
     const st=document.createElement("style"); st.textContent="@media(max-width:900px){.container-editorial div[style*='grid-column:span 7'],.container-editorial div[style*='grid-column:span 5']{grid-column:span 12 !important}}"; $view.appendChild(st);
@@ -488,7 +494,7 @@
         </div>
       </div>
       <div class="card"><div class="row spread"><strong style="font-size:13px">Posture by category</strong><span class="muted" style="font-size:11px">${Object.keys(categories).length} categories</span></div><div class="mt" style="display:flex;flex-direction:column;gap:4px">${Charts.catBars(categories)}</div></div>
-      <div class="card" style="display:flex;flex-direction:column"><div class="row spread"><strong style="font-size:13px">New Assessment</strong><span class="meta-mono" style="font-size:10px">Commission a new scan</span></div><p class="muted small mt" style="font-size:12px;line-height:1.5">Start an authorized assessment against a loopback target or source tree. Evidence is masked, files jailed, DNS pinned.</p><div style="margin-top:auto;padding-top:16px"><button onclick="location.hash='#/assess/new'" class="w-full bg-ink text-paper py-3 font-medium hover:bg-ink/90 transition-colors" style="font-size:14px">Commission Assessment →</button></div></div>
+      <div class="card" style="display:flex;flex-direction:column"><div class="row spread"><strong style="font-size:13px">New Assessment</strong><span class="meta-mono" style="font-size:10px">Start a new scan</span></div><p class="muted small mt" style="font-size:12px;line-height:1.5">Authorized scan on loopback or source tree. Evidence masked, files jailed, DNS pinned.</p><div style="margin-top:auto;padding-top:14px"><button onclick="location.hash='#/assess/new'" style="width:100%;padding:11px;font-size:13.5px">＋ Start New Scan →</button></div></div>
       <div class="card"><div class="row spread"><strong style="font-size:13px">History</strong><button class="ghost tiny" onclick="location.hash='#/history'" style="font-size:11px">View all →</button></div><div class="history-preview mt-3" style="display:flex;flex-direction:column;gap:8px">
         ${recent.length ? recent.slice(0,5).map(a=> `<div class="flex items-center gap-3 p-3 bg-paper border border-ink/10 hover:bg-bone/50 transition-colors cursor-pointer" style="border-radius:6px" onclick="location.hash='#/assessment/${esc(a.id)}'"><div style="width:36px;height:36px;border-radius:50%;background:hsl(var(--bone));display:grid;place-items:center;flex-shrink:0"><span style="font-size:11px;font-weight:700;color:hsl(var(--ink))">${esc((a.modules||[])[0]?.[0]?.toUpperCase()||"—")}</span></div><div class="flex-1 min-w-0"><p style="font-size:13px;font-weight:500;color:hsl(var(--ink));white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.target)}</p><p style="font-size:11px;color:hsl(var(--ash))">${esc((a.modules||[]).slice(0,2).join(", ")||"No modules")}</p></div><div style="text-align:right;flex-shrink:0"><span class="badge" style="background:${healthColor(healthMap[a.id]??50)};color:#fff;font-size:10px;padding:3px 8px">${healthMap[a.id]??"?"}</span><div class="meta-mono" style="font-size:10px;margin-top:4px">${a.created_at ? new Date(a.created_at).toLocaleDateString() : "—"}</div></div></div>`).join("") : `<div class="text-center py-8 muted small">No recent assessments — commission one.</div>`}
       </div></div>
@@ -522,40 +528,41 @@
   function NewAssessment(){
     setBreadcrumb([{label:"Dashboard", href:"#/dashboard"}, {label:"New Assessment"}]);
     $view.innerHTML = `
-      <div class="page-head"><h1 class="page">New Assessment</h1><p class="sub">All testing is confined to authorized targets. LAB_MODE permits loopback / RFC1918 only — cloud metadata is always blocked.</p></div>
-      <form id="assessForm" class="grid two-col" novalidate>
-        <div class="card card-pad-lg">
-          <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap">
-            <button type="button" class="ghost tiny" id="presetReal" title="Load REAL app defaults (port 3000)">🌐 Real app — :3000</button>
-            <button type="button" class="ghost tiny" id="presetLab" title="Load lab playground (port 8080)">🧪 Playground — :8080</button>
-            <button type="button" class="ghost tiny" id="presetSource" title="Source-only scan">📁 Source only</button>
+      <div class="page-head"><div><h1 class="page">New Assessment</h1><p class="sub">Authorized scans only — loopback / RFC1918 gate, cloud metadata always blocked.</p></div><span class="badge" id="modCount">6 selected</span></div>
+      <form id="assessForm" class="grid two-col" style="gap:20px;align-items:start" novalidate>
+        <div class="card assess-card">
+          <div class="label-eyebrow" style="margin-bottom:12px">01 — Target</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+            <button type="button" class="preset-btn" id="presetReal">🌐 Real app :3000</button>
+            <button type="button" class="preset-btn" id="presetLab">🧪 Playground :8080</button>
+            <button type="button" class="preset-btn" id="presetSource">📁 Source only</button>
           </div>
-          <div class="field"><label for="target">Target URL <span class="muted" style="font-weight:400">— must be authorized & reachable</span></label>
+          <div class="field"><label for="target">Target URL — authorized & reachable</label>
             <input type="text" id="target" value="http://127.0.0.1:3000" placeholder="http://127.0.0.1:3000" spellcheck="false" autocomplete="off" aria-describedby="targetHelp"><div id="targetHelp" class="help" aria-live="polite"></div></div>
-          <div class="field"><label for="sourcePath">Filesystem scope <span class="muted" style="font-weight:400">— for secrets / dependencies / supply_chain</span></label>
-            <input type="text" id="sourcePath" placeholder="lab/vulnerable-world-monitor — leave empty if not scanning source" spellcheck="false" aria-describedby="sourceHelp"><div id="sourceHelp" class="help">Defaults to lab source when scanning source modules.</div></div>
+          <div class="field"><label for="sourcePath">Filesystem scope — secrets / SBOM / supply-chain</label>
+            <input type="text" id="sourcePath" placeholder="lab/vulnerable-world-monitor" spellcheck="false" aria-describedby="sourceHelp"><div id="sourceHelp" class="help">Defaults to lab source when source modules selected.</div></div>
           <div class="field"><label for="labToken">Lab token <button type="button" class="ghost xs" id="fetchToken" style="margin-left:8px">fetch from lab</button></label>
-            <input type="text" id="labToken" placeholder="optional — enables authenticated checks" spellcheck="false" autocomplete="off">
-            <div class="help">Fetched from <span class="mono">POST /lab/token</span> via the lab demo account (alice/user123). Never persisted.</div>
+            <input type="text" id="labToken" placeholder="optional — authenticated checks" spellcheck="false" autocomplete="off">
+            <div class="help"><span class="mono">POST /lab/token</span> · alice/user123 · never persisted.</div>
           </div>
-          <details class="mt"><summary>Per-module target overrides (advanced)</summary>
-            <div class="field mt"><label for="t-authorization">IDOR → reports</label><input type="text" id="t-authorization" placeholder="http://127.0.0.1:8080/api/reports" spellcheck="false"></div>
+          <details style="border:1px solid hsl(var(--border));border-radius:8px;padding:12px 14px;background:hsl(var(--paper))"><summary style="cursor:pointer;font-size:13px;font-weight:600">Advanced — per-module overrides</summary>
+            <div class="field" style="margin-top:12px"><label for="t-authorization">IDOR → reports</label><input type="text" id="t-authorization" placeholder="http://127.0.0.1:8080/api/reports" spellcheck="false"></div>
             <div class="field"><label for="t-api">Rate limit → monitor</label><input type="text" id="t-api" placeholder="http://127.0.0.1:8080/api/monitor" spellcheck="false"></div>
-            <div class="field"><label for="t-sqli">SQLi → search (input_validation)</label><input type="text" id="t-sqli" placeholder="http://127.0.0.1:8080/api/search?id=1" spellcheck="false"></div>
-            <div class="field"><label for="t-input_validation">XSS reflection → greet</label><input type="text" id="t-input_validation" placeholder="http://127.0.0.1:8080/greet?name=x" spellcheck="false"></div>
-            <p class="help">Only used when the corresponding module is selected. Map to :8080 for the vulnerable lab or :3000 for the real app.</p>
+            <div class="field"><label for="t-sqli">SQLi → search</label><input type="text" id="t-sqli" placeholder="http://127.0.0.1:8080/api/search?id=1" spellcheck="false"></div>
+            <div class="field" style="margin-bottom:0"><label for="t-input_validation">XSS → greet</label><input type="text" id="t-input_validation" placeholder="http://127.0.0.1:8080/greet?name=x" spellcheck="false"></div>
           </details>
-          <label class="row" style="gap:10px;cursor:pointer;margin-top:16px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.18);padding:10px 12px;border-radius:10px">
-            <input type="checkbox" id="authorized" style="width:auto" aria-describedby="authHelp">
-            <span style="font-size:12.5px">I confirm this target is <strong>authorized for security testing</strong> and I have permission to scan it.</span>
-          </label><div id="authHelp" class="help" style="margin-top:6px">Server enforces the gate regardless of UI state.</div>
-          <div class="mt"><button type="submit" id="startBtn" disabled style="width:100%;padding:12px" aria-describedby="startHelp">START ASSESSMENT →</button>
-            <p id="startHelp" class="help" style="text-align:center">Check “authorized” and pick at least one module to enable.</p></div>
+          <label style="display:flex;gap:10px;cursor:pointer;margin-top:14px;background:hsl(var(--bone)/0.5);border:1px solid hsl(var(--border));padding:12px 14px;border-radius:8px;align-items:flex-start">
+            <input type="checkbox" id="authorized" style="width:16px;height:16px;margin-top:2px" aria-describedby="authHelp">
+            <span style="font-size:12.5px;line-height:1.55">I confirm this target is <strong>authorized</strong> for security testing.</span>
+          </label>
+          <div class="help" style="margin-top:6px">Server enforces the gate regardless of UI.</div>
+          <div style="margin-top:14px"><button type="submit" id="startBtn" disabled style="width:100%;padding:13px;font-size:14px" aria-describedby="startHelp">▶ Start Scan →</button>
+            <p id="startHelp" class="help" style="text-align:center">Check authorized + pick ≥1 module.</p></div>
         </div>
-        <div class="card"><div class="row spread"><strong>Select modules</strong><span class="badge" id="modCount">6 selected</span></div>
-          <p class="muted small" style="margin:6px 0 10px">Pick at least one. First six are a solid baseline; add source & supply-chain for the real app.</p>
-          <div style="display:flex;gap:6px;margin-bottom:8px"><input id="modFilter" type="text" placeholder="Filter modules…" style="flex:1;padding:7px 10px" aria-label="Filter modules"><button type="button" class="ghost xs" id="selAll">All</button><button type="button" class="ghost xs" id="selNone">Clear</button></div>
-          <div class="table-wrap" style="max-height:520px"><table><thead><tr><th style="width:36px"></th><th>Module</th><th>Coverage</th></tr></thead><tbody id="modTable">
+        <div class="card assess-card"><div class="row spread"><span class="label-eyebrow">02 — Modules</span><button type="button" class="ghost xs" id="selAll">All</button><button type="button" class="ghost xs" id="selNone">Clear</button></div>
+          <p class="muted small" style="margin:8px 0 12px">Baseline: first six. Add source & supply-chain for full coverage.</p>
+          <div style="display:flex;gap:8px;margin-bottom:12px"><input id="modFilter" type="text" placeholder="Filter modules…" style="flex:1" aria-label="Filter modules"></div>
+          <div class="table-wrap" style="max-height:560px;border-radius:8px"><table><thead><tr><th style="width:36px"></th><th>Module</th><th>Coverage</th></tr></thead><tbody id="modTable">
             ${MODULES.map(([k,l,d],i)=> `<tr data-mod="${esc(k)}"><td style="text-align:center"><input type="checkbox" name="mod" value="${esc(k)}" style="width:auto" ${i<6?"checked":""} aria-label="${esc(l)}"></td><td><strong style="font-size:12.5px">${esc(l)}</strong><div class="mono muted small">${esc(k)}</div></td><td class="muted small mono">${esc(d)}</td></tr>`).join("")}
           </tbody></table></div>
         </div>

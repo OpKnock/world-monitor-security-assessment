@@ -104,17 +104,23 @@ img,svg{display:block;max-width:100%}
 #dockTrigger{position:fixed;left:0;top:0;bottom:0;width:18px;z-index:35;pointer-events:auto}
 #sidebar.dock{
   position:fixed;left:12px;top:50%;transform:translateY(-50%) translateX(0);
-  width:52px;z-index:40;
+  width:48px;z-index:40;
   background:hsl(var(--paper));backdrop-filter:blur(18px) saturate(1.3);
   border:1px solid hsl(var(--ink)/0.12);border-radius:14px;
   box-shadow:0 8px 24px hsl(var(--ink)/0.12), 0 1px 2px hsl(var(--ink)/0.06);
-  padding:8px 6px;opacity:0.96;transition:all 0.5s cubic-bezier(0.22,1,0.36,1);
+  padding:8px 6px;opacity:0.96;transition:width .32s cubic-bezier(0.22,1,0.36,1), opacity .25s, box-shadow .3s;
   pointer-events:auto;
+}
+/* gutter so collapsed dock never covers content; expanded dock overlays gutter only */
+@media(min-width:1024px){
+  #app{padding-left:72px}
+  #topHeader .container-editorial{padding-left:0}
+  #dockTrigger{width:12px}
 }
 #sidebar.dock:hover, #sidebar.dock.dock-open, #dockTrigger:hover + #sidebar.dock{
   transform:translateY(-50%) translateX(0);
-  width:190px;opacity:1;
-  background:hsl(var(--paper));box-shadow:0 16px 40px hsl(var(--ink)/0.14);
+  width:168px;opacity:1;
+  background:hsl(var(--paper));box-shadow:0 16px 40px hsl(var(--ink)/0.16);
 }
 .dock-inner{display:flex;flex-direction:column;gap:12px;align-items:center}
 #sidebar.dock:hover .dock-inner, #sidebar.dock.dock-open .dock-inner{align-items:stretch}
@@ -427,4 +433,34 @@ button:active:not(:disabled),.btn:active:not(:disabled){transform:translateY(0)}
 .empty{text-align:center;padding:40px 20px}.empty-ill{font-size:32px;margin-bottom:12px}.error-state{text-align:center;padding:32px}
 .spinner{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
 .health{display:inline-flex;align-items:center;gap:6px}.health i{width:8px;height:8px;border-radius:50%;background:hsl(var(--ash));display:inline-block}.health.ok i{background:hsl(142 70% 35%)}.health.bad i{background:hsl(0 70% 42%)}
-.userchip{display:flex;gap:10px;align-items:center}.userchip .avatar{width:32px;height:32px;border-radius:50%;background:hsl(var(--ink));color:hsl(var(--paper));display:grid;place-items:center;font-weight:700}.userchip .who b{display:block;font-size:12px}.userchip .who span{font-size:11px;color:hsl(var(--ash))}
+.userchip{display:flex;gap:10px;align-items:center;background:hsl(var(--bone)/0.5);border:1px solid hsl(var(--ink)/0.1);border-radius:12px;padding:8px 10px;min-width:0}.userchip .avatar{width:34px;height:34px;border-radius:50%;background:hsl(var(--ink));color:hsl(var(--paper));display:grid;place-items:center;font-weight:700;font-size:14px;flex-shrink:0}.userchip .who{min-width:0;flex:1}.userchip .who b{display:block;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px}.userchip .who span{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:hsl(var(--ash));background:hsl(var(--paper));border:1px solid hsl(var(--border));border-radius:99px;padding:1px 7px;display:inline-block;margin-top:3px}
+/* collapsed: avatar only, centered */
+#sidebar.dock:not(:hover):not(.dock-open) .userchip{justify-content:center;padding:6px;background:transparent;border-color:transparent}
+#sidebar.dock:not(:hover):not(.dock-open) .userchip .who{display:none}
+/* animated welcome 3D logo */
+@keyframes spinSlow{to{transform:rotate(360deg)}}
+@keyframes spinRev{to{transform:rotate(-360deg)}}
+@keyframes floatY{0%,100%{transform:translateY(-8px)}50%{transform:translateY(8px)}}
+@keyframes pulseGlow{0%,100%{transform:scale(1);filter:drop-shadow(0 0 0 hsl(var(--paper)/0))}50%{transform:scale(1.06);filter:drop-shadow(0 0 18px hsl(var(--paper)/0.35))}}
+.wm-orbit-ring{position:absolute;border:1px solid hsl(var(--paper)/0.22);border-radius:50%;animation:spinSlow 16s linear infinite}
+.wm-orbit-ring.dashed{border-style:dashed;border-color:hsl(var(--paper)/0.16);animation:spinRev 26s linear infinite}
+.wm-orbit-dot{position:absolute;top:-4px;left:50%;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:hsl(var(--paper))}
+.wm-float{animation:floatY 6s ease-in-out infinite}
+.wm-pulse{animation:pulseGlow 3.4s ease-in-out infinite}
+/* Home compact single-screen */
+#dashBody .card{padding:16px 18px}
+#dashBody .health-number{font-size:32px !important}
+#dashBody .kpi{padding:12px 14px}
+#dashBody .kpi b{font-size:22px}
+#dashBody .dash-cards{gap:14px}
+#dashBody .history-preview{max-height:220px}
+/* New Assessment clean boxes */
+.assess-card{padding:22px;border-radius:8px}
+.assess-card .field{background:hsl(var(--paper));border:1px solid hsl(var(--border));border-radius:8px;padding:14px;margin-bottom:12px}
+.assess-card .field label{margin-bottom:8px}
+.assess-card input[type="text"]{border:1px solid hsl(var(--border));border-radius:6px;padding:11px 12px}
+#modTable td{padding:11px 12px}
+#modTable tr{border-bottom:1px solid hsl(var(--border)/0.6)}
+#modTable tr:last-child{border-bottom:none}
+.preset-btn{border:1px solid hsl(var(--border));background:hsl(var(--paper));border-radius:99px;padding:7px 13px;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s}
+.preset-btn:hover{border-color:hsl(var(--ink));background:hsl(var(--bone))}
