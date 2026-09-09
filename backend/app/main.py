@@ -224,6 +224,12 @@ def create_app() -> FastAPI:
         if request.url.path.startswith("/api"):
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
             response.headers["Pragma"] = "no-cache"
+        # Never cache the SPA shell or its assets — stale index.html/JS
+        # is the #1 cause of blank/broken UI after deploys. Covers "/",
+        # "/assets/*" and the SPA fallback (index.html under any path).
+        else:
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
             if settings.ENABLE_CSP:
                 # For API responses, we use a restrictive CSP
                 response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
