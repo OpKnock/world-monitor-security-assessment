@@ -20,9 +20,7 @@ const API = (() => {
       throw new Error("Session expired — sign in again.");
     }
     if(res.status === 403 && !path.startsWith("/auth/")){
-      setToken(null);
-      location.hash = "#/login";
-      throw new Error("Insufficient permissions — sign in again.");
+      throw new Error("Insufficient permissions for this action.");
     }
     let data = null;
     const ct = res.headers.get("content-type") || "";
