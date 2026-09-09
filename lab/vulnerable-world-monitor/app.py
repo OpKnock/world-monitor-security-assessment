@@ -443,7 +443,7 @@ pre{background:hsl(var(--ink));color:hsl(var(--paper));padding:14px;border-radiu
     </div>
     <div class="card" id="login">
       <div class="label-eyebrow" style="margin-bottom:12px">Try login (browser)</div>
-      <form id="loginForm" onsubmit="event.preventDefault();loginSubmit();">
+      <form id="loginForm">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div><label class="meta-mono">Username</label><input type="text" id="u" placeholder="alice" autocomplete="username" required></div>
           <div><label class="meta-mono">Password</label><input type="password" id="p" placeholder="user123" autocomplete="current-password" required></div>
@@ -460,8 +460,8 @@ pre{background:hsl(var(--ink));color:hsl(var(--paper));padding:14px;border-radiu
       <p style="font-size:11px;color:hsl(var(--ash));margin:0 0 12px">Flip a fix <strong>ON</strong>, retest in the platform (FIXED). Flip it <strong>OFF</strong>, retest again (STILL PRESENT). Env vars (<code>WM_LAB_*</code>) only set the startup defaults.</p>
       <div id="toggleList" style="display:grid;gap:8px"><span class="meta-mono">loading toggle state…</span></div>
       <div style="display:flex;gap:8px;margin-top:12px">
-        <button class="btn-ghost" style="flex:1;justify-content:center" onclick="labToggleAll(true)">Fix all</button>
-        <button class="btn-ghost" style="flex:1;justify-content:center" onclick="labToggleAll(false)">Break all</button>
+        <button class="btn-ghost" style="flex:1;justify-content:center" id="fixAllBtn" type="button">Fix all</button>
+        <button class="btn-ghost" style="flex:1;justify-content:center" id="breakAllBtn" type="button">Break all</button>
       </div>
     </div>
     <div class="card">
@@ -510,6 +510,14 @@ async function loginSubmit(){
   try{var res=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});var data=await res.json();if(res.ok&&data.access_token){out.textContent='✓ token OK — length '+data.access_token.length+' · role: '+data.role}else{out.textContent='✗ login failed: '+(data.error||JSON.stringify(data))}}catch(e){out.textContent='error: '+e.message}finally{btn.disabled=false;btn.innerHTML=orig}
 }
 document.getElementById('loginForm')?.addEventListener('submit',function(e){e.preventDefault();loginSubmit();});
+document.getElementById('fixAllBtn')?.addEventListener('click',function(){labToggleAll(true);});
+document.getElementById('breakAllBtn')?.addEventListener('click',function(){labToggleAll(false);});
+document.getElementById('toggleList')?.addEventListener('click',function(e){
+  var t=e.target&&e.target.closest?e.target.closest('[data-flip],[data-retry]'):null;
+  if(!t)return;
+  if(t.getAttribute('data-retry')){labLoadToggles();return;}
+  labFlip(t.getAttribute('data-flip'));
+});
 var _labToggleLabels={PATCH_IDOR:"enforce ownership on /api/reports/<id>",FIX_HEADERS:"strict security headers (HSTS, CSP, ...)",PATCH_SQLI:"parametrized query on /api/search",RATELIMIT:"20 req/min per IP on /api/*"};
 var _labToggleState={};
 function labRenderToggles(state){
@@ -524,13 +532,13 @@ function labRenderToggles(state){
     return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid hsl(var(--border));border-radius:8px;padding:9px 12px">'
       +'<div style="min-width:0"><code>'+k+'</code><div class="meta-mono" style="margin-top:3px">'+_labToggleLabels[k]+'</div></div>'
       +'<div style="display:flex;gap:8px;align-items:center;flex-shrink:0">'+pill
-      +'<button class="btn-ghost" style="padding:6px 12px;font-size:12px" onclick="labFlip(\''+k+'\')">Flip</button></div></div>';
+      +'<button class="btn-ghost" style="padding:6px 12px;font-size:12px" type="button" data-flip="'+k+'">Flip</button></div></div>';
   }).join('');
 }
 function labToggleError(msg){
   var box=document.getElementById('toggleList');
   if(box)box.innerHTML='<span class="meta-mono" style="color:hsl(0 70% 42%)">toggle failed: '+msg+' — restart the lab from latest code (git pull).</span>'
-    +'<div style="margin-top:8px"><button class="btn-ghost" style="padding:6px 12px;font-size:12px" onclick="labLoadToggles()">Retry</button></div>';
+    +'<div style="margin-top:8px"><button class="btn-ghost" style="padding:6px 12px;font-size:12px" type="button" data-retry="1">Retry</button></div>';
 }
 async function labLoadToggles(){
   try{var res=await fetch('/lab/toggles');if(!res.ok)throw new Error("HTTP "+res.status);labRenderToggles(await res.json());}

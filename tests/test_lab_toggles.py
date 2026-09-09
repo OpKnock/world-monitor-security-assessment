@@ -1,4 +1,6 @@
 """Lab runtime fix-toggles: flip without restart, behavior follows, state resets."""
+import re
+
 import pytest
 
 KEYS = ["PATCH_IDOR", "PATCH_SQLI", "RATELIMIT", "FIX_HEADERS"]
@@ -39,3 +41,12 @@ def test_toggle_unknown_key_rejected(lab_client):
 def test_health_reflects_runtime_toggles(lab_client):
     lab_client.post("/lab/toggles", json={"FIX_HEADERS": True})
     assert lab_client.get("/health").get_json()["toggles"]["FIX_HEADERS"] is True
+
+
+def test_lab_page_has_no_inline_handlers(lab_client):
+    # Inline onclick/onsubmit die under the lab's own CSP on :8090 (patched);
+    # all buttons must be wired via addEventListener/delegation instead.
+    html = lab_client.get("/").get_data(as_text=True)
+    assert not re.findall(r"\son(?:click|submit|load|error)\s*=", html)
+    for needle in ('id="fixAllBtn"', 'id="breakAllBtn"', 'id="loginForm"', "data-flip"):
+        assert needle in html, needle
