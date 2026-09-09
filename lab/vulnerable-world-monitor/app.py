@@ -526,19 +526,26 @@ function labRenderToggles(state){
       +'<button class="btn-ghost" style="padding:6px 12px;font-size:12px" onclick="labFlip(\''+k+'\')">Flip</button></div></div>';
   }).join('');
 }
+function labToggleError(msg){
+  var box=document.getElementById('toggleList');
+  if(box)box.innerHTML='<span class="meta-mono" style="color:hsl(0 70% 42%)">toggle failed: '+msg+' — restart the lab from latest code (git pull).</span>'
+    +'<div style="margin-top:8px"><button class="btn-ghost" style="padding:6px 12px;font-size:12px" onclick="labLoadToggles()">Retry</button></div>';
+}
 async function labLoadToggles(){
-  try{var res=await fetch('/lab/toggles');if(!res.ok)throw new Error(res.status);labRenderToggles(await res.json());}
-  catch(e){var box=document.getElementById('toggleList');if(box)box.innerHTML='<span class="meta-mono">toggle API unavailable</span>';}
+  try{var res=await fetch('/lab/toggles');if(!res.ok)throw new Error("HTTP "+res.status);labRenderToggles(await res.json());}
+  catch(e){labToggleError(e.message||"network error");}
 }
 async function labFlip(name){
   var body={};body[name]=!_labToggleState[name];
-  try{var res=await fetch('/lab/toggles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(res.ok)labRenderToggles(await res.json());}
-  catch(e){}
+  try{var res=await fetch('/lab/toggles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!res.ok)throw new Error("HTTP "+res.status);labRenderToggles(await res.json());}
+  catch(e){labToggleError(e.message||"network error");}
 }
 async function labToggleAll(v){
   var body={};Object.keys(_labToggleLabels).forEach(function(k){body[k]=v;});
-  try{var res=await fetch('/lab/toggles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(res.ok)labRenderToggles(await res.json());}
-  catch(e){}
+  try{var res=await fetch('/lab/toggles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!res.ok)throw new Error("HTTP "+res.status);labRenderToggles(await res.json());}
+  catch(e){labToggleError(e.message||"network error");}
 }
 labLoadToggles();
 </script>
