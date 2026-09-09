@@ -207,6 +207,9 @@ def main():
                 if args.poc and is_port_open("127.0.0.1", 8090):
                     webbrowser.open("http://127.0.0.1:8090")
                     print("[open] browser lab-fixed http://127.0.0.1:8090")
+                if not args.no_real_app and is_port_open("127.0.0.1", 3000):
+                    webbrowser.open("http://127.0.0.1:3000")
+                    print("[open] browser real-app http://127.0.0.1:3000")
         except Exception as _e:
             print(f"[warn] auto-open browser failed: {_e}")
         if args.poc:
