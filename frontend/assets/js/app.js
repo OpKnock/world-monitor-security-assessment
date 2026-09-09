@@ -11,6 +11,7 @@
   const $menuBtn = document.getElementById("menuBtn");
   const $themeToggle = document.getElementById("themeToggle");
   const $crumb = document.getElementById("breadcrumb");
+  const $health = document.getElementById("healthDot");
 
   const SEV = ["CRITICAL","HIGH","MEDIUM","LOW","INFORMATIONAL"];
   const SEV_ORDER = { CRITICAL:0, HIGH:1, MEDIUM:2, LOW:3, INFORMATIONAL:4 };
@@ -109,17 +110,24 @@
     $crumb.replaceChildren(frag);
   }
 
-  /* ── health check (for footer version) ── */
+  /* ── health dot ── */
   async function refreshHealth(){
     try{
       const controller = new AbortController();
       const t=setTimeout(()=>controller.abort(), 4000);
       const h = await fetch("/api/health", { signal: controller.signal }).then(r=> r.json());
       clearTimeout(t);
+      const ok = h && h.status==="healthy";
+      if($health){
+        $health.className = "health " + (ok ? "ok" : "bad");
+        $health.textContent="";
+        const dot=document.createElement("i"); $health.appendChild(dot);
+        $health.append(` ${ok ? "healthy" : "degraded"} · ${h.version||""}`);
+      }
       const fv = document.getElementById("footerVer");
       if(fv && h.version) fv.textContent = "v" + h.version;
     }catch{
-      // silent fail
+      if($health){ $health.className="health bad"; $health.textContent=""; const dot=document.createElement("i"); $health.appendChild(dot); $health.append(" offline"); }
     }
   }
 
@@ -578,7 +586,7 @@
           <div style="margin-top:14px"><button type="submit" id="startBtn" disabled style="width:100%;padding:13px;font-size:14px" aria-describedby="startHelp">▶ Start Scan →</button>
             <p id="startHelp" class="help" style="text-align:center;color:hsl(var(--ash));font-size:11.5px">Check authorized + pick ≥1 module.</p></div>
         </div>
-        <div class="card assess-card"><div class="row spread"><span class="label-eyebrow">02 — Modules</span><div style="display:flex;gap:6px;background:hsl(var(--paper));border:1px solid hsl(var(--border));border-radius:99px;padding:4px"><button type="button" class="ghost xs" id="selAll" style="padding:5px 10px;border-radius:99px">All</button><button type="button" class="ghost xs" id="selNone" style="padding:5px 10px;border-radius:99px">Clear</button></div></div>
+        <div class="card assess-card"><div class="row spread"><span class="label-eyebrow">02 — Modules</span><button type="button" class="ghost xs" id="selAll">All</button><button type="button" class="ghost xs" id="selNone">Clear</button></div>
           <p style="margin:8px 0 12px;color:hsl(var(--ink));opacity:0.75;font-size:13px">Baseline: first six. Add source & supply-chain for full coverage.</p>
           <div style="display:flex;gap:8px;margin-bottom:12px"><input id="modFilter" type="text" placeholder="Filter modules…" style="flex:1;color:hsl(var(--ink))" aria-label="Filter modules"></div>
           <div class="table-wrap" style="max-height:560px;border-radius:8px"><table><thead><tr><th style="width:36px;color:hsl(var(--ink))"></th><th style="color:hsl(var(--ink))">Module</th><th style="color:hsl(var(--ink))">Coverage</th></tr></thead><tbody id="modTable">
