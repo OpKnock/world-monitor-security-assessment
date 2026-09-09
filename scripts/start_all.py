@@ -187,10 +187,12 @@ def main():
             import webbrowser
             if args.no_browser:
                 print("[open] --no-browser: open tabs yourself:")
-                for _name, _url, _port in (("lab", "http://127.0.0.1:8080", 8080),
-                                           ("platform", "http://127.0.0.1:8000", 8000),
-                                           ("lab-fixed", "http://127.0.0.1:8090", 8090) if args.poc else (None, None, None)):
-                    if _name and is_port_open("127.0.0.1", _port):
+                _targets = [("lab", "http://127.0.0.1:8080", 8080),
+                            ("platform", "http://127.0.0.1:8000", 8000)]
+                if args.poc:
+                    _targets.append(("lab-fixed", "http://127.0.0.1:8090", 8090))
+                for _name, _url, _port in _targets:
+                    if is_port_open("127.0.0.1", _port):
                         print(f"   {_name}: {_url}")
             else:
                 import time as _t2; _t2.sleep(2.0)
