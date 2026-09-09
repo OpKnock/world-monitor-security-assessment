@@ -519,7 +519,8 @@ function labRenderToggles(state){
   var keys=Object.keys(_labToggleLabels);
   box.innerHTML=keys.map(function(k){
     var on=!!_labToggleState[k];
-    var pill=on?'<span class="pill lab">ON — fixed</span>':'<span class="badge">OFF — vulnerable</span>';
+    var pill=on?'<span style="font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 12px;border-radius:99px;background:#15803d;color:#fff;white-space:nowrap">ON — fixed</span>'
+      :'<span style="font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 12px;border-radius:99px;background:#b91c1c;color:#fff;white-space:nowrap">OFF — broken</span>';
     return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid hsl(var(--border));border-radius:8px;padding:9px 12px">'
       +'<div style="min-width:0"><code>'+k+'</code><div class="meta-mono" style="margin-top:3px">'+_labToggleLabels[k]+'</div></div>'
       +'<div style="display:flex;gap:8px;align-items:center;flex-shrink:0">'+pill

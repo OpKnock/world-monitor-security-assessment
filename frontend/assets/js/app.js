@@ -1113,7 +1113,7 @@
   }
 
   /* ── boot ── */
-  console.log("[WorldMonitor] boot v60018, hash=" + location.hash);
+  try{ console.log("[WorldMonitor] boot js=" + String((document.currentScript && document.currentScript.src) || "?").split("/").pop() + " hash=" + location.hash); }catch(_){ console.log("[WorldMonitor] boot"); }
   function fatalBoot(e, where){
     console.error("[WorldMonitor] FATAL at " + where + ":", e);
     try{
