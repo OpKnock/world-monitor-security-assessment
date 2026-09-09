@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/app.css?v=60014">
+<link rel="stylesheet" href="/assets/css/app.css?v=60015">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='14' fill='%230E0E10'/><g fill='%23F2EBD8'><path d='M50 12 L57 30 L76 30 L60 41 L66 60 L50 51 L34 60 L40 41 L24 30 L43 30 Z'/><path d='M18 58 C28 75 50 88 78 58 L82 62 C52 92 22 80 16 60 Z'/></g></svg>">
 </head>
 <body>
@@ -69,7 +69,7 @@
       <nav id="breadcrumb" class="breadcrumb meta-mono text-ash" aria-label="Breadcrumb"></nav>
       <div class="topbar-actions flex items-center gap-3">
     </div>
-    <main id="main" class="flex-1"><section id="view" aria-live="polite" aria-busy="false"></section></main>
+    <main id="main" class="flex-1"><section id="view" aria-live="polite" aria-busy="false"><div class="container-editorial" style="padding:48px 0;text-align:center" id="bootFallback"><p class="meta-mono">Loading World Monitor…</p><p class="meta-mono" style="margin-top:8px;opacity:.6">build v60015 · if this stays, JavaScript is blocked or cached</p></div></section></main>
     <footer id="appFooter" class="hidden border-t border-ink/10 bg-paper">
       <div class="container-editorial py-6 flex flex-col sm:flex-row items-center justify-between gap-3 meta-mono text-ash">
         <span class="footer-left">World Monitor ┬╖ LAB_MODE ┬╖ loopback-only gate</span>
@@ -83,6 +83,12 @@
 <div id="toast" aria-live="polite" aria-atomic="false" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-3"></div>
 <script src="/assets/js/api.js"></script>
 <script src="/assets/js/charts.js"></script>
-<script src="/assets/js/app.js?v=60014"></script>
+<script>
+window.__wmBootError = function(msg){
+  var v = document.getElementById("view");
+  if(v) v.innerHTML = '<div class="container-editorial" style="padding:48px 0"><div class="card" style="border-color:hsl(0 70% 42%)"><h3 style="color:hsl(0 70% 42%)">App failed to load</h3><p class="muted small">' + msg + '</p><p class="muted small">Hard refresh (Ctrl+Shift+R) in an incognito window. If it persists, open DevTools (F12) - Network and check /assets/js/app.js status.</p></div></div>';
+};
+</script>
+<script src="/assets/js/app.js?v=60015" onerror="window.__wmBootError('Could not load /assets/js/app.js - network blocked or server not serving static files.')"></script>
 </body>
 </html>
