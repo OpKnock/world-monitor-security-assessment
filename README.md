@@ -8,13 +8,12 @@
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)
-![Tests 49 passed](https://img.shields.io/badge/tests-49%20passed-brightgreen?style=flat-square)
 ![CVSS v3.1](https://img.shields.io/badge/CVSS-v3.1-orange?style=flat-square)
 ![License AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-green?style=flat-square)
 ![Security localhost-only](https://img.shields.io/badge/security-localhost--only-critical?style=flat-square)
 ![Theme light/dark](https://img.shields.io/badge/theme-light%20%2F%20dark-6c5ce7?style=flat-square)
 
-_A unified security assessment platform that scans an intentionally vulnerable lab and the real World Monitor codebase, normalizes findings into one schema, scores with **CVSS v3.1**, computes a **Security Health Score 0-100** (penalty-weighted by severity), stores masked evidence, explains business impact, recommends remediation, supports **cinematic retest-until-FIXED** with `Why this matters?` and before/after health, and generates **PDF / JSON / Markdown / CSV** reports. Docker images run as non-root with healthchecks. CI runs **49 tests + pip-audit** on every push. Role-based access (`viewer` read / `analyst` operate / `admin` audit) with server-side findings search + pagination. **Editorial light/dark theme** with animated 3D star-orbit logo, clean New Assessment flow, and distinct Vulnerable Lab UI with hazard ticker._
+_A unified security assessment platform that scans an intentionally vulnerable lab and the real World Monitor codebase, normalizes findings into one schema, scores with **CVSS v3.1**, computes a **Security Health Score 0-100** (penalty-weighted by severity), stores masked evidence, explains business impact, recommends remediation, supports **cinematic retest-until-FIXED** with `Why this matters?` and before/after health, and generates **PDF / JSON / Markdown / CSV** reports. Docker images run as non-root with healthchecks. CI runs the automated test suite + pip-audit on every push. Role-based access (`viewer` read / `analyst` operate / `admin` audit) with server-side findings search + pagination. **Editorial light/dark theme** with animated 3D star-orbit logo, clean New Assessment flow, and distinct Vulnerable Lab UI with hazard ticker._
 
 </div>
 
@@ -559,7 +558,7 @@ docker compose -f docker/docker-compose.yml up --build
 
 ```bash
 # from repo root, venv active
-python -m pytest tests -v          # verbose — 49 passed
+python -m pytest tests -v          # verbose
 python -m pytest tests -q          # quiet
 python -m pytest tests/test_e2e_lab.py -v  # E2E only
 
@@ -583,7 +582,7 @@ world-monitor-security-assessment/
 ├── scripts/                  # start_all.py (--poc), demo_poc.py, build_go_tools.ps1/.sh
 ├── docker/                   # api.Dockerfile, lab.Dockerfile (non-root + healthcheck)
 ├── docs/                     # architecture, security-model, api, demo, etc.
-├── tests/                    # 49 pytest tests
+├── tests/                    # automated pytest suite
 └── .github/workflows/ci.yml  # test + docker + pip-audit
 ```
 
@@ -634,7 +633,7 @@ gh pr create --base master --title "feat: my change" --body "..."
 # requires: 1 approving review + checks test + docker + pip-audit green
 ```
 
-CI (`.github/workflows/ci.yml`): `test` (49 tests + `pip-audit` + `pip check`) and `docker` (build `api` + `lab` + `curl /api/health`). Docker images use `python:3.12-slim` / `python:3.14-slim`, Go 1.22, non-root users, and `HEALTHCHECK`.
+CI (`.github/workflows/ci.yml`): `test` (pytest suite + `pip-audit` + `pip check`) and `docker` (build `api` + `lab` + `curl /api/health`). Docker images use `python:3.12-slim` / `python:3.14-slim`, Go 1.22, non-root users, and `HEALTHCHECK`.
 
 ---
 

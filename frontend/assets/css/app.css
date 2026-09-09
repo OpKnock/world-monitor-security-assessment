@@ -548,6 +548,14 @@ button:active:not(:disabled),.btn:active:not(:disabled){transform:translateY(0)}
 /* collapsed: avatar only, centered */
 #sidebar.dock:not(:hover):not(.dock-open) .userchip{justify-content:center;padding:6px;background:transparent;border-color:transparent}
 #sidebar.dock:not(:hover):not(.dock-open) .userchip .who{display:none}
+/* collapsed dock: centered icon rail, nothing may overflow the 48px shell */
+#sidebar.dock:not(:hover):not(.dock-open) .dock-item{justify-content:center;padding:10px 0;gap:0}
+#sidebar.dock:not(:hover):not(.dock-open) .dock-item svg{opacity:.85}
+#sidebar.dock:not(:hover):not(.dock-open) .dock-item span{display:none}
+#sidebar.dock:not(:hover):not(.dock-open) .dock-foot .userchip{width:36px;height:36px;padding:0;border-radius:50%}
+#sidebar.dock:not(:hover):not(.dock-open) .userchip .avatar{width:28px;height:28px;font-size:12px}
+#sidebar.dock:not(:hover):not(.dock-open) .dock-logout,#sidebar.dock:not(:hover):not(.dock-open) .dock-login{width:36px;padding:9px 0}
+#sidebar.dock:not(:hover):not(.dock-open) .dock-logout span,#sidebar.dock:not(:hover):not(.dock-open) .dock-login span{display:none}
 /* animated welcome 3D logo */
 @keyframes spinSlow{to{transform:rotate(360deg)}}
 @keyframes spinRev{to{transform:rotate(-360deg)}}
