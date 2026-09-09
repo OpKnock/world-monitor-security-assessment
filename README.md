@@ -389,6 +389,8 @@ python scripts/start_all.py --no-real-app
 python scripts/start_all.py --poc --no-real-app
 python scripts/demo_poc.py            # interactive before/after demo (ENTER advances)
 python scripts/demo_poc.py --auto 8   # hands-free, 8s per step
+# Stage-ready in one command: kill stale servers + pull latest + start PoC set
+python scripts/start_all.py --poc --fresh --no-browser
 
 # Windows PowerShell wrapper (same)
 powershell -ExecutionPolicy Bypass -File scripts/start_all.ps1

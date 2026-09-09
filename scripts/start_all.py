@@ -8,9 +8,11 @@ Usage (one terminal, one command):
   python scripts/start_all.py --no-real-app   # skip real-world-monitor
   python scripts/start_all.py --fix-headers --patch-idor --enable-fuzzing
   python scripts/start_all.py --poc           # PoC stage mode: + PATCHED lab :8090 (all fix toggles)
+  python scripts/start_all.py --poc --fresh # kill stale servers + git pull, then start (stage-ready)
 
 What it does:
   - Checks .venv exists, otherwise hints `pip install -r requirements.txt`
+  - With --fresh: kills anything on our ports, `git pull --ff-only`, then starts
   - Checks ports 8080/8000/3000 ? if already listening, skips that service ("already existence")
   - Starts vulnerable lab (Flask) and platform (uvicorn) and, if available, real app (vite)
   - With --poc, also starts a second, fully-patched lab on :8090 for before/after demos
@@ -36,6 +38,83 @@ def is_port_open(host, port):
 def which(cmd):
     return shutil.which(cmd)
 
+
+def _managed_ports(args):
+    ports = [8080, 8000]
+    if args.poc:
+        ports.append(8090)
+    if not args.no_real_app:
+        ports.append(3000)
+    return ports
+
+
+def _kill_port(port):
+    """Kill listeners on a port. Returns killed PIDs (skips self + system)."""
+    import re
+    me = os.getpid()
+    killed = []
+    try:
+        if os.name == "nt":
+            out = subprocess.run(["netstat", "-ano"], capture_output=True,
+                                 text=True, timeout=15).stdout
+            pids = set()
+            for line in out.splitlines():
+                m = re.search(r"TCP\s+\S+:(\d+)\s+\S+\s+LISTENING\s+(\d+)", line)
+                if m and int(m.group(1)) == port:
+                    pids.add(int(m.group(2)))
+            for pid in pids:
+                if pid in (0, 4, me):
+                    continue
+                r = subprocess.run(["taskkill", "/PID", str(pid), "/F"],
+                                   capture_output=True, timeout=15)
+                if r.returncode == 0:
+                    killed.append(pid)
+        else:
+            out = subprocess.run(["lsof", "-ti", f":{port}"], capture_output=True,
+                                 text=True, timeout=15).stdout
+            for tok in out.split():
+                try:
+                    pid = int(tok)
+                except ValueError:
+                    continue
+                if pid == me:
+                    continue
+                r = subprocess.run(["kill", "-9", str(pid)], capture_output=True, timeout=15)
+                if r.returncode == 0:
+                    killed.append(pid)
+    except Exception as e:
+        print(f"[fresh] port scan failed for :{port}: {e}")
+    return killed
+
+
+def _fresh_ports(args):
+    for port in _managed_ports(args):
+        if not is_port_open("127.0.0.1", port):
+            continue
+        killed = _kill_port(port)
+        if killed:
+            print(f"[fresh] killed stale PID(s) {killed} on :{port}")
+        else:
+            print(f"[fresh] :{port} busy but no killable listener found — will skip if still busy")
+    for _ in range(10):
+        if not any(is_port_open("127.0.0.1", p) for p in _managed_ports(args)):
+            break
+        time.sleep(0.5)
+
+
+def _fresh_pull():
+    try:
+        r = subprocess.run(["git", "pull", "--ff-only"], cwd=str(ROOT),
+                           capture_output=True, text=True, timeout=60)
+        tail = (r.stdout + r.stderr).strip().splitlines()
+        tail = tail[-1] if tail else "(no output)"
+        if r.returncode == 0:
+            print(f"[fresh] git pull: {tail}")
+        else:
+            print(f"[fresh] git pull failed ({tail}) — continuing with local code")
+    except Exception as e:
+        print(f"[fresh] git pull unavailable ({e}) — continuing with local code")
+
 def main():
     ap = argparse.ArgumentParser(description="One-command dev runner")
     ap.add_argument("--no-real-app", action="store_true", help="skip real-world-monitor :3000")
@@ -48,7 +127,13 @@ def main():
                     help="PoC stage mode: also start a fully-patched lab on :8090 (all fix toggles)")
     ap.add_argument("--no-browser", action="store_true",
                     help="do not auto-open browser tabs; print URLs only")
+    ap.add_argument("--fresh", action="store_true",
+                    help="kill stale servers on our ports + git pull --ff-only, then start")
     args = ap.parse_args()
+
+    if args.fresh:
+        _fresh_ports(args)
+        _fresh_pull()
 
     if not VENV_PY.exists():
         print("[error] .venv not found at", VENV_PY)
