@@ -1080,25 +1080,34 @@
   }
 
   /* ── boot ── */
-  document.getElementById("logout").onclick=()=>{
-    API.setToken(null);
-    forgetRun();
-    stopPoll(); stopBanner();
-    location.hash="#/login";
-  };
-  window.addEventListener("hashchange", ()=>{ stopPoll(); router(); });
+  console.log("[WorldMonitor] boot v60018, hash=" + location.hash);
+  function fatalBoot(e, where){
+    console.error("[WorldMonitor] FATAL at " + where + ":", e);
+    try{
+      $view.innerHTML = `<div class="container-editorial" style="padding:48px 0"><div class="card" style="border-color:hsl(0 70% 42%)"><h3 style="color:hsl(0 70% 42%)">App failed to start (${esc(where)})</h3><p class="muted small mono" style="word-break:break-all">${esc((e && e.stack) || (e && e.message) || String(e))}</p><p class="muted small">Screenshot this and share it. Try hard refresh (Ctrl+Shift+R) in incognito.</p></div></div>`;
+    }catch(_){}
+  }
+  window.addEventListener("error", (ev)=>{ if(ev && ev.error && (!$view.innerHTML.trim() || $view.querySelector("#bootFallback"))) fatalBoot(ev.error, "window.onerror"); });
+  try{
+    document.getElementById("logout").onclick=()=>{
+      API.setToken(null);
+      forgetRun();
+      stopPoll(); stopBanner();
+      location.hash="#/login";
+    };
+  }catch(e){ fatalBoot(e, "logout-bind"); }
+  window.addEventListener("hashchange", ()=>{ stopPoll(); Promise.resolve(router()).catch(e=> fatalBoot(e, "hashchange")); });
   window.addEventListener("hashchange", closeNav);
-  // cleanup timers on page hide/unload
   document.addEventListener("visibilitychange", ()=>{ if(document.hidden) stopPoll(); else if(API.getToken() && location.hash.startsWith("#/assessment/")) router(); });
   window.addEventListener("beforeunload", ()=>{ stopPoll(); stopBanner(); });
   if(!location.hash) location.hash="#/dashboard";
-  router();
+  Promise.resolve().then(()=> router()).catch(e=> fatalBoot(e, "initial-router"));
   setInterval(()=>{ if(API.getToken()) refreshHealth(); }, 30000);
-  // keyboard shortcut: N = new assessment when authenticated
   document.addEventListener("keydown", e=>{
     if(!API.getToken() || e.target.tagName==="INPUT" || e.target.tagName==="TEXTAREA" || e.ctrlKey || e.metaKey) return;
     if(e.key==="n" || e.key==="N"){ e.preventDefault(); location.hash="#/assess/new"; }
   });
+  console.log("[WorldMonitor] boot listeners attached");
 })();
 
 
