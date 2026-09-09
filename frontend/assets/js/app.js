@@ -1,4 +1,4 @@
-﻿/* World Monitor SPA — premium rewrite v2. Hardened, audited, accessibility & performance tuned. */
+/* World Monitor SPA — premium rewrite v2. Hardened, audited, accessibility & performance tuned. */
 (() => {
   "use strict";
 
