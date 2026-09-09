@@ -7,15 +7,13 @@ Usage (one terminal, one command):
   python scripts/start_all.py
   python scripts/start_all.py --no-real-app   # skip real-world-monitor
   python scripts/start_all.py --fix-headers --patch-idor --enable-fuzzing
-  python scripts/start_all.py --poc           # PoC stage mode: + PATCHED lab :8090 (all fix toggles)
-  python scripts/start_all.py --poc --fresh # kill stale servers + git pull, then start (stage-ready)
+  python scripts/start_all.py --fresh       # kill stale servers + git pull, then start (stage-ready)
 
 What it does:
   - Checks .venv exists, otherwise hints `pip install -r requirements.txt`
   - With --fresh: kills anything on our ports, `git pull --ff-only`, then starts
   - Checks ports 8080/8000/3000 ? if already listening, skips that service ("already existence")
   - Starts vulnerable lab (Flask) and platform (uvicorn) and, if available, real app (vite)
-  - With --poc, also starts a second, fully-patched lab on :8090 for before/after demos
   - Streams prefixed logs, Ctrl+C stops all
 
 This replaces the old "Three-Terminal Setup" with one command. For manual 3 terminals, see README Advanced.
@@ -41,8 +39,6 @@ def which(cmd):
 
 def _managed_ports(args):
     ports = [8080, 8000]
-    if args.poc:
-        ports.append(8090)
     if not args.no_real_app:
         ports.append(3000)
     return ports
@@ -123,8 +119,6 @@ def main():
     ap.add_argument("--patch-sqli", action="store_true", help="WM_LAB_PATCH_SQLI=1")
     ap.add_argument("--ratelimit", action="store_true", help="WM_LAB_RATELIMIT=1")
     ap.add_argument("--enable-fuzzing", action="store_true", help="WM_ENABLE_FUZZING=1")
-    ap.add_argument("--poc", action="store_true",
-                    help="PoC stage mode: also start a fully-patched lab on :8090 (all fix toggles)")
     ap.add_argument("--no-browser", action="store_true",
                     help="do not auto-open browser tabs; print URLs only")
     ap.add_argument("--fresh", action="store_true",
@@ -167,17 +161,11 @@ def main():
         if args.patch_sqli: lab_env += "$env:WM_LAB_PATCH_SQLI='1'; "
         if args.ratelimit: lab_env += "$env:WM_LAB_RATELIMIT='1'; "
         lab_cmd = f"{lab_env}.venv/Scripts/python.exe lab/vulnerable-world-monitor/app.py"
-        poc_env = ("$env:WM_LAB_PORT='8090'; $env:WM_LAB_FIX_HEADERS='1'; "
-                   "$env:WM_LAB_PATCH_IDOR='1'; $env:WM_LAB_PATCH_SQLI='1'; $env:WM_LAB_RATELIMIT='1'; ")
-        poc_cmd = f"{poc_env}.venv/Scripts/python.exe lab/vulnerable-world-monitor/app.py"
         app_cmd = f".venv/Scripts/python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000"
         # BROWSER=none stops toolchains (vite/CRA-style) from opening tabs themselves
         real_cmd = f"$env:BROWSER='none'; npm run dev -- --port 3000 --host 127.0.0.1"
         popup("lab", lab_cmd, port=8080)
         import time as _t; _t.sleep(1.0)
-        if args.poc:
-            popup("lab-fixed", poc_cmd, port=8090)
-            _t.sleep(1.0)
         popup("platform", app_cmd, port=8000)
         if not args.no_real_app and REAL_DIR.exists() and (REAL_DIR / "node_modules").exists():
             popup("real-app", real_cmd, port=3000)
@@ -191,8 +179,6 @@ def main():
                 print("[open] --no-browser: this script opens NOTHING; open tabs yourself:")
                 _targets = [("lab", "http://127.0.0.1:8080", 8080),
                             ("platform", "http://127.0.0.1:8000", 8000)]
-                if args.poc:
-                    _targets.append(("lab-fixed", "http://127.0.0.1:8090", 8090))
                 for _name, _url, _port in _targets:
                     _st = "UP" if is_port_open("127.0.0.1", _port) else "not listening"
                     print(f"   {_name}: {_url}  [{_st}]")
@@ -204,19 +190,15 @@ def main():
                 if is_port_open("127.0.0.1", 8000):
                     webbrowser.open("http://127.0.0.1:8000")
                     print("[open] browser platform http://127.0.0.1:8000")
-                if args.poc and is_port_open("127.0.0.1", 8090):
-                    webbrowser.open("http://127.0.0.1:8090")
-                    print("[open] browser lab-fixed http://127.0.0.1:8090")
                 if not args.no_real_app and is_port_open("127.0.0.1", 3000):
                     webbrowser.open("http://127.0.0.1:3000")
                     print("[open] browser real-app http://127.0.0.1:3000")
         except Exception as _e:
             print(f"[warn] auto-open browser failed: {_e}")
-        if args.poc:
-            print("\n[done] PoC mode: lab :8080 (VULNERABLE) + lab-fixed :8090 (PATCHED) + platform :8000 are up.")
-            print("       Run: python scripts/demo_poc.py  for the guided stage demo.")
-        else:
-            print("\n[done] 3 terminals popped up. Close windows to stop or Ctrl+C this window to exit.")
+        print("\n[done] Terminals popped up: lab :8080 + platform :8000"
+              + ("" if args.no_real_app else " (+ real-app :3000 if installed)") + ".")
+        print("       Run: python scripts/demo_poc.py  for the guided stage demo.")
+        print("       Close windows to stop or Ctrl+C this window to exit.")
         return 0
 
     procs = []
@@ -232,17 +214,9 @@ def main():
         procs.append((name, p))
         return p
 
-    # 1. lab :8080
+    # 1. lab :8080 (before/after states via runtime toggles — no second lab needed)
     lab = start("lab", LAB_PY, ROOT, port=8080)
     time.sleep(1.5)
-    # 1b. patched lab :8090 for PoC before/after demos
-    if args.poc:
-        poc_env = dict(env)
-        poc_env.update({"WM_LAB_PORT": "8090", "WM_LAB_FIX_HEADERS": "1",
-                        "WM_LAB_PATCH_IDOR": "1", "WM_LAB_PATCH_SQLI": "1",
-                        "WM_LAB_RATELIMIT": "1"})
-        start("lab-fixed", LAB_PY, ROOT, port=8090, extra_env=poc_env)
-        time.sleep(1.5)
     # 2. platform :8000
     platform = start("platform", UVICORN, ROOT, port=8000)
     time.sleep(1.5)
@@ -283,9 +257,7 @@ def main():
     print("\n" + "="*60)
     print("  Platform : http://127.0.0.1:8000  (admin@example.com / ChangeMe...)")
     print("  Lab      : http://127.0.0.1:8080  (alice/user123) localhost only")
-    if args.poc:
-        print("  Lab-fixed: http://127.0.0.1:8090  (PATCHED demo target)")
-        print("  Next     : python scripts/demo_poc.py  (guided stage demo)")
+    print("  Next     : python scripts/demo_poc.py  (guided stage demo)")
     if real:
         print("  Real app : http://127.0.0.1:3000  (optional)")
     print("  Logs below are prefixed [lab]/[platform]/[real-app]. Ctrl+C to stop all.")

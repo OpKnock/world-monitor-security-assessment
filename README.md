@@ -383,14 +383,14 @@ python scripts/start_all.py
 python scripts/start_all.py --fix-headers --patch-idor
 # lab + platform only, skip real app
 python scripts/start_all.py --no-real-app
-# PoC stage mode: vulnerable :8080 + PATCHED :8090 + platform, then guided demo.
-# The demo scans both targets live, prints BLOCKED -> APPROVED verdicts using
-# the real policy engine, and writes logs/poc-evidence-<ts>.json as proof.
-python scripts/start_all.py --poc --no-real-app
+# Stage demo: one lab :8080, demo flips its fixes live between two scans.
+# Prints BLOCKED -> APPROVED verdicts using the real policy engine and
+# writes logs/poc-evidence-<ts>.json as proof. No second lab, no restarts.
+python scripts/start_all.py --no-real-app
 python scripts/demo_poc.py            # interactive before/after demo (ENTER advances)
 python scripts/demo_poc.py --auto 8   # hands-free, 8s per step
-# Stage-ready in one command: kill stale servers + pull latest + start PoC set
-python scripts/start_all.py --poc --fresh --no-browser
+# Stage-ready in one command: kill stale servers + pull latest + start set
+python scripts/start_all.py --fresh --no-browser
 
 # Windows PowerShell wrapper (same)
 powershell -ExecutionPolicy Bypass -File scripts/start_all.ps1
@@ -460,14 +460,14 @@ npm --prefix targets/real-world-monitor run dev -- --port 3000 --host 127.0.0.1
 
 ## Stage Demo (PoC mode)
 
-For live demos, run a **second, pre-patched lab** alongside the vulnerable one — no mid-demo restarts:
+For live demos you need just the one lab — the demo flips its fixes live between two scans, no restarts, no second instance:
 
 ```bash
-python scripts/start_all.py --poc --no-real-app   # :8080 vulnerable + :8090 patched + :8000
-python scripts/demo_poc.py                        # guided before/after (ENTER advances)
+python scripts/start_all.py --no-real-app   # :8080 lab + :8000 platform
+python scripts/demo_poc.py                  # guided before/after (ENTER advances)
 ```
 
-`demo_poc.py` narrates each step in plain English, shows live progress, prints **BLOCKED → APPROVED** verdicts computed by the real policy engine, and writes `logs/poc-evidence-<ts>.json` (assessment IDs, browser links, timestamps, counts) as proof. Every number on screen is clickable-verifiable at `http://127.0.0.1:8000`.
+`demo_poc.py` breaks all fixes (deterministic baseline) → scans → prints **BLOCKED** → flips fixes ON live → scans again → prints **APPROVED** → restores the broken state. It narrates each step in plain English, shows live progress, and writes `logs/poc-evidence-<ts>.json` (assessment IDs, browser links, timestamps, counts) as proof. Every number on screen is clickable-verifiable at `http://127.0.0.1:8000`. Prefer the lab UI? The same flips are one click each on the lab homepage toggle card.
 
 ---
 
@@ -581,7 +581,7 @@ world-monitor-security-assessment/
 ├── lab/vulnerable-world-monitor/   # Flask lab :8080 (Flask in requirements.txt:21)
 ├── targets/real-world-monitor/     # koala73/worldmonitor submodule
 ├── bin/                      # Go binaries (portia, bomber) — built, not committed
-├── scripts/                  # start_all.py (--poc), demo_poc.py, build_go_tools.ps1/.sh
+├── scripts/                  # start_all.py (--fresh), demo_poc.py, build_go_tools.ps1/.sh
 ├── docker/                   # api.Dockerfile, lab.Dockerfile (non-root + healthcheck)
 ├── docs/                     # architecture, security-model, api, demo, etc.
 ├── tests/                    # automated pytest suite

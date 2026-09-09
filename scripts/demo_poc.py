@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Guided stage PoC: vulnerable lab -> BLOCKED, patched lab -> APPROVED.
+"""Guided stage PoC: break it, scan it (BLOCKED), fix it live, scan again (APPROVED).
 
-Runs BEFORE/AFTER assessments against :8080 (vulnerable) and :8090
-(patched, started via `python scripts/start_all.py --poc`) and narrates
-each step in plain English for non-technical judges.
+Runs BEFORE/AFTER assessments against the single lab :8080, flipping its
+fix toggles through the loopback API in between - no restarts, no second
+lab. Narrates each step in plain English for non-technical judges.
 
 Every claim prints a verifiable artifact (assessment ID, browser URL,
-timestamps, counts, fingerprints). A JSON evidence bundle is written to
+timestamps, counts, toggle states). A JSON evidence bundle is written to
 logs/poc-evidence-<timestamp>.json at the end.
 
 Usage:
+  python scripts/start_all.py --fresh        # lab :8080 + platform :8000
   python scripts/demo_poc.py                 # interactive, ENTER advances
   python scripts/demo_poc.py --auto 8        # auto-advance every 8 seconds
   python scripts/demo_poc.py --no-color      # plain output (dumb terminals)
@@ -32,8 +33,8 @@ from backend.app.api.misc_routes import compute_health
 from backend.app.engine.policy import DEFAULT_POLICY, evaluate_policy
 
 API = "http://127.0.0.1:8000/api"
-LAB_VULN = "http://127.0.0.1:8080"
-LAB_FIXED = "http://127.0.0.1:8090"
+LAB = "http://127.0.0.1:8080"
+TOGGLE_KEYS = ["PATCH_IDOR", "FIX_HEADERS", "PATCH_SQLI", "RATELIMIT"]
 MODULES = ["headers", "authentication", "authorization", "api", "input_validation"]
 PAGE = 70
 
@@ -127,9 +128,27 @@ def need_server(name, base):
     st, data = http("GET", base + "/health")
     if st != 200 or not isinstance(data, dict):
         print(f"  [!!] {name} is not answering at {base}")
-        print("  Fix: python scripts/start_all.py --poc   (then re-run this demo)")
+        print("  Fix: python scripts/start_all.py --fresh   (then re-run this demo)")
         sys.exit(2)
     return data
+
+
+def set_toggles(mapping):
+    """Flip lab fixes via the loopback toggle API. Returns the live state."""
+    st, data = http("POST", LAB + "/lab/toggles", mapping)
+    if st != 200 or not isinstance(data, dict):
+        print(f"  [!!] toggle API failed: {data}")
+        print("  Fix: restart the lab from latest code (git pull), then re-run.")
+        sys.exit(2)
+    return data
+
+
+def show_toggles(state, expect=None):
+    for k in TOGGLE_KEYS:
+        on = bool(state.get(k))
+        want = "" if expect is None else ("  [ok]" if on == expect else "  [!! MISMATCH]")
+        print(f"  {k:<13} [{'ON -fixed' if on else 'OFF-broken'}]{want}")
+    return state
 
 
 def login():
@@ -254,22 +273,21 @@ def main():
 
     # ---- Step 1: pre-flight ----
     step(1, 4, "PRE-FLIGHT - prove the stage is real")
-    plain("we check all three servers answer, and show each lab's patch toggles.")
-    hv = need_server("vulnerable lab :8080", LAB_VULN)
-    hf = need_server("patched lab    :8090", LAB_FIXED)
-    hp = need_server("platform       :8000", API.rsplit("/api", 1)[0] + "/api")
-    print(f"  :8080 toggles (expect all false): {hv.get('toggles')}")
-    print(f"  :8090 toggles (expect all true) : {hf.get('toggles')}")
+    plain("we check both servers answer, then break the lab on purpose.")
+    hv = need_server("lab      :8080", LAB)
+    hp = need_server("platform :8000", API.rsplit("/api", 1)[0] + "/api")
     print(f"  platform health: {hp.get('status')} | version {hp.get('version')}")
     proof("lab time", hv.get("time"))
     token = login()
     dash0 = dashboard(token)
+    print("  Breaking all fixes for a deterministic vulnerable baseline:")
+    show_toggles(set_toggles({k: False for k in TOGGLE_KEYS}), expect=False)
     wait_key(args.auto)
 
     # ---- Step 2: scan vulnerable ----
-    step(2, 4, "ACT 1 - SCAN THE VULNERABLE APP (:8080)")
+    step(2, 4, "ACT 1 - SCAN THE BROKEN APP")
     plain("hackers' view: we attack our own deliberately-broken app, live.")
-    aid_v = start_scan(token, LAB_VULN + "/", "POST /api/assessments -> :8080")
+    aid_v = start_scan(token, LAB + "/", "POST /api/assessments -> :8080 (all fixes OFF)")
     a_v = poll_scan(token, aid_v, args.timeout)
     sev_v = a_v.get("severity_counts", {}) or {}
     rows_v = findings_table(token, aid_v)
@@ -284,10 +302,16 @@ def main():
     proof("finished at", a_v.get("finished_at"))
     wait_key(args.auto)
 
+    # ---- The patch moment: flip fixes live, no restart ----
+    print()
+    print("  Developers ship the patch: flipping all fixes ON, live, no restart.")
+    show_toggles(set_toggles({k: True for k in TOGGLE_KEYS}), expect=True)
+    proof("verify yourself", "lab homepage toggle card mirrors this state")
+
     # ---- Step 3: scan patched ----
-    step(3, 4, "ACT 2 - SCAN THE PATCHED APP (:8090)")
+    step(3, 4, "ACT 2 - SCAN THE PATCHED APP")
     plain("developers' view: same platform, same checks, fixed code. Watch the verdict flip.")
-    aid_f = start_scan(token, LAB_FIXED + "/", "POST /api/assessments -> :8090")
+    aid_f = start_scan(token, LAB + "/", "POST /api/assessments -> :8080 (all fixes ON)")
     a_f = poll_scan(token, aid_f, args.timeout)
     sev_f = a_f.get("severity_counts", {}) or {}
     rows_f = findings_table(token, aid_f)
@@ -304,17 +328,23 @@ def main():
     dash1 = dashboard(token)
     print(f"  Platform health now: {dash1.get('health', {}).get('score')} "
           f"(was {dash0.get('health', {}).get('score')})")
+    gv = C.red(gate_v) if gate_v == "BLOCKED" else C.green(gate_v)
+    gf = C.green(gate_f) if gate_f == "APPROVED" else C.red(gate_f)
     verdict_box("STAGE RESULT",
                 f"{health_v} -> {health_f}",
-                f"{C.red('BLOCKED')} -> {C.green('APPROVED')}",
+                f"{gv} -> {gf}",
                 f"delta {health_f - health_v:+d} pts across {len(rows_v)}->{len(rows_f)} findings")
+    print("  Restoring the broken baseline for the next run:")
+    show_toggles(set_toggles({k: False for k in TOGGLE_KEYS}), expect=False)
     evidence = {
         "generated_at": _dt.datetime.now(_dt.timezone.utc).isoformat(),
         "ps": "R1-07", "team": "CodeCarto",
-        "vulnerable": {"target": LAB_VULN, "assessment_id": aid_v,
+        "vulnerable": {"target": LAB, "toggles": {k: False for k in TOGGLE_KEYS},
+                       "assessment_id": aid_v,
                        "severity_counts": sev_v, "health": health_v, "gate": gate_v,
                        "browser": f"http://127.0.0.1:8000/#/assessment/{aid_v}"},
-        "patched": {"target": LAB_FIXED, "assessment_id": aid_f,
+        "patched": {"target": LAB, "toggles": {k: True for k in TOGGLE_KEYS},
+                    "assessment_id": aid_f,
                     "severity_counts": sev_f, "health": health_f, "gate": gate_f,
                     "browser": f"http://127.0.0.1:8000/#/assessment/{aid_f}"},
     }
