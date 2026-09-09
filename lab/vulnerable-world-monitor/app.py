@@ -98,11 +98,14 @@ RUNTIME_TOGGLES: dict[str, bool] = {
 }
 
 # Human-readable one-liners for the dashboard toggle card.
+# Each label names the flaw it fixes so operators retest the right findings:
+# only these four families can flip to FIXED; W01/W05/W06/W08/W10 and the
+# public telemetry endpoint are fixed in source, never by toggle.
 TOGGLE_LABELS: dict[str, str] = {
-    "PATCH_IDOR": "enforce ownership on /api/reports/<id>",
-    "FIX_HEADERS": "strict security headers (HSTS, CSP, ...)",
-    "PATCH_SQLI": "parametrized query on /api/search",
-    "RATELIMIT": "20 req/min per IP on /api/*",
+    "PATCH_IDOR": "fixes W02 IDOR — retest the IDOR finding, expect FIXED",
+    "FIX_HEADERS": "fixes W07 headers — retest a headers finding, expect FIXED",
+    "PATCH_SQLI": "fixes W03 SQLi (+W04 verbose errors) — retest it, expect FIXED",
+    "RATELIMIT": "fixes W09 rate limit — retest it, expect FIXED",
 }
 
 app = Flask(__name__)
@@ -459,7 +462,7 @@ pre{background:hsl(var(--ink));color:hsl(var(--paper));padding:14px;border-radiu
   <div class="container-editorial" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px">
     <div class="card">
       <div class="label-eyebrow" style="margin-bottom:4px">Fix toggles — flip live, no restart</div>
-      <p style="font-size:11px;color:hsl(var(--ash));margin:0 0 12px">Flip a fix <strong>ON</strong>, retest in the platform (FIXED). Flip it <strong>OFF</strong>, retest again (STILL PRESENT). Env vars (<code>WM_LAB_*</code>) only set the startup defaults.</p>
+      <p style="font-size:11px;color:hsl(var(--ash));margin:0 0 12px">Flip a fix <strong>ON</strong>, retest its finding in the platform (FIXED). Flip it <strong>OFF</strong>, retest again (STILL PRESENT). No toggle for W01/W05/W06/W08/W10 or public endpoints — those are fixed in source, so their retests correctly stay STILL PRESENT. Env vars (<code>WM_LAB_*</code>) only set the startup defaults.</p>
       <div id="toggleList" style="display:grid;gap:8px"><span class="meta-mono">loading toggle state…</span></div>
       <div style="display:flex;gap:8px;margin-top:12px">
         <button class="btn-ghost" style="flex:1;justify-content:center" id="fixAllBtn" type="button">Fix all</button>
@@ -520,7 +523,7 @@ document.getElementById('toggleList')?.addEventListener('click',function(e){
   if(t.getAttribute('data-retry')){labLoadToggles();return;}
   labFlip(t.getAttribute('data-flip'));
 });
-var _labToggleLabels={PATCH_IDOR:"enforce ownership on /api/reports/<id>",FIX_HEADERS:"strict security headers (HSTS, CSP, ...)",PATCH_SQLI:"parametrized query on /api/search",RATELIMIT:"20 req/min per IP on /api/*"};
+var _labToggleLabels={PATCH_IDOR:"fixes W02 IDOR — retest it, expect FIXED",FIX_HEADERS:"fixes W07 headers — retest it, expect FIXED",PATCH_SQLI:"fixes W03 SQLi (+W04) — retest it, expect FIXED",RATELIMIT:"fixes W09 rate limit — retest it, expect FIXED"};
 var _labToggleState={};
 function labRenderToggles(state){
   _labToggleState=state||{};
