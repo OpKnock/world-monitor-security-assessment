@@ -11,7 +11,7 @@ admin_pwd = os.environ.get("ADMIN_PASSWORD") or Path(Path(__file__).resolve().pa
 if not admin_pwd or admin_pwd.startswith("ChangeMe") is False and len(admin_pwd) < 4:
     admin_pwd = "ChangeMe_Use_Strong_Password_Here"
 # fallback that works on both hardened main PC and fresh clone
-for pwd_try in [admin_pwd, "ChangeMe_Use_Strong_Password_Here", "FarGCo6hO-q2K2HUqVRgSJb3X2p8ZFzN", "admin"]:
+for pwd_try in [admin_pwd, "ChangeMe_Use_Strong_Password_Here"]:
     try:
         tok = httpx.post(f"{BASE}/auth/login", json={"email": "admin@example.com", "password": pwd_try}, timeout=10).json().get("access_token")
         if tok:
