@@ -27,6 +27,8 @@ class LoginRequest(BaseModel):
 @router.post("/register", status_code=201)
 def register(body: RegisterRequest, request: Request, db: Session = Depends(get_db)):
     enforce_rate_limit(request, settings.AUTH_RATE_LIMIT_PER_MINUTE)
+    if not settings.REGISTRATION_ENABLED:
+        raise HTTPException(403, detail="self-registration is disabled by the administrator")
     exists = db.scalar(select(User).where(User.email == body.email.lower()))
     if exists:
         raise HTTPException(409, detail="email already registered")

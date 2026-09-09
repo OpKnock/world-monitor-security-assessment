@@ -171,11 +171,18 @@ def create_app() -> FastAPI:
     )
 
     # ------------------------------------------------------------------
-    # CORS — allow frontend dev server + any explicitly configured origins
+    # CORS — allow frontend dev server + any explicitly configured origins.
+    # Wildcard never carries credentials (browsers reject that combination),
+    # so "*" explicitly disables allow_credentials instead of misconfiguring.
     # ------------------------------------------------------------------
-    cors_origins_env = os.environ.get("CORS_ALLOW_ORIGINS", "").strip()
+    from .config import settings as _cors_settings
+
+    cors_origins_env = (_cors_settings.CORS_ALLOW_ORIGINS or "").strip()
+    allow_credentials = True
     if cors_origins_env == "*":
         allow_origins = ["*"]
+        allow_credentials = False
+        logger.warning("CORS_ALLOW_ORIGINS='*': credentialed requests disabled")
     elif cors_origins_env:
         allow_origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()]
     else:
@@ -191,7 +198,7 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=allow_origins,
-        allow_credentials=True,
+        allow_credentials=allow_credentials,
         allow_methods=["*"],
         allow_headers=["*"],
         expose_headers=["*"],

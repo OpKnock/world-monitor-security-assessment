@@ -17,6 +17,14 @@ def test_register_login_me(client):
     assert me.json()["role"] == "analyst"
 
 
+def test_registration_disabled_rejected(client, monkeypatch):
+    from backend.app.config import settings
+    monkeypatch.setattr(settings, "REGISTRATION_ENABLED", False)
+    r = client.post("/api/auth/register", json={
+        "email": "nobody@example.com", "password": "NobodyPass_123"})
+    assert r.status_code == 403
+
+
 def test_duplicate_register_rejected(client):
     body = {"email": "dup@example.com", "password": "Whatever_123"}
     assert client.post("/api/auth/register", json=body).status_code == 201

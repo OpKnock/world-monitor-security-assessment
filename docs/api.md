@@ -8,11 +8,11 @@ All endpoints return JSON. Errors use `{"detail": "..."}` with status `401` unau
 
 | Method | Path | Body | Success | Notes |
 |---|---|---|---|---|
-| POST | `/auth/register` | `{email, password}` | `201` → `{access_token, user}` | First user becomes admin; `30/min` per IP |
+| POST | `/auth/register` | `{email, password}` | `201` → `{access_token, user}` | First user becomes admin, rest default to `analyst`; `403` when `REGISTRATION_ENABLED=false`; `30/min` per IP |
 | POST | `/auth/login` | `{email, password}` | `200` → `{access_token, user}` | Timing-safe verify; `401` on failure |
 | GET | `/auth/me` | — | `200` → `{id, email, role}` | Current user + role |
 
-Password rules: minimum 12 characters; validated by Pydantic. Roles: `viewer` (read-only) < `analyst` (create / retest / report) < `admin` (full).
+Password rules: minimum 12 characters; validated by Pydantic. Roles: `viewer` (read everything, change nothing) < `analyst` (scan / retest / report / delete) < `admin` (full + audit logs). All read endpoints accept `viewer+`; all writes require `analyst+`.
 
 ## Assessments & findings
 
@@ -22,7 +22,7 @@ Password rules: minimum 12 characters; validated by Pydantic. Roles: `viewer` (r
 | GET | `/assessments` | `?limit=50&offset=0&status` | any | Summaries (`id`, `target`, `status`, `modules`) paginated (limit 1–200) |
 | GET | `/assessments/{id}` | — | any | Full detail incl. `scan_runs[]` + `severity_counts` + `total_findings`/`total_duration_ms` |
 | GET | `/assessments/{id}/findings` | — | any | Findings for one assessment |
-| GET | `/assessments/-/findings` | `?severity&category&status&limit=300&offset=0` | any | Global findings feed (up to 1000) |
+| GET | `/assessments/-/findings` | `?severity&category&status&q&limit=300&offset=0` | viewer+ | Global findings feed (up to 1000); `q` searches title/check_id/category/scanner; total in `X-Total-Count` header |
 | GET | `/assessments/findings/{id}` | — | any | Single finding by ID |
 | POST | `/assessments/findings/{id}/retest` | — | analyst+ | Returns `{retest_status: FIXED\|STILL_PRESENT, evidence[]}` |
 | GET | `/assessments/findings/{id}/evidence` | — | any | Sanitized evidence documents for one finding |
@@ -50,8 +50,8 @@ secrets · dependencies · supply_chain · graphql · deep_scan · fuzzing
 | GET | `/scanners` | any | Module catalogue (`key`, `label`, `needs`, `available`) + `lab_mode` |
 | POST | `/lab/token` | any | Fetch lab demo JWT (`alice` / `user123`) for authenticated scans |
 | POST | `/reports/assessment/{id}?format=pdf\|json\|md\|csv` | analyst+ | Generate report; returns `{id, format, path}` |
-| GET | `/reports/assessment/{id}` | any | List generated reports for one assessment |
-| GET | `/reports/{id}/download` | any | Download report file (correct `Content-Type`) |
+| GET | `/reports/assessment/{id}` | viewer+ | List generated reports for one assessment |
+| GET | `/reports/{id}/download` | viewer+ | Download report file (correct `Content-Type`) |
 | GET | `/audit-logs` | admin | Last 200 audit entries |
 | GET | `/settings` | any | Effective configuration (no secrets) |
 | GET | `/health` | none | Liveness: `{status, app, version, lab_mode}` |
@@ -63,7 +63,7 @@ Sliding-window per IP: `30/min` on `/auth/*`, `600/min` general, `20/min` on `PO
 ## Pagination & filtering
 
 * `GET /assessments` — paginated (`limit` 1–200, default 50; `offset` 0+), ordered by `created_at` desc; optional `status` filter.
-* `GET /assessments/-/findings` — paginated (`limit` 1–1000, default 300), filterable by `severity`, `category`, `status` (case-insensitive) with `offset`.
+* `GET /assessments/-/findings` — paginated (`limit` 1–1000, default 300; `offset` 0+), filterable by `severity`, `category`, `status` (case-insensitive) plus free-text `q` over title/check_id/category/scanner; matching total in the `X-Total-Count` response header.
 * Findings within an assessment are ordered by `severity` for stable UI rendering.
 * All list endpoints support `X-Request-ID` correlation for audit.
 

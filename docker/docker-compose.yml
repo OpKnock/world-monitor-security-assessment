@@ -7,8 +7,13 @@ services:
       dockerfile: docker/api.Dockerfile
     ports:
       - "127.0.0.1:8000:8000"
+    # All runtime config comes from ../.env (see .env.example).
+    # SECRET_KEY has no default here on purpose: compose fails fast with
+    # a clear message instead of booting with a weak hardcoded secret.
+    env_file:
+      - ../.env
     environment:
-      SECRET_KEY: change-me-in-real-deployments
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env — copy .env.example first}
       LAB_MODE: "true"
       LAB_APP_URL: http://lab:8080
     depends_on:
@@ -28,6 +33,8 @@ services:
     environment:
       WM_LAB_PATCH_IDOR: "${WM_LAB_PATCH_IDOR:-0}"
       WM_LAB_FIX_HEADERS: "${WM_LAB_FIX_HEADERS:-0}"
+      WM_LAB_PATCH_SQLI: "${WM_LAB_PATCH_SQLI:-0}"
+      WM_LAB_RATELIMIT: "${WM_LAB_RATELIMIT:-0}"
 
 # NOTE: Docker was not available on the original build host; this compose file
 # is provided for reproducibility and reviewed by inspection. The native path

@@ -8,13 +8,13 @@
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)
-![Tests 46 passed](https://img.shields.io/badge/tests-46%20passed-brightgreen?style=flat-square)
+![Tests 48 passed](https://img.shields.io/badge/tests-48%20passed-brightgreen?style=flat-square)
 ![CVSS v3.1](https://img.shields.io/badge/CVSS-v3.1-orange?style=flat-square)
 ![License AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-green?style=flat-square)
 ![Security localhost-only](https://img.shields.io/badge/security-localhost--only-critical?style=flat-square)
 ![Theme light/dark](https://img.shields.io/badge/theme-light%20%2F%20dark-6c5ce7?style=flat-square)
 
-_A unified security assessment platform that scans an intentionally vulnerable lab and the real World Monitor codebase, normalizes findings into one schema, scores with **CVSS v3.1**, computes a **Security Health Score 0-100** (penalty-weighted by severity), stores masked evidence, explains business impact, recommends remediation, supports **cinematic retest-until-FIXED** with `Why this matters?` and before/after health, and generates **PDF / JSON / Markdown / CSV** reports. Docker images run as non-root with healthchecks. CI runs **46 tests + pip-audit** on every push. **Editorial light/dark theme** with animated 3D star-orbit logo, clean New Assessment flow, and distinct Vulnerable Lab UI with hazard ticker._
+_A unified security assessment platform that scans an intentionally vulnerable lab and the real World Monitor codebase, normalizes findings into one schema, scores with **CVSS v3.1**, computes a **Security Health Score 0-100** (penalty-weighted by severity), stores masked evidence, explains business impact, recommends remediation, supports **cinematic retest-until-FIXED** with `Why this matters?` and before/after health, and generates **PDF / JSON / Markdown / CSV** reports. Docker images run as non-root with healthchecks. CI runs **48 tests + pip-audit** on every push. Role-based access (`viewer` read / `analyst` operate / `admin` audit) with server-side findings search + pagination. **Editorial light/dark theme** with animated 3D star-orbit logo, clean New Assessment flow, and distinct Vulnerable Lab UI with hazard ticker._
 
 </div>
 
@@ -143,6 +143,7 @@ Optional modules (`tls`, `graphql`, `deep_scan`, `fuzzing`, `supply_chain`) degr
 | **Animated 3D Logo** | Home hero: star + dual counter-rotating orbit rings (`spinSlow 16s` / `spinRev 26s`) with pulsing glow |
 | **Auto-hide Dock** | Mac-style left sidebar (48px collapsed → 168px expanded), content gutter prevents overlap |
 | **New Assessment Flow** | Two-section form (Target / Modules), bordered fields, preset pills, inline validation, module table with severity chips |
+| **Findings at scale** | Server-side `severity` / `q` search + `limit` / `offset` with `X-Total-Count` and Prev/Next pager (25/page) |
 | **Vulnerable Lab Distinct UI** | Hazard ticker bar, red `LOCAL ONLY` badge, blinking `vulnerable` word, pulsing ⚠️ hero, separate theme toggle |
 | **Welcome Screen** | `See your exposure. Prove your security.` headline, animated 3D logo panel, What/How card, 3-column stats, Scan/Score/Secure cards |
 
@@ -485,15 +486,26 @@ $env:WM_LAB_FIX_HEADERS="1"; python lab\vulnerable-world-monitor\app.py
 | Var | Default | Purpose |
 |-----|---------|---------|
 | `SECRET_KEY` | `CHANGE-ME-...` | JWT signing — **must be random 64 hex chars in prod** (`python -c "import secrets; print(secrets.token_hex(32))"`) |
-| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | `admin@example.com` / `ChangeMe_...` | Bootstrap platform login |
-| `ANALYST_EMAIL` / `ANALYST_PASSWORD` | `analyst@example.com` / `ChangeMe_...` | Viewer role |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | `admin@example.com` / `ChangeMe_...` | Bootstrap admin login (full access) |
+| `ANALYST_EMAIL` / `ANALYST_PASSWORD` | `analyst@example.com` / `ChangeMe_...` | Bootstrap analyst login (scan + remediate) |
+| `REGISTRATION_ENABLED` | `true` | Self-registration on/off; new accounts get the `analyst` role (set `false` on shared hosts) |
 | `LAB_MODE` | `true` | Only allow loopback / RFC1918 targets; cloud metadata IPs always blocked |
 | `LAB_APP_URL` | `http://127.0.0.1:8080` | Lab address |
 | `LAB_SOURCE_DIR` | `lab/vulnerable-world-monitor` | Source scope for static scans (jailed) |
 | `MAX_SCAN_WORKERS` | `4` | Concurrent scanner threads |
 | `API_RATE_LIMIT_PER_MINUTE` | `600` | Global API throttle |
+| `CORS_ALLOW_ORIGINS` | _(empty = localhost defaults)_ | Extra origins, comma-separated; `"*"` means any origin **without** credentials |
 
+> `.env.example` documents every variable in `backend/app/config.py` — it is the canonical reference.
 > Fresh clone without `.env` falls back to `ADMIN_PASSWORD=ChangeMe_Use_Strong_Password_Here` from `backend/app/config.py`. That’s why “invalid credentials” means you forgot `copy .env.example .env`.
+
+### Roles (`viewer` < `analyst` < `admin`)
+
+| Role | Can do | How to get it |
+|------|--------|---------------|
+| `viewer` | Browse everything: dashboard, history, findings, evidence, reports, settings | Assigned in DB (read-only seat) |
+| `analyst` | Above + run scans, retest, generate reports, delete | Default for self-registration; seeded `analyst@example.com` |
+| `admin` | Above + audit logs | First registered user; seeded `admin@example.com` |
 
 ---
 
@@ -514,13 +526,20 @@ curl -fsS http://localhost:8000/api/health   # {"status":"healthy"}
 curl -fsS http://localhost:8080/health
 ```
 
+Or via compose (reads `../.env`; fails fast if `SECRET_KEY` is unset):
+
+```bash
+cp .env.example .env   # then set SECRET_KEY + passwords
+docker compose -f docker/docker-compose.yml up --build
+```
+
 ---
 
 ## Running Tests
 
 ```bash
 # from repo root, venv active
-python -m pytest tests -v          # verbose — 46 passed
+python -m pytest tests -v          # verbose — 48 passed
 python -m pytest tests -q          # quiet
 python -m pytest tests/test_e2e_lab.py -v  # E2E only
 
@@ -528,7 +547,7 @@ python -m pytest tests/test_e2e_lab.py -v  # E2E only
 python -m pytest tests -q --import-mode=importlib
 ```
 
-Covers: CVSS math vs FIRST vectors, auth gate (DNS pinning, redirect block, special-IP reject, Windows drive-path jail), evidence masking, fingerprint/dedupe, RBAC, report generation, delete cascade, live E2E lab + retest-FIXED flow, `MAX_SCAN_WORKERS` bound, and `INCONCLUSIVE` on scanner failure.
+Covers: CVSS math vs FIRST vectors, auth gate (DNS pinning, redirect block, special-IP reject, Windows drive-path jail), evidence masking, fingerprint/dedupe, RBAC (viewer read vs analyst write, registration gate), findings search/pagination + `X-Total-Count`, report generation, delete cascade, live E2E lab + retest-FIXED flow, `MAX_SCAN_WORKERS` bound, and `INCONCLUSIVE` on scanner failure.
 
 ---
 
@@ -544,7 +563,7 @@ world-monitor-security-assessment/
 ├── scripts/                  # start_all.ps1, build_go_tools.ps1/.sh
 ├── docker/                   # api.Dockerfile, lab.Dockerfile (non-root + healthcheck)
 ├── docs/                     # architecture, security-model, api, demo, etc.
-├── tests/                    # 46 pytest tests
+├── tests/                    # 48 pytest tests
 └── .github/workflows/ci.yml  # test + docker + pip-audit
 ```
 
@@ -563,9 +582,6 @@ python -m pytest tests -q --import-mode=importlib
 # Go tools
 powershell -ExecutionPolicy Bypass -File scripts\build_go_tools.ps1
 ./scripts/build_go_tools.sh     # Mac/Linux
-
-# PPTs
-python scripts\make_sih_ppt.py
 
 # CLI scans
 python cli\world_monitor.py scan --lab

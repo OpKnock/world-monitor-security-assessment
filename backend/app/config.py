@@ -108,6 +108,9 @@ class Settings(BaseSettings):
     ADMIN_PASSWORD: Annotated[str, Field(min_length=4, max_length=256)] = "ChangeMe_Use_Strong_Password_Here"
     ANALYST_EMAIL: EmailStr = Field(default="analyst@example.com")  # type: ignore[assignment]
     ANALYST_PASSWORD: Annotated[str, Field(min_length=4, max_length=256)] = "ChangeMe_Use_Strong_Password_Here"
+    # Open self-registration. Disable (false) on shared hosts so only the
+    # seeded admin/analyst accounts exist; new users then require DB seeding.
+    REGISTRATION_ENABLED: bool = True
 
     # ------------------------------------------------------------------ #
     # Optional alerting
@@ -127,8 +130,10 @@ class Settings(BaseSettings):
     EVIDENCE_MAX_SIZE_MB: Annotated[int, Field(ge=1, le=100)] = 10
 
     # ------------------------------------------------------------------ #
-    # Security headers
+    # Security headers + CORS
     # ------------------------------------------------------------------ #
+    # Comma-separated extra origins. "*" means any origin WITHOUT credentials.
+    CORS_ALLOW_ORIGINS: str = Field(default="", max_length=2048)
     ENABLE_HSTS: bool = True
     ENABLE_CSP: bool = True
     CSP_POLICY: str = "default-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'none'"
