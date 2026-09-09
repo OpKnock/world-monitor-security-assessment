@@ -34,4 +34,3 @@ logs/
 *.ppt
 build_ppt.py
 build_ppts.py
-/ppt/

@@ -7,11 +7,13 @@ Usage (one terminal, one command):
   python scripts/start_all.py
   python scripts/start_all.py --no-real-app   # skip real-world-monitor
   python scripts/start_all.py --fix-headers --patch-idor --enable-fuzzing
+  python scripts/start_all.py --poc           # PoC stage mode: + PATCHED lab :8090 (all fix toggles)
 
 What it does:
   - Checks .venv exists, otherwise hints `pip install -r requirements.txt`
   - Checks ports 8080/8000/3000 ? if already listening, skips that service ("already existence")
   - Starts vulnerable lab (Flask) and platform (uvicorn) and, if available, real app (vite)
+  - With --poc, also starts a second, fully-patched lab on :8090 for before/after demos
   - Streams prefixed logs, Ctrl+C stops all
 
 This replaces the old "Three-Terminal Setup" with one command. For manual 3 terminals, see README Advanced.
@@ -42,6 +44,8 @@ def main():
     ap.add_argument("--patch-sqli", action="store_true", help="WM_LAB_PATCH_SQLI=1")
     ap.add_argument("--ratelimit", action="store_true", help="WM_LAB_RATELIMIT=1")
     ap.add_argument("--enable-fuzzing", action="store_true", help="WM_ENABLE_FUZZING=1")
+    ap.add_argument("--poc", action="store_true",
+                    help="PoC stage mode: also start a fully-patched lab on :8090 (all fix toggles)")
     args = ap.parse_args()
 
     if not VENV_PY.exists():
@@ -76,10 +80,16 @@ def main():
         if args.patch_sqli: lab_env += "$env:WM_LAB_PATCH_SQLI='1'; "
         if args.ratelimit: lab_env += "$env:WM_LAB_RATELIMIT='1'; "
         lab_cmd = f"{lab_env}.venv/Scripts/python.exe lab/vulnerable-world-monitor/app.py"
+        poc_env = ("$env:WM_LAB_PORT='8090'; $env:WM_LAB_FIX_HEADERS='1'; "
+                   "$env:WM_LAB_PATCH_IDOR='1'; $env:WM_LAB_PATCH_SQLI='1'; $env:WM_LAB_RATELIMIT='1'; ")
+        poc_cmd = f"{poc_env}.venv/Scripts/python.exe lab/vulnerable-world-monitor/app.py"
         app_cmd = f".venv/Scripts/python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000"
         real_cmd = f"npm run dev -- --port 3000 --host 127.0.0.1"
         popup("lab", lab_cmd, port=8080)
         import time as _t; _t.sleep(1.0)
+        if args.poc:
+            popup("lab-fixed", poc_cmd, port=8090)
+            _t.sleep(1.0)
         popup("platform", app_cmd, port=8000)
         if not args.no_real_app and REAL_DIR.exists() and (REAL_DIR / "node_modules").exists():
             popup("real-app", real_cmd, port=3000)
@@ -95,19 +105,27 @@ def main():
             if is_port_open("127.0.0.1", 8000):
                 webbrowser.open("http://127.0.0.1:8000")
                 print("[open] browser platform http://127.0.0.1:8000")
+            if args.poc and is_port_open("127.0.0.1", 8090):
+                webbrowser.open("http://127.0.0.1:8090")
+                print("[open] browser lab-fixed http://127.0.0.1:8090")
         except Exception as _e:
             print(f"[warn] auto-open browser failed: {_e}")
-        print("\n[done] 3 terminals popped up. Close windows to stop or Ctrl+C this window to exit.")
+        if args.poc:
+            print("\n[done] PoC mode: lab :8080 (VULNERABLE) + lab-fixed :8090 (PATCHED) + platform :8000 are up.")
+            print("       Run: python scripts/demo_poc.py  for the guided stage demo.")
+        else:
+            print("\n[done] 3 terminals popped up. Close windows to stop or Ctrl+C this window to exit.")
         return 0
 
     procs = []
 
-    def start(name, cmd, cwd, port=None):
+    def start(name, cmd, cwd, port=None, extra_env=None):
         if port and is_port_open("127.0.0.1", port):
             print(f"[skip] {name} already listening on :{port} ? skipping (already existence)")
             return None
         print(f"[start] {name}: {' '.join(cmd)}  (cwd={cwd})")
-        p = subprocess.Popen(cmd, cwd=str(cwd), env=env if name=="lab" else os.environ.copy(),
+        child_env = dict(extra_env) if extra_env is not None else (env if name == "lab" else os.environ.copy())
+        p = subprocess.Popen(cmd, cwd=str(cwd), env=child_env,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
         procs.append((name, p))
         return p
@@ -115,6 +133,14 @@ def main():
     # 1. lab :8080
     lab = start("lab", LAB_PY, ROOT, port=8080)
     time.sleep(1.5)
+    # 1b. patched lab :8090 for PoC before/after demos
+    if args.poc:
+        poc_env = dict(env)
+        poc_env.update({"WM_LAB_PORT": "8090", "WM_LAB_FIX_HEADERS": "1",
+                        "WM_LAB_PATCH_IDOR": "1", "WM_LAB_PATCH_SQLI": "1",
+                        "WM_LAB_RATELIMIT": "1"})
+        start("lab-fixed", LAB_PY, ROOT, port=8090, extra_env=poc_env)
+        time.sleep(1.5)
     # 2. platform :8000
     platform = start("platform", UVICORN, ROOT, port=8000)
     time.sleep(1.5)
@@ -155,6 +181,9 @@ def main():
     print("\n" + "="*60)
     print("  Platform : http://127.0.0.1:8000  (admin@example.com / ChangeMe...)")
     print("  Lab      : http://127.0.0.1:8080  (alice/user123) localhost only")
+    if args.poc:
+        print("  Lab-fixed: http://127.0.0.1:8090  (PATCHED demo target)")
+        print("  Next     : python scripts/demo_poc.py  (guided stage demo)")
     if real:
         print("  Real app : http://127.0.0.1:3000  (optional)")
     print("  Logs below are prefixed [lab]/[platform]/[real-app]. Ctrl+C to stop all.")

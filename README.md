@@ -383,6 +383,10 @@ python scripts/start_all.py
 python scripts/start_all.py --fix-headers --patch-idor
 # lab + platform only, skip real app
 python scripts/start_all.py --no-real-app
+# PoC stage mode: vulnerable :8080 + PATCHED :8090 + platform, then guided demo
+python scripts/start_all.py --poc --no-real-app
+python scripts/demo_poc.py            # interactive before/after demo (ENTER advances)
+python scripts/demo_poc.py --auto 8   # hands-free, 8s per step
 
 # Windows PowerShell wrapper (same)
 powershell -ExecutionPolicy Bypass -File scripts/start_all.ps1
