@@ -470,8 +470,9 @@ button:active:not(:disabled),.btn:active:not(:disabled){transform:translateY(0)}
 .kpi small{color:hsl(var(--ash))!important}
 .kpi.total{background:hsl(var(--paper))!important;border:1px solid hsl(var(--ink)/0.15)!important;border-left:3px solid hsl(var(--ink))!important}
 .history-preview{max-height:200px;overflow-y:auto;padding-right:4px}
-.history-preview::-webkit-scrollbar{width:4px}
-.history-preview::-webkit-scrollbar-thumb{background:hsl(var(--ink)/0.15);border-radius:99px}
+/* hidden scrollbars everywhere — wheel/touch scrolling still works */
+*::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+*{scrollbar-width:none!important;-ms-overflow-style:none!important}
 .cat-row{display:grid;grid-template-columns:120px 1fr auto auto;gap:10px;align-items:center;padding:6px 0;font-size:13px}
 .cat-row .bar{height:6px;background:hsl(var(--bone));border-radius:99px;overflow:hidden;border:1px solid hsl(var(--border))}
 .cat-row .bar i{display:block;height:100%;border-radius:99px;transition:width .6s var(--ease-soft)}
