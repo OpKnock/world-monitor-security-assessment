@@ -8,13 +8,13 @@
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)
-![Tests 48 passed](https://img.shields.io/badge/tests-48%20passed-brightgreen?style=flat-square)
+![Tests 49 passed](https://img.shields.io/badge/tests-49%20passed-brightgreen?style=flat-square)
 ![CVSS v3.1](https://img.shields.io/badge/CVSS-v3.1-orange?style=flat-square)
 ![License AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-green?style=flat-square)
 ![Security localhost-only](https://img.shields.io/badge/security-localhost--only-critical?style=flat-square)
 ![Theme light/dark](https://img.shields.io/badge/theme-light%20%2F%20dark-6c5ce7?style=flat-square)
 
-_A unified security assessment platform that scans an intentionally vulnerable lab and the real World Monitor codebase, normalizes findings into one schema, scores with **CVSS v3.1**, computes a **Security Health Score 0-100** (penalty-weighted by severity), stores masked evidence, explains business impact, recommends remediation, supports **cinematic retest-until-FIXED** with `Why this matters?` and before/after health, and generates **PDF / JSON / Markdown / CSV** reports. Docker images run as non-root with healthchecks. CI runs **48 tests + pip-audit** on every push. Role-based access (`viewer` read / `analyst` operate / `admin` audit) with server-side findings search + pagination. **Editorial light/dark theme** with animated 3D star-orbit logo, clean New Assessment flow, and distinct Vulnerable Lab UI with hazard ticker._
+_A unified security assessment platform that scans an intentionally vulnerable lab and the real World Monitor codebase, normalizes findings into one schema, scores with **CVSS v3.1**, computes a **Security Health Score 0-100** (penalty-weighted by severity), stores masked evidence, explains business impact, recommends remediation, supports **cinematic retest-until-FIXED** with `Why this matters?` and before/after health, and generates **PDF / JSON / Markdown / CSV** reports. Docker images run as non-root with healthchecks. CI runs **49 tests + pip-audit** on every push. Role-based access (`viewer` read / `analyst` operate / `admin` audit) with server-side findings search + pagination. **Editorial light/dark theme** with animated 3D star-orbit logo, clean New Assessment flow, and distinct Vulnerable Lab UI with hazard ticker._
 
 </div>
 
@@ -37,6 +37,7 @@ DETECT -> VERIFY -> DOCUMENT -> SCORE -> EXPLAIN IMPACT -> REMEDIATE -> RETEST -
 - [One-Command Setup (recommended) — 1 terminal, 1 command](#one-command-setup-recommended-1-terminal-1-command)
 - [Three-Terminal Setup (advanced — manual)](#three-terminal-setup-advanced--manual)
 - [Quick Demo (2 min)](#quick-demo-2-min)
+- [Stage Demo (PoC mode)](#stage-demo-poc-mode)
 - [Lab Fix Toggles (for retest demo)](#lab-fix-toggles-for-retest-demo)
 - [Demo Accounts](#demo-accounts)
 - [Environment Variables](#environment-variables)
@@ -383,7 +384,9 @@ python scripts/start_all.py
 python scripts/start_all.py --fix-headers --patch-idor
 # lab + platform only, skip real app
 python scripts/start_all.py --no-real-app
-# PoC stage mode: vulnerable :8080 + PATCHED :8090 + platform, then guided demo
+# PoC stage mode: vulnerable :8080 + PATCHED :8090 + platform, then guided demo.
+# The demo scans both targets live, prints BLOCKED -> APPROVED verdicts using
+# the real policy engine, and writes logs/poc-evidence-<ts>.json as proof.
 python scripts/start_all.py --poc --no-real-app
 python scripts/demo_poc.py            # interactive before/after demo (ENTER advances)
 python scripts/demo_poc.py --auto 8   # hands-free, 8s per step
@@ -451,6 +454,19 @@ npm --prefix targets/real-world-monitor run dev -- --port 3000 --host 127.0.0.1
 7. **Reports** → Generate PDF / JSON / Markdown / CSV (now includes health)
 
 > **New to security?** See `docs/poc-for-non-coders.md` ? plain-English proofs, before/after health, `Why this matters?` per finding, masked evidence, and how to verify without coding.
+
+---
+
+## Stage Demo (PoC mode)
+
+For live demos, run a **second, pre-patched lab** alongside the vulnerable one — no mid-demo restarts:
+
+```bash
+python scripts/start_all.py --poc --no-real-app   # :8080 vulnerable + :8090 patched + :8000
+python scripts/demo_poc.py                        # guided before/after (ENTER advances)
+```
+
+`demo_poc.py` narrates each step in plain English, shows live progress, prints **BLOCKED → APPROVED** verdicts computed by the real policy engine, and writes `logs/poc-evidence-<ts>.json` (assessment IDs, browser links, timestamps, counts) as proof. Every number on screen is clickable-verifiable at `http://127.0.0.1:8000`.
 
 ---
 
@@ -543,7 +559,7 @@ docker compose -f docker/docker-compose.yml up --build
 
 ```bash
 # from repo root, venv active
-python -m pytest tests -v          # verbose — 48 passed
+python -m pytest tests -v          # verbose — 49 passed
 python -m pytest tests -q          # quiet
 python -m pytest tests/test_e2e_lab.py -v  # E2E only
 
@@ -564,10 +580,10 @@ world-monitor-security-assessment/
 ├── lab/vulnerable-world-monitor/   # Flask lab :8080 (Flask in requirements.txt:21)
 ├── targets/real-world-monitor/     # koala73/worldmonitor submodule
 ├── bin/                      # Go binaries (portia, bomber) — built, not committed
-├── scripts/                  # start_all.ps1, build_go_tools.ps1/.sh
+├── scripts/                  # start_all.py (--poc), demo_poc.py, build_go_tools.ps1/.sh
 ├── docker/                   # api.Dockerfile, lab.Dockerfile (non-root + healthcheck)
 ├── docs/                     # architecture, security-model, api, demo, etc.
-├── tests/                    # 48 pytest tests
+├── tests/                    # 49 pytest tests
 └── .github/workflows/ci.yml  # test + docker + pip-audit
 ```
 
@@ -618,7 +634,7 @@ gh pr create --base master --title "feat: my change" --body "..."
 # requires: 1 approving review + checks test + docker + pip-audit green
 ```
 
-CI (`.github/workflows/ci.yml`): `test` (46 tests + `pip-audit` + `pip check`) and `docker` (build `api` + `lab` + `curl /api/health`). Docker images use `python:3.12-slim` / `python:3.14-slim`, Go 1.22, non-root users, and `HEALTHCHECK`.
+CI (`.github/workflows/ci.yml`): `test` (49 tests + `pip-audit` + `pip check`) and `docker` (build `api` + `lab` + `curl /api/health`). Docker images use `python:3.12-slim` / `python:3.14-slim`, Go 1.22, non-root users, and `HEALTHCHECK`.
 
 ---
 
