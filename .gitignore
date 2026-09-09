@@ -33,3 +33,5 @@ logs/
 *.pptx
 *.ppt
 build_ppt.py
+build_ppts.py
+/ppt/
