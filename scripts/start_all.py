@@ -46,6 +46,8 @@ def main():
     ap.add_argument("--enable-fuzzing", action="store_true", help="WM_ENABLE_FUZZING=1")
     ap.add_argument("--poc", action="store_true",
                     help="PoC stage mode: also start a fully-patched lab on :8090 (all fix toggles)")
+    ap.add_argument("--no-browser", action="store_true",
+                    help="do not auto-open browser tabs; print URLs only")
     args = ap.parse_args()
 
     if not VENV_PY.exists():
@@ -97,17 +99,25 @@ def main():
             print("[real] skipped - run: cd targets/real-world-monitor && npm install")
         # auto-open browsers for first 2 terminals after a short delay
         try:
-            import time as _t2; _t2.sleep(2.0)
             import webbrowser
-            if is_port_open("127.0.0.1", 8080):
-                webbrowser.open("http://127.0.0.1:8080")
-                print("[open] browser lab http://127.0.0.1:8080")
-            if is_port_open("127.0.0.1", 8000):
-                webbrowser.open("http://127.0.0.1:8000")
-                print("[open] browser platform http://127.0.0.1:8000")
-            if args.poc and is_port_open("127.0.0.1", 8090):
-                webbrowser.open("http://127.0.0.1:8090")
-                print("[open] browser lab-fixed http://127.0.0.1:8090")
+            if args.no_browser:
+                print("[open] --no-browser: open tabs yourself:")
+                for _name, _url, _port in (("lab", "http://127.0.0.1:8080", 8080),
+                                           ("platform", "http://127.0.0.1:8000", 8000),
+                                           ("lab-fixed", "http://127.0.0.1:8090", 8090) if args.poc else (None, None, None)):
+                    if _name and is_port_open("127.0.0.1", _port):
+                        print(f"   {_name}: {_url}")
+            else:
+                import time as _t2; _t2.sleep(2.0)
+                if is_port_open("127.0.0.1", 8080):
+                    webbrowser.open("http://127.0.0.1:8080")
+                    print("[open] browser lab http://127.0.0.1:8080")
+                if is_port_open("127.0.0.1", 8000):
+                    webbrowser.open("http://127.0.0.1:8000")
+                    print("[open] browser platform http://127.0.0.1:8000")
+                if args.poc and is_port_open("127.0.0.1", 8090):
+                    webbrowser.open("http://127.0.0.1:8090")
+                    print("[open] browser lab-fixed http://127.0.0.1:8090")
         except Exception as _e:
             print(f"[warn] auto-open browser failed: {_e}")
         if args.poc:

@@ -379,6 +379,8 @@ header.sticky{position:sticky;top:0;z-index:40;background:hsl(var(--paper)/0.9);
 .lab-hazard{border:2px solid hsl(0 70% 42%);box-shadow:0 0 0 4px hsl(0 70% 42% /0.12)}
 .lab-float{animation:floatY 5s ease-in-out infinite}
 input,button{font-family:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.45}
 input[type="text"],input[type="password"]{width:100%;background:hsl(var(--paper));border:1px solid hsl(var(--border));padding:10px 12px;border-radius:2px;color:hsl(var(--ink))}
 input:focus{outline:none;border-color:hsl(var(--ink));box-shadow:0 0 0 1px hsl(var(--ink))}
 button.btn{cursor:pointer;font-weight:500;transition:all .2s}
