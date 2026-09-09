@@ -254,6 +254,10 @@ def maybe_headers(response: Response) -> Response:
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         # Harden cookies when fix is enabled — still not Secure without TLS, but HttpOnly + SameSite
         app.config["SESSION_COOKIE_HTTPONLY"] = True
+    # Never cache the lab UI shell (stale HTML is the #1 cause of "I don't see the fix")
+    if request.path == "/" or request.path.startswith("/static"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
     # Always add request ID for tracing (lab only)
     if not response.headers.get("X-Request-ID"):
         import uuid as _uuid
@@ -347,6 +351,8 @@ button.btn{cursor:pointer;font-weight:500;transition:all .2s}
 .btn-ghost:hover{background:hsl(var(--ink));color:hsl(var(--paper))}
 .warn{border:1px solid hsl(0 70% 42% /0.2);background:hsl(0 70% 42% /0.06);color:hsl(0 70% 42%);padding:14px;border-radius:2px;display:flex;gap:12px}
 pre{background:hsl(var(--ink));color:hsl(var(--paper));padding:14px;border-radius:2px;overflow:auto;font-family:var(--mono);font-size:.8rem;white-space:pre-wrap;word-break:break-word}
+*{scrollbar-width:none!important;-ms-overflow-style:none!important}
+*::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
 </style>
 </head>
 <body>
