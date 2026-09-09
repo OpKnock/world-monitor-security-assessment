@@ -230,9 +230,12 @@ def create_app() -> FastAPI:
         else:
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
             response.headers["Pragma"] = "no-cache"
-            if settings.ENABLE_CSP:
-                # For API responses, we use a restrictive CSP
-                response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
+            # NOTE: no CSP on the SPA shell by design. The UI relies on
+            # inline styles/scripts and dynamic onclick handlers (unhashable),
+            # so any script-src/style-src policy — even with 'unsafe-inline',
+            # which browsers ignore for event handlers — breaks the app.
+            # Framing is still blocked via X-Frame-Options: DENY above, and
+            # the strict "default-src 'none'" policy stays on /api responses.
         return response
 
     # ------------------------------------------------------------------
