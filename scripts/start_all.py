@@ -171,7 +171,8 @@ def main():
                    "$env:WM_LAB_PATCH_IDOR='1'; $env:WM_LAB_PATCH_SQLI='1'; $env:WM_LAB_RATELIMIT='1'; ")
         poc_cmd = f"{poc_env}.venv/Scripts/python.exe lab/vulnerable-world-monitor/app.py"
         app_cmd = f".venv/Scripts/python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000"
-        real_cmd = f"npm run dev -- --port 3000 --host 127.0.0.1"
+        # BROWSER=none stops toolchains (vite/CRA-style) from opening tabs themselves
+        real_cmd = f"$env:BROWSER='none'; npm run dev -- --port 3000 --host 127.0.0.1"
         popup("lab", lab_cmd, port=8080)
         import time as _t; _t.sleep(1.0)
         if args.poc:
@@ -186,14 +187,15 @@ def main():
         try:
             import webbrowser
             if args.no_browser:
-                print("[open] --no-browser: open tabs yourself:")
+                import time as _t2; _t2.sleep(2.0)  # let just-started servers bind first
+                print("[open] --no-browser: this script opens NOTHING; open tabs yourself:")
                 _targets = [("lab", "http://127.0.0.1:8080", 8080),
                             ("platform", "http://127.0.0.1:8000", 8000)]
                 if args.poc:
                     _targets.append(("lab-fixed", "http://127.0.0.1:8090", 8090))
                 for _name, _url, _port in _targets:
-                    if is_port_open("127.0.0.1", _port):
-                        print(f"   {_name}: {_url}")
+                    _st = "UP" if is_port_open("127.0.0.1", _port) else "not listening"
+                    print(f"   {_name}: {_url}  [{_st}]")
             else:
                 import time as _t2; _t2.sleep(2.0)
                 if is_port_open("127.0.0.1", 8080):
