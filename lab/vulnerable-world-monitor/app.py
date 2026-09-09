@@ -20,12 +20,15 @@ Deliberate weaknesses (mapped to program requirements):
   W09  No rate limiting                all endpoints unlimited (unless WM_LAB_RATELIMIT=1)
   W10  Hardcoded demo secrets          secrets_demo.py (FAKE values)
 
-Fix toggles (used by the retest demo):
+Fix toggles (used by the retest demo) — env vars set STARTUP defaults only:
   WM_LAB_PATCH_IDOR=1     -> ownership check enforced on /api/reports/<id>
   WM_LAB_FIX_HEADERS=1    -> strict security headers middleware enabled
   WM_LAB_PATCH_SQLI=1     -> parametrized query on /api/search
   WM_LAB_RATELIMIT=1      -> 20 req/min per IP on /api/*
   WM_LAB_JWT_SECRET=...   -> override weak JWT secret (for testing rotation)
+Flip any toggle live (no restart) via GET/POST /lab/toggles (loopback only)
+or the toggle card on the lab homepage: fix ON -> platform retest shows
+FIXED; flip OFF -> retest shows STILL PRESENT.
 
 Run:  python lab/vulnerable-world-monitor/app.py   (listens on 127.0.0.1:8080)
 Environment:
@@ -81,6 +84,26 @@ PATCH_SQLI = os.environ.get("WM_LAB_PATCH_SQLI") == "1"
 RATELIMIT = os.environ.get("WM_LAB_RATELIMIT") == "1"
 
 FIX_HEADERS = os.environ.get("WM_LAB_FIX_HEADERS") == "1"
+
+# Runtime fix toggles — same startup defaults as the env vars above, but
+# flippable without restart via POST /lab/toggles (loopback only). This is
+# what the demo "fix it live, then retest" flow uses: flip ON -> retest shows
+# FIXED, flip OFF -> retest shows STILL PRESENT. Scanner checks below MUST
+# read RUNTIME_TOGGLES (never the import-time constants) to honor flips.
+RUNTIME_TOGGLES: dict[str, bool] = {
+    "PATCH_IDOR": PATCH_IDOR,
+    "PATCH_SQLI": PATCH_SQLI,
+    "RATELIMIT": RATELIMIT,
+    "FIX_HEADERS": FIX_HEADERS,
+}
+
+# Human-readable one-liners for the dashboard toggle card.
+TOGGLE_LABELS: dict[str, str] = {
+    "PATCH_IDOR": "enforce ownership on /api/reports/<id>",
+    "FIX_HEADERS": "strict security headers (HSTS, CSP, ...)",
+    "PATCH_SQLI": "parametrized query on /api/search",
+    "RATELIMIT": "20 req/min per IP on /api/*",
+}
 
 app = Flask(__name__)
 # Flask 3.x deprecates SESSION_COOKIE_SAMESITE=None — use "Lax" or omit.
@@ -243,7 +266,7 @@ def current_identity():
 @app.after_request
 def maybe_headers(response: Response) -> Response:
     response.headers["Server"] = "WorldMonitor-Lab/0.9-flask"  # version disclosure (W08)
-    if FIX_HEADERS:
+    if RUNTIME_TOGGLES["FIX_HEADERS"]:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'none'"
@@ -276,7 +299,7 @@ def handle_500(e):  # type: ignore[no-untyped-def]
     logger.exception("Unhandled error at %s", request.path)
     if request.path.startswith("/api"):
         # W04: verbose disclosure only on /api/search when PATCH_SQLI=0; otherwise generic
-        if request.path.startswith("/api/search") and not PATCH_SQLI:
+        if request.path.startswith("/api/search") and not RUNTIME_TOGGLES["PATCH_SQLI"]:
             return Response(traceback.format_exc(), status=500, mimetype="text/plain")
         return jsonify(error="internal server error"), 500
     return e
@@ -419,12 +442,13 @@ pre{background:hsl(var(--ink));color:hsl(var(--paper));padding:14px;border-radiu
   </div>
   <div class="container-editorial" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px">
     <div class="card">
-      <div class="label-eyebrow" style="margin-bottom:12px">Fix toggles (restart lab with env)</div>
-      <pre style="background:hsl(var(--paper));color:hsl(var(--ink));border:1px solid hsl(var(--border))">WM_LAB_PATCH_IDOR=1    — enforce ownership on /api/reports/&lt;id&gt;
-WM_LAB_FIX_HEADERS=1   — enable security headers (HSTS, CSP, etc.)
-WM_LAB_PATCH_SQLI=1    — parametrized query on /api/search
-WM_LAB_RATELIMIT=1     — 20 req/min per IP on /api/*
-WM_LAB_JWT_SECRET=...  — override weak JWT secret</pre>
+      <div class="label-eyebrow" style="margin-bottom:4px">Fix toggles — flip live, no restart</div>
+      <p style="font-size:11px;color:hsl(var(--ash));margin:0 0 12px">Flip a fix <strong>ON</strong>, retest in the platform (FIXED). Flip it <strong>OFF</strong>, retest again (STILL PRESENT). Env vars (<code>WM_LAB_*</code>) only set the startup defaults.</p>
+      <div id="toggleList" style="display:grid;gap:8px"><span class="meta-mono">loading toggle state…</span></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn-ghost" style="flex:1;justify-content:center" onclick="labToggleAll(true)">Fix all</button>
+        <button class="btn-ghost" style="flex:1;justify-content:center" onclick="labToggleAll(false)">Break all</button>
+      </div>
     </div>
     <div class="card">
       <div class="label-eyebrow" style="margin-bottom:12px">API quick ref (Bearer JWT)</div>
@@ -472,6 +496,37 @@ async function loginSubmit(){
   try{var res=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});var data=await res.json();if(res.ok&&data.access_token){out.textContent='✓ token OK — length '+data.access_token.length+' · role: '+data.role}else{out.textContent='✗ login failed: '+(data.error||JSON.stringify(data))}}catch(e){out.textContent='error: '+e.message}finally{btn.disabled=false;btn.innerHTML=orig}
 }
 document.getElementById('loginForm')?.addEventListener('submit',function(e){e.preventDefault();loginSubmit();});
+var _labToggleLabels={PATCH_IDOR:"enforce ownership on /api/reports/<id>",FIX_HEADERS:"strict security headers (HSTS, CSP, ...)",PATCH_SQLI:"parametrized query on /api/search",RATELIMIT:"20 req/min per IP on /api/*"};
+var _labToggleState={};
+function labRenderToggles(state){
+  _labToggleState=state||{};
+  var box=document.getElementById('toggleList');
+  if(!box) return;
+  var keys=Object.keys(_labToggleLabels);
+  box.innerHTML=keys.map(function(k){
+    var on=!!_labToggleState[k];
+    var pill=on?'<span class="pill lab">ON — fixed</span>':'<span class="badge">OFF — vulnerable</span>';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid hsl(var(--border));border-radius:8px;padding:9px 12px">'
+      +'<div style="min-width:0"><code>'+k+'</code><div class="meta-mono" style="margin-top:3px">'+_labToggleLabels[k]+'</div></div>'
+      +'<div style="display:flex;gap:8px;align-items:center;flex-shrink:0">'+pill
+      +'<button class="btn-ghost" style="padding:6px 12px;font-size:12px" onclick="labFlip(\''+k+'\')">Flip</button></div></div>';
+  }).join('');
+}
+async function labLoadToggles(){
+  try{var res=await fetch('/lab/toggles');if(!res.ok)throw new Error(res.status);labRenderToggles(await res.json());}
+  catch(e){var box=document.getElementById('toggleList');if(box)box.innerHTML='<span class="meta-mono">toggle API unavailable</span>';}
+}
+async function labFlip(name){
+  var body={};body[name]=!_labToggleState[name];
+  try{var res=await fetch('/lab/toggles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(res.ok)labRenderToggles(await res.json());}
+  catch(e){}
+}
+async function labToggleAll(v){
+  var body={};Object.keys(_labToggleLabels).forEach(function(k){body[k]=v;});
+  try{var res=await fetch('/lab/toggles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(res.ok)labRenderToggles(await res.json());}
+  catch(e){}
+}
+labLoadToggles();
 </script>
 </body></html>"""
 
@@ -480,7 +535,7 @@ document.getElementById('loginForm')?.addEventListener('submit',function(e){e.pr
 # --------------------------------------------------------------------------- #
 @app.before_request
 def enforce_rate_limit():  # type: ignore[no-untyped-def]
-    if not RATELIMIT:
+    if not RUNTIME_TOGGLES["RATELIMIT"]:
         return None
     # Only apply to /api/* — allow /health and / always
     if not request.path.startswith('/api'):
@@ -517,13 +572,47 @@ def log_request():  # type: ignore[no-untyped-def]
 @app.get("/health")
 def health() -> Response:
     return jsonify(status="ok", service="world-monitor-lab", version="0.9",
-                   toggles={"PATCH_IDOR": PATCH_IDOR, "FIX_HEADERS": FIX_HEADERS, "PATCH_SQLI": PATCH_SQLI, "RATELIMIT": RATELIMIT},
+                   toggles={k: bool(v) for k, v in RUNTIME_TOGGLES.items()},
                    time=datetime.now(timezone.utc).isoformat())
 
 @app.get("/")
 def index() -> Response:
     # NOTE: rendered verbatim (no str.format) — the page contains JS braces.
     return Response(PAGE, mimetype="text/html")
+
+
+def _loopback_only() -> bool:
+    """The toggle API rewrites lab behavior — loopback callers only."""
+    return (request.remote_addr or "") in ("127.0.0.1", "::1")
+
+
+@app.get("/lab/toggles")
+def lab_toggles():
+    if not _loopback_only():
+        return jsonify(error="loopback only"), 403
+    return jsonify({k: bool(v) for k, v in RUNTIME_TOGGLES.items()})
+
+
+@app.post("/lab/toggles")
+def lab_set_toggles():
+    """Flip fix toggles at runtime — no restart. Demo flow: fix ON, retest
+    in the platform (FIXED), flip OFF, retest again (STILL PRESENT)."""
+    if not _loopback_only():
+        return jsonify(error="loopback only"), 403
+    data = request.get_json(silent=True) or {}
+    if not isinstance(data, dict):
+        return jsonify(error="expected JSON object of {TOGGLE: bool}"), 400
+    updated: dict[str, bool] = {}
+    for key in RUNTIME_TOGGLES:
+        if key in data:
+            RUNTIME_TOGGLES[key] = bool(data[key])
+            updated[key] = bool(data[key])
+    if not updated:
+        return jsonify(error=f"no known toggles in body; known: {sorted(RUNTIME_TOGGLES)}"), 400
+    if "RATELIMIT" in updated:
+        _RL_HITS.clear()  # fresh window so the new mode takes effect immediately
+    logger.info("lab toggles updated %s (by %s)", updated, request.remote_addr)
+    return jsonify({k: bool(v) for k, v in RUNTIME_TOGGLES.items()})
 
 
 @app.post("/login")
@@ -580,7 +669,7 @@ def api_report(report_id: int):
     if entry is None:
         return jsonify(error="not found"), 404
     owner, title, summary = entry
-    if PATCH_IDOR and owner != ident["username"] and ident["role"] != "admin":
+    if RUNTIME_TOGGLES["PATCH_IDOR"] and owner != ident["username"] and ident["role"] != "admin":
         return jsonify(error="forbidden: you do not own this report"), 403  # FIXED behavior
     return jsonify(id=report_id, owner=owner, title=title, summary=summary)
 
@@ -590,7 +679,7 @@ def api_search():
     q = request.args.get("id", "")
     conn = db()
     try:
-        if PATCH_SQLI:
+        if RUNTIME_TOGGLES["PATCH_SQLI"]:
             rows = conn.execute(
                 "SELECT id, title, summary FROM reports WHERE id = ?", (q,)
             ).fetchall()
@@ -601,7 +690,7 @@ def api_search():
             ).fetchall()
         return jsonify(results=[dict(r) for r in rows], count=len(rows))
     except Exception:
-        if PATCH_SQLI:
+        if RUNTIME_TOGGLES["PATCH_SQLI"]:
             return jsonify(error="invalid request"), 400
         tb = traceback.format_exc()  # W04: full traceback returned to client
         return Response(tb, status=500, mimetype="text/plain")

@@ -95,13 +95,13 @@ def test_full_lifecycle(client, analyst_headers, admin_headers, lab_server):
     ROOT = Path(__file__).resolve().parents[1]
     spec = importlib.util.spec_from_file_location(
         "vulnerable_lab_fix", ROOT / "lab" / "vulnerable-world-monitor" / "app.py")
-    # the running server reads FIX_HEADERS at request time; flip it on the live module
+    # the running server reads RUNTIME_TOGGLES at request time; flip it on the live module
     lab_mod = lab_server["module"]
-    lab_mod.FIX_HEADERS = True
+    lab_mod.RUNTIME_TOGGLES["FIX_HEADERS"] = True
     r2 = client.post(f"/api/assessments/findings/{hsts_f['id']}/retest",
                      headers=analyst_headers).json()
     assert r2["retest_status"] == "FIXED"
-    lab_mod.FIX_HEADERS = False
+    lab_mod.RUNTIME_TOGGLES["FIX_HEADERS"] = False
 
     # audit trail captured the lifecycle (spec §48)
     logs = client.get("/api/audit-logs", headers=admin_headers).json()

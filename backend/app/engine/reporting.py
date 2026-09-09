@@ -285,11 +285,24 @@ class _PdfReport:
     INK = (26, 32, 44)
     ACCENT = (11, 87, 208)
 
-    def __init__(self) -> None:
+    def __init__(self, doc_label: str = "") -> None:
         from fpdf import FPDF
 
-        self.pdf = FPDF(format="A4")
-        self.pdf.set_auto_page_break(auto=True, margin=16)
+        class _Doc(FPDF):
+            """A4 document with a confidentiality footer + page numbers."""
+
+            def footer(inner) -> None:  # noqa: ANN202 - fpdf2 hook signature
+                inner.set_y(-14)
+                inner.set_font("helvetica", "", 8)
+                inner.set_text_color(120, 120, 120)
+                inner.cell(
+                    0, 8,
+                    self._safe(f"World Monitor - Confidential - {doc_label} - Page {inner.page_no()}/{{nb}}"),
+                    align="C",
+                )
+
+        self.pdf = _Doc(format="A4")
+        self.pdf.set_auto_page_break(auto=True, margin=18)
         self.pdf.set_margins(18, 18, 18)
         self._body_font = 10
 
@@ -339,23 +352,31 @@ class _PdfReport:
         p.set_font("helvetica", "", 10)
         p.multi_cell(0, 6.5, value[:140], new_x="LMARGIN", new_y="NEXT")
 
-    def _cover(self, assessment: Assessment, data: dict) -> None:
+    def _cover(self, assessment: Assessment, data: dict, verdict: dict, health: int) -> None:
         p = self.pdf
         p.add_page()
         p.set_fill_color(*self.ACCENT)
         p.rect(0, 0, 210, 88, style="F")
         p.set_text_color(255, 255, 255)
-        p.set_xy(18, 26)
+        p.set_xy(18, 24)
         p.set_font("helvetica", "B", 25)
         p.cell(0, 12, "WORLD MONITOR")
-        p.set_xy(18, 42)
+        p.set_xy(18, 40)
         p.set_font("helvetica", "", 15)
         p.cell(0, 10, "Security Assessment Report")
-        p.set_xy(18, 56)
+        p.set_xy(18, 54)
         p.set_font("helvetica", "", 9.5)
         p.cell(0, 8, "DETECT > VERIFY > DOCUMENT > SCORE > EXPLAIN IMPACT > REMEDIATE > RETEST")
+        # Release verdict banner — the single most-read line of the report.
+        blocked = verdict.get("status") == "BLOCKED"
+        p.set_fill_color(*(127, 29, 29) if blocked else (21, 101, 52))
+        p.set_xy(18, 68)
+        p.set_font("helvetica", "B", 13)
+        p.set_text_color(255, 255, 255)
+        banner = f"  RELEASE DECISION: {verdict.get('status', 'PENDING')}  -  Health {health}/100"
+        p.cell(174, 11, self._safe(banner), fill=True, new_x="LMARGIN", new_y="NEXT")
         p.set_text_color(*self.INK)
-        p.set_y(98)
+        p.set_y(92)
         rows = [
             ("Assessment ID", _safe_str(assessment.id, 64)),
             ("Target", _safe_str(assessment.target, 120)),
@@ -371,20 +392,42 @@ class _PdfReport:
         p.set_font("helvetica", "B", 12)
         p.set_x(p.l_margin)
         p.cell(0, 8, "Severity distribution", new_x="LMARGIN", new_y="NEXT")
+        peak = max([data["counts"].get(sev, 0) for sev in SEV_ORDER] + [1])
         for sev in SEV_ORDER:
             rgb = self.SEV_RGB.get(sev, self.SEV_RGB["LOW"])
+            n = data["counts"].get(sev, 0)
+            bar = "#" * int(round(34 * n / peak)) if n else "-"
             p.set_x(p.l_margin)
             p.set_font("helvetica", "B", 11)
             p.set_text_color(*rgb)
             p.cell(36, 7, sev.title())
             p.set_text_color(*self.INK)
             p.set_font("helvetica", "", 11)
-            p.cell(0, 7, f"{data['counts'].get(sev, 0)}", new_x="LMARGIN", new_y="NEXT")
+            p.cell(14, 7, str(n))
+            p.set_font("courier", "", 11)
+            p.cell(0, 7, self._safe(bar), new_x="LMARGIN", new_y="NEXT")
+
+    @staticmethod
+    def _health(counts: dict) -> int:
+        weights = {"CRITICAL": 5, "HIGH": 3, "MEDIUM": 1.5, "LOW": 0.5, "INFORMATIONAL": 0}
+        penalty = sum(counts.get(k, 0) * w for k, w in weights.items())
+        return int(max(0, min(100, round(100 - penalty))))
 
     def build(self, db: Session, assessment: Assessment) -> bytes:
+        from .policy import DEFAULT_POLICY, evaluate_policy
+
         data = _collect(db, assessment)
-        self._cover(assessment, data)
-        total = sum(data["counts"].values())
+        counts = data["counts"]
+        health = self._health(counts)
+        runs = data["runs"]
+        verdict = evaluate_policy(
+            counts, health,
+            has_incomplete=bool(getattr(assessment, "status", "") not in ("completed", "failed")),
+            has_failed=any(getattr(r, "status", "") == "failed" for r in runs),
+            policy=DEFAULT_POLICY,
+        )
+        self._cover(assessment, data, verdict, health)
+        total = sum(counts.values())
 
         self._section("1. Executive Summary")
         self._para(
@@ -398,7 +441,24 @@ class _PdfReport:
             size=10.5,
         )
 
-        self._section("2. Scope & Methodology")
+        self._section("2. Release Decision")
+        self._para(
+            f"Security health {health}/100. Gate verdict: {verdict.get('status', 'PENDING')}.",
+            size=11, style="B",
+        )
+        reasons = verdict.get("reasons") or []
+        if reasons:
+            for reason in reasons:
+                self._para(f"  -  {_safe_str(reason, 256)}")
+        else:
+            self._para("No blocking policy conditions triggered — this build meets the release bar.")
+        self._para(
+            "Policy: block on any CRITICAL, more than 2 HIGH findings, health below 70, "
+            "or incomplete/failed scans. Remediate blockers, then retest to flip the verdict.",
+            size=9.5,
+        )
+
+        self._section("3. Scope & Methodology")
         for r in data["runs"]:
             scanner = _safe_str(getattr(r, "scanner", "?"), 64)
             status = _safe_str(getattr(r, "status", "?"), 20)
@@ -407,7 +467,7 @@ class _PdfReport:
                 f"{getattr(r, 'checks_safe', 0)} passed; {getattr(r, 'findings_count', 0)} findings."
             )
 
-        self._section("3. Findings Detail")
+        self._section("4. Findings Detail")
         ordered = sorted(data["findings"], key=_severity_sort_key)
         if not ordered:
             self._para("No findings were recorded for this assessment.")
@@ -432,10 +492,13 @@ class _PdfReport:
             component = _safe_str(getattr(f, "affected_component", ""), 200)
             scanner = _safe_str(getattr(f, "scanner", ""), 64)
             check_id = _safe_str(getattr(f, "check_id", ""), 128)
+            category = _safe_str(getattr(f, "category", ""), 40)
+            owasp = OWASP_BY_CATEGORY.get(getattr(f, "category", ""), "")
             status = _safe_str(getattr(f, "status", ""), 20)
             retest = f"   Retest: {_safe_str(getattr(f, 'retest_status', ''), 30)}" if getattr(f, "retest_status", "") else ""
             self._para(
                 f"CVSS v{cvss_version}: {cvss_score_str}   Vector: {cvss_vector}\n"
+                f"Category: {category or 'n/a'}" + (f"   OWASP: {owasp}" if owasp else "") + "\n"
                 f"Component: {component}   Scanner: {scanner} ({check_id})\n"
                 f"Status: {status}{retest}",
                 size=9,
@@ -462,7 +525,7 @@ class _PdfReport:
                 self._para(f"Why this score: {rationale}", size=8.5, style="I")
             p.ln(4)
 
-        self._section("4. Evidence & Retest Statement")
+        self._section("5. Evidence & Retest Statement")
         self._para(
             f"{data['evidence_count']} sanitized evidence document(s) are archived under the "
             "platform evidence store for this assessment. Sensitive values (tokens, cookies, "
@@ -470,7 +533,7 @@ class _PdfReport:
             "retained alongside the original evidence."
         )
 
-        self._section("5. Conclusion")
+        self._section("6. Conclusion")
         self._para(
             "All findings were reproduced against the intentionally vulnerable World Monitor "
             "lab. Prioritize remediation by CVSS score, apply fixes, then execute the built-in "
