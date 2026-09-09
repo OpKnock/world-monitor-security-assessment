@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#0E0E10">
-<meta name="description" content="World Monitor ΓÇö Security Assessment Platform ┬╖ see your exposure, prove your security.">
-<title>World Monitor ΓÇö See your exposure. Prove your security.</title>
+<meta name="description" content="World Monitor — Security Assessment Platform · see your exposure, prove your security.">
+<title>World Monitor — See your exposure. Prove your security.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/app.css?v=60018">
+<link rel="stylesheet" href="/assets/css/app.css?v=60019">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='14' fill='%230E0E10'/><g fill='%23F2EBD8'><path d='M50 12 L57 30 L76 30 L60 41 L66 60 L50 51 L34 60 L40 41 L24 30 L43 30 Z'/><path d='M18 58 C28 75 50 88 78 58 L82 62 C52 92 22 80 16 60 Z'/></g></svg>">
 </head>
 <body>
@@ -18,7 +18,7 @@
 <aside id="sidebar" class="dock" aria-label="Primary navigation">
   <div class="dock-inner">
     <nav class="dock-nav" aria-label="Sections">
-      <a href="#/dashboard" data-nav class="dock-item" title="Home ΓÇö Dashboard"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 9l9-7 9 7v11a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Home</span></a>
+      <a href="#/dashboard" data-nav class="dock-item" title="Home — Dashboard"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 9l9-7 9 7v11a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Home</span></a>
       <a href="#/assess/new" data-nav class="dock-item" title="New Assessment"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>New Assessment</span></a>
       <a href="#/findings" data-nav class="dock-item" title="Findings"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4l7 3v5c0 3.5-2.5 6-7 8-4.5-2-7-4.5-7-8v-5z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M12 14.5v2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>Findings</span></a>
       <a href="#/history" data-nav class="dock-item" title="History"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>History</span></a>
@@ -28,7 +28,7 @@
     <div class="dock-foot">
       <div class="userchip" id="userChip">
         <div class="avatar" aria-hidden="true">?</div>
-        <div class="who"><b>ΓÇö</b><span>ΓÇö</span></div>
+        <div class="who"><b>—</b><span>—</span></div>
       </div>
       <button id="logout" class="dock-logout" title="Sign out"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M16 17l5-5-5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Sign out</span></button>
       <a href="#/login" id="mobileLoginBtn" class="hidden dock-login">Sign in</a>
@@ -40,7 +40,7 @@
   <header id="topHeader" style="position:sticky;top:0;z-index:30;background:hsl(var(--paper));border-bottom:1px solid hsl(var(--ink)/0.1)">
     <div class="container-editorial">
       <div style="display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px">
-<a href="#/welcome" style="display:flex;align-items:center;gap:12px;text-decoration:none" aria-label="World Monitor ΓÇö welcome">
+<a href="#/welcome" style="display:flex;align-items:center;gap:12px;text-decoration:none" aria-label="World Monitor — welcome">
           <span style="width:38px;height:38px;display:grid;place-items:center;background:hsl(var(--ink));color:hsl(var(--paper));border-radius:9px;flex-shrink:0"><svg width="26" height="26" viewBox="0 0 100 100" fill="none" aria-hidden="true"><g fill="currentColor"><path d="M50 8 L57 28 L77 28 L60 40 L67 62 L50 52 L33 62 L40 40 L23 28 L43 28 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M18 58 C28 75, 50 88, 78 58 L82 62 C52 92, 22 80, 16 60 Z"/><path d="M78 58 C70 40, 48 18, 22 32 L18 28 C50 12, 78 36, 82 58 Z" opacity="0.85"/></g></svg></span>
           <span class="font-display" style="font-size:25px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:hsl(var(--ink));white-space:nowrap">World Monitor Security Assessment</span>
         </a>
@@ -67,12 +67,12 @@
   <div class="main-wrap flex-1 flex flex-col">
     <div id="topbar" class="hidden container-editorial py-3 border-b border-ink/10 flex items-center justify-between gap-4">
       <nav id="breadcrumb" class="breadcrumb meta-mono text-ash" aria-label="Breadcrumb"></nav>
-      <div class="topbar-actions flex items-center gap-3">
+      <div class="topbar-actions flex items-center gap-3"></div>
     </div>
     <main id="main" class="flex-1"><section id="view" aria-live="polite" aria-busy="false"><div class="container-editorial" style="padding:48px 0;text-align:center" id="bootFallback"><p class="meta-mono">Loading World Monitor…</p><p class="meta-mono" style="margin-top:8px;opacity:.6">build v60015 · if this stays, JavaScript is blocked or cached</p></div></section></main>
     <footer id="appFooter" class="hidden border-t border-ink/10 bg-paper">
       <div class="container-editorial py-6 flex flex-col sm:flex-row items-center justify-between gap-3 meta-mono text-ash">
-        <span class="footer-left">World Monitor ┬╖ LAB_MODE ┬╖ loopback-only gate</span>
+        <span class="footer-left">World Monitor · LAB_MODE · loopback-only gate</span>
         <span class="footer-right flex gap-4"><a href="/api/docs" target="_blank" rel="noopener" class="link-underline">OpenAPI</a><a href="/api/health" target="_blank" rel="noopener" class="link-underline">/health</a><span>AGPL-3.0</span></span>
       </div>
     </footer>
@@ -89,6 +89,6 @@ window.__wmBootError = function(msg){
   if(v) v.innerHTML = '<div class="container-editorial" style="padding:48px 0"><div class="card" style="border-color:hsl(0 70% 42%)"><h3 style="color:hsl(0 70% 42%)">App failed to load</h3><p class="muted small">' + msg + '</p><p class="muted small">Hard refresh (Ctrl+Shift+R) in an incognito window. If it persists, open DevTools (F12) - Network and check /assets/js/app.js status.</p></div></div>';
 };
 </script>
-<script src="/assets/js/app.js?v=60018" onerror="window.__wmBootError('Could not load /assets/js/app.js - network blocked or server not serving static files.')"></script>
+<script src="/assets/js/app.js?v=60019" onerror="window.__wmBootError('Could not load /assets/js/app.js - network blocked or server not serving static files.')"></script>
 </body>
 </html>

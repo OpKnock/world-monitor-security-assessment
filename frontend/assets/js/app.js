@@ -46,8 +46,10 @@
     dockEl.addEventListener("mouseleave", closeDock);
     dockTrigger.addEventListener("mouseleave", ()=> { if(!dockEl.matches(":hover")) closeDock(); });
     document.addEventListener("mousemove", (e)=>{
-      if(e.clientX < 16 && API.getToken()) openDock();
-      else if(e.clientX > 240) dockEl.classList.remove("dock-open");
+      try{
+        if(e.clientX < 16 && window.API && API.getToken()) openDock();
+        else if(e.clientX > 240) dockEl.classList.remove("dock-open");
+      }catch(_){}
     });
   }
 
