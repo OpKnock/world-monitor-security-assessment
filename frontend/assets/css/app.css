@@ -62,7 +62,7 @@
   --shadow-lg: 0 16px 40px hsl(var(--ink) / 0.12);
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme]) {
     --paper: 240 7% 6%;
     --ink: 42 28% 93%;
     --bone: 240 10% 12%;
@@ -115,6 +115,59 @@
     --shadow-md: 0 8px 24px hsl(0 0% 0% / 0.4);
     --shadow-lg: 0 16px 40px hsl(0 0% 0% / 0.5);
   }
+}
+:root[data-theme="dark"] {
+    --paper: 240 7% 6%;
+    --ink: 42 28% 93%;
+    --bone: 240 10% 12%;
+    --ash: 42 15% 65%;
+    --oxblood: 0 65% 55%;
+    --oxblood-foreground: 240 7% 6%;
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --primary: var(--ink);
+    --primary-foreground: var(--paper);
+    --secondary: var(--bone);
+    --secondary-foreground: var(--ink);
+    --accent: var(--oxblood);
+    --accent-foreground: var(--paper);
+    --card: 240 10% 10%;
+    --card-foreground: var(--ink);
+    --popover: 240 10% 10%;
+    --popover-foreground: var(--ink);
+    --muted: var(--bone);
+    --muted-foreground: var(--ash);
+    --border: 240 10% 20%;
+    --input: 240 10% 18%;
+    --ring: var(--oxblood);
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 240 7% 6%;
+    --bg-0: hsl(var(--paper));
+    --bg-1: hsl(var(--bone));
+    --bg-2: hsl(var(--card));
+    --surface: hsl(var(--card));
+    --surface-2: hsl(var(--bone));
+    --text-1: hsl(var(--ink));
+    --text-2: hsl(var(--ash));
+    --text-3: hsl(var(--ash));
+    --text-dim: hsl(var(--ash) / 0.7);
+    --cyan: hsl(var(--oxblood));
+    --cyan-2: hsl(var(--oxblood) / 0.9);
+    --blue: hsl(var(--ink));
+    --violet: hsl(var(--oxblood));
+    --green: hsl(142 70% 45%);
+    --amber: hsl(38 92% 55%);
+    --orange: hsl(20 90% 55%);
+    --red: hsl(var(--destructive));
+    --crit: hsl(var(--destructive));
+    --high: hsl(20 90% 55%);
+    --med: hsl(38 92% 55%);
+    --low: hsl(200 80% 55%);
+    --info: hsl(var(--ash));
+    --ok: hsl(142 70% 45%);
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 8px 24px hsl(0 0% 0% / 0.4);
+    --shadow-lg: 0 16px 40px hsl(0 0% 0% / 0.5);
 }
 :root[data-theme="light"] {
   --paper: 42 28% 93%;

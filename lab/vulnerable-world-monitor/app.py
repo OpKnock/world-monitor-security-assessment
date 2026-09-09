@@ -318,7 +318,7 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name=
 <style>
 :root{--paper:42 28% 93%;--ink:240 7% 6%;--bone:42 30% 87%;--ash:36 7% 33%;--oxblood:0 59% 30%;--border:36 14% 78%;--card:42 32% 96%;--mono:"JetBrains Mono",monospace;--sans:"Inter Tight",system-ui,sans-serif;--display:"Fraunces",serif}
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme]) {
     --paper: 240 7% 6%;
     --ink: 42 28% 93%;
     --bone: 240 10% 12%;
@@ -327,6 +327,15 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name=
     --border: 240 10% 20%;
     --card: 240 10% 10%;
   }
+}
+:root[data-theme="dark"] {
+  --paper: 240 7% 6%;
+  --ink: 42 28% 93%;
+  --bone: 240 10% 12%;
+  --ash: 42 15% 65%;
+  --oxblood: 0 65% 55%;
+  --border: 240 10% 20%;
+  --card: 240 10% 10%;
 }
 :root[data-theme="light"] {
   --paper: 42 28% 93%;
