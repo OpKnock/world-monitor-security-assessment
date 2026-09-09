@@ -157,14 +157,14 @@ def create_report(
 
 
 @router.get("/reports/assessment/{assessment_id}")
-def list_reports(assessment_id: str, db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
+def list_reports(assessment_id: str, db: Session = Depends(get_db), user=Depends(require_role("viewer"))):
     rows = db.scalars(select(Report).where(Report.assessment_id == assessment_id)).all()
     return [{"id": r.id, "format": r.format, "created_at": r.created_at.isoformat(),
              "download": f"/api/reports/{r.id}/download"} for r in rows]
 
 
 @router.get("/reports/{report_id}/download")
-def download_report(report_id: str, db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
+def download_report(report_id: str, db: Session = Depends(get_db), user=Depends(require_role("viewer"))):
     from pathlib import Path
 
     report = db.get(Report, report_id)

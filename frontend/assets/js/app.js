@@ -21,7 +21,6 @@
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
   const truncate = (s, n=48) => s.length>n ? s.slice(0,n)+"…" : s;
   let pollId = null, bannerTimer = null;
-  let activeFindingSearch = "";
 
   /* ── utils ── */
   function debounce(fn, ms=300){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
@@ -755,49 +754,67 @@
     catch(e){ body.innerHTML=`<div class="card">${errorState(e.message, ()=> AssessmentDetail(id))}</div>`; }
   }
 
-  /* ═══════════ FINDINGS LIST ═══════════ */
+  /* ═══════════ FINDINGS LIST (server-side filter + pagination) ═══════════ */
+  const FINDINGS_PAGE_SIZE = 25;
   async function FindingsList(){
     setBreadcrumb([{label:"Findings"}]);
     $view.innerHTML = `
       <div class="page-head row spread"><div><h1 class="page">Findings</h1><p class="sub">All normalized findings across assessments — deduplicated, scored with CVSS v3.1.</p></div>
         <div class="page-actions"><span class="badge" id="findCount">—</span></div></div>
       <div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap">
-        <input id="findSearch" type="text" placeholder="Search title, check_id, category…" style="flex:1;min-width:220px" aria-label="Search findings">
+        <input id="findSearch" type="text" placeholder="Search title, check_id, category…" style="flex:1;min-width:220px;color:hsl(var(--ink))" aria-label="Search findings">
         <div class="filter-bar" id="filterBar" role="group" aria-label="Filter by severity">
           <button class="chip-filter active" data-sev="" aria-pressed="true">All</button>
           ${SEV.map(s=> `<button class="chip-filter" data-sev="${s}" aria-pressed="false"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${SEV_COLOR[s]}" aria-hidden="true"></span> ${s}</button>`).join("")}
         </div>
       </div>
-      <div id="fl">${skeletonTable(6)}</div>`;
+      <div id="fl">${skeletonTable(6)}</div>
+      <div id="findPager" class="row spread mt" style="display:none">
+        <span class="muted small" id="findRange">—</span>
+        <div style="display:flex;gap:8px">
+          <button class="ghost tiny" id="findPrev">← Prev</button>
+          <button class="ghost tiny" id="findNext">Next →</button>
+        </div>
+      </div>`;
     const el=$view.querySelector("#fl");
     const countEl=document.getElementById("findCount");
     const searchEl=document.getElementById("findSearch");
-    let allRows=[];
-    let activeSev="";
-    async function load(){
-      el.innerHTML=skeletonTable(6);
-      try{
-        allRows=await API.get("/assessments/-/findings");
-        if(countEl) countEl.textContent=allRows.length+" findings";
-        render();
-      }catch(e){ el.innerHTML=errorState(e.message, load); }
+    const pagerEl=document.getElementById("findPager");
+    const rangeEl=document.getElementById("findRange");
+    const prevBtn=document.getElementById("findPrev");
+    const nextBtn=document.getElementById("findNext");
+    let activeSev="", query="", page=0, total=0, reqSeq=0;
+    function params(){
+      const p = new URLSearchParams({ limit: String(FINDINGS_PAGE_SIZE), offset: String(page*FINDINGS_PAGE_SIZE) });
+      if(activeSev) p.set("severity", activeSev);
+      if(query) p.set("q", query);
+      return p.toString();
     }
-    function render(){
-      let rows=[...allRows];
-      if(activeSev) rows=rows.filter(r=> r.severity===activeSev);
-      if(activeFindingSearch){
-        const q=activeFindingSearch.toLowerCase();
-        rows=rows.filter(r=> (r.title+" "+r.check_id+" "+r.category+" "+r.scanner).toLowerCase().includes(q));
-      }
-      if(countEl) countEl.textContent=rows.length+" / "+allRows.length;
+    async function load(){
+      const myReq = ++reqSeq;
+      el.innerHTML=skeletonTable(6);
+      pagerEl.style.display="none";
+      try{
+        const {rows, total: t} = await API.page(`/assessments/-/findings?${params()}`);
+        if(myReq !== reqSeq) return; // stale response (fast typing)
+        total = t;
+        if(countEl) countEl.textContent = total + (total===1 ? " finding" : " findings");
+        render(rows);
+      }catch(e){ el.innerHTML=`<div class="card">${errorState(e.message, load)}</div>`; }
+    }
+    function render(rows){
+      rows.sort((a,b)=> (SEV_ORDER[a.severity]??9) - (SEV_ORDER[b.severity]??9));
       if(!rows.length){
-        const hint = activeSev || activeFindingSearch ? `No findings match filter. Try clearing search or severity.` : "No findings yet — run an assessment first.";
-        el.innerHTML=emptyState({icon: activeSev ? "◍" : "◈", title: !rows.length && (activeSev||activeFindingSearch) ? `No matching findings` : "No findings yet", hint, action: !activeSev && !activeFindingSearch ? `<button onclick="location.hash='#/assess/new'">Run an assessment</button>` : `<button class="ghost tiny" onclick="document.getElementById('findSearch').value='';activeFindingSearch='';document.querySelectorAll('.chip-filter').forEach(b=>{b.classList.remove('active'); b.setAttribute('aria-pressed','false')});document.querySelector('[data-sev=\\'\\']').classList.add('active');document.querySelector('[data-sev=\\'\\']').setAttribute('aria-pressed','true');activeSev='';render();">Clear filters</button>`});
-        // re-bind clear button inline handler needs render access via global
-        window._findingsRender=render;
+        const filtered = activeSev || query;
+        el.innerHTML=emptyState({icon: filtered ? "◍" : "◈", title: filtered ? "No matching findings" : "No findings yet",
+          hint: filtered ? "No findings match filter. Try clearing search or severity." : "No findings yet — run an assessment first.",
+          action: filtered ? `<button class="ghost tiny" id="clearFindFilters">Clear filters</button>` : `<button onclick="location.hash='#/assess/new'">Run an assessment</button>`});
+        const cb=document.getElementById("clearFindFilters");
+        if(cb) cb.onclick=()=>{ query=""; activeSev=""; page=0; searchEl.value="";
+          document.querySelectorAll(".chip-filter").forEach(b=>{ b.classList.toggle("active", (b.dataset.sev||"")===""); b.setAttribute("aria-pressed", (b.dataset.sev||"")==="" ? "true" : "false"); });
+          load(); };
         return;
       }
-      rows.sort((a,b)=> (SEV_ORDER[a.severity]??9) - (SEV_ORDER[b.severity]??9));
       el.innerHTML=`<div class="card" style="padding:0;overflow:hidden"><div class="table-wrap" style="border:none"><table><thead><tr><th>Severity</th><th>CVSS</th><th>Title</th><th>Category</th><th>Status</th><th></th></tr></thead><tbody>
         ${rows.map(f=> `<tr class="click" onclick="location.hash='#/finding/${esc(f.id)}'">
           <td><span class="sev ${esc(f.severity)}">${esc(f.severity)}</span></td>
@@ -807,19 +824,25 @@
           <td class="small">${esc(f.status)}${f.retest_status ? `<br><span class="${f.retest_status==="FIXED"?"retest-fixed":"retest-present"}" style="font-size:11px">${esc(f.retest_status)}</span>`:""}</td>
           <td style="color:var(--text-3)" aria-hidden="true">›</td></tr>`).join("")}
       </tbody></table></div></div>`;
+      const from = total ? page*FINDINGS_PAGE_SIZE+1 : 0;
+      const to = Math.min(total, (page+1)*FINDINGS_PAGE_SIZE);
+      rangeEl.textContent = `Showing ${from}–${to} of ${total}`;
+      prevBtn.disabled = page===0;
+      nextBtn.disabled = to>=total;
+      pagerEl.style.display = total ? "" : "none";
     }
     searchEl.addEventListener("input", debounce(e=>{
-      activeFindingSearch=e.target.value.trim();
-      render();
-    }, 250));
+      query=e.target.value.trim(); page=0; load();
+    }, 400));
     document.getElementById("filterBar")?.addEventListener("click", e=>{
       const btn=e.target.closest(".chip-filter");
       if(!btn) return;
       document.querySelectorAll(".chip-filter").forEach(b=> { b.classList.remove("active"); b.setAttribute("aria-pressed","false"); });
       btn.classList.add("active"); btn.setAttribute("aria-pressed","true");
-      activeSev=btn.dataset.sev || "";
-      render();
+      activeSev=btn.dataset.sev || ""; page=0; load();
     });
+    prevBtn.onclick=()=>{ if(page>0){ page--; load(); } };
+    nextBtn.onclick=()=>{ page++; load(); };
     await load();
   }
 

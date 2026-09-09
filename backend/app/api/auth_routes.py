@@ -31,7 +31,7 @@ def register(body: RegisterRequest, request: Request, db: Session = Depends(get_
     if exists:
         raise HTTPException(409, detail="email already registered")
     is_first_user = db.scalar(select(User).limit(1)) is None
-    role = "admin" if is_first_user else "viewer"
+    role = "admin" if is_first_user else "analyst"
     user = User(email=str(body.email).lower(), password_hash=hash_password(body.password), role=role)
     db.add(user)
     db.commit()

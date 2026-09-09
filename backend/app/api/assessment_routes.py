@@ -3,9 +3,9 @@ import json
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, joinedload
 
 from ..config import settings
@@ -118,7 +118,7 @@ def list_assessments(
     offset: int = Query(0, ge=0),
     status: str | None = Query(None),
     db: Session = Depends(get_db),
-    user=Depends(require_role("analyst")),
+    user=Depends(require_role("viewer")),
 ):
     q = select(Assessment).order_by(Assessment.created_at.desc())
     if status:
@@ -130,27 +130,37 @@ def list_assessments(
 
 @router.get("/-/findings")
 def all_findings(
+    response: Response,
     severity: str | None = Query(None),
     category: str | None = Query(None),
     status: str | None = Query(None),
+    q: str | None = Query(None, max_length=200,
+                           description="Case-insensitive match on title, check_id, category, scanner"),
     limit: int = Query(300, ge=1, le=1000),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    user=Depends(require_role("analyst")),
+    user=Depends(require_role("viewer")),
 ):
-    q = select(Finding).order_by(Finding.created_at.desc())
+    conds = []
     if severity:
-        q = q.where(Finding.severity == severity.upper())
+        conds.append(Finding.severity == severity.upper())
     if category:
-        q = q.where(Finding.category == category.upper())
+        conds.append(Finding.category == category.upper())
     if status:
-        q = q.where(Finding.status == status.upper())
-    q = q.limit(limit).offset(offset)
-    return [_finding_dict(f) for f in db.scalars(q).all()]
+        conds.append(Finding.status == status.upper())
+    if q and q.strip():
+        like = f"%{q.strip()}%"
+        conds.append(or_(Finding.title.ilike(like), Finding.check_id.ilike(like),
+                         Finding.category.ilike(like), Finding.scanner.ilike(like)))
+    total = db.scalar(select(func.count(Finding.id)).where(*conds)) or 0
+    response.headers["X-Total-Count"] = str(total)
+    stmt = (select(Finding).where(*conds).order_by(Finding.created_at.desc())
+            .limit(limit).offset(offset))
+    return [_finding_dict(f) for f in db.scalars(stmt).all()]
 
 
 @router.get("/findings/{finding_id}")
-def get_single_finding(finding_id: str, db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
+def get_single_finding(finding_id: str, db: Session = Depends(get_db), user=Depends(require_role("viewer"))):
     finding = db.get(Finding, finding_id)
     if finding is None:
         raise HTTPException(404, detail="finding not found")
@@ -174,7 +184,8 @@ def retest(
 
 
 @router.get("/findings/{finding_id}/evidence")
-def finding_evidence(finding_id: str, db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
+def finding_evidence(finding_id: str, db: Session = Depends(get_db),
+             user=Depends(require_role("viewer"))):
     finding = db.get(Finding, finding_id)
     if finding is None:
         raise HTTPException(404, detail="finding not found")
@@ -194,7 +205,8 @@ def finding_evidence(finding_id: str, db: Session = Depends(get_db), user=Depend
 
 
 @router.get("/{assessment_id}")
-def get_assessment(assessment_id: str, db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
+def get_assessment(assessment_id: str, db: Session = Depends(get_db),
+             user=Depends(require_role("viewer"))):
     assessment = db.get(Assessment, assessment_id)
     if assessment is None:
         raise HTTPException(404, detail="assessment not found")
@@ -202,7 +214,8 @@ def get_assessment(assessment_id: str, db: Session = Depends(get_db), user=Depen
 
 
 @router.get("/{assessment_id}/findings")
-def assessment_findings(assessment_id: str, db: Session = Depends(get_db), user=Depends(require_role("analyst"))):
+def assessment_findings(assessment_id: str, db: Session = Depends(get_db),
+             user=Depends(require_role("viewer"))):
     assessment = db.get(Assessment, assessment_id)
     if assessment is None:
         raise HTTPException(404, detail="assessment not found")

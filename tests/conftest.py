@@ -62,6 +62,24 @@ def admin_headers(client):
 
 
 @pytest.fixture(scope="session")
+def viewer_headers(client):
+    from backend.app.db import SessionLocal
+    from backend.app.models import User
+
+    db = SessionLocal()
+    existing = db.query(User).filter(User.email == "viewer@example.com").one_or_none()
+    if existing is None:
+        db.add(User(email="viewer@example.com",
+                    password_hash=hash_password("ChangeMe_Viewer_2026!"), role="viewer"))
+        db.commit()
+    db.close()
+    r = client.post("/api/auth/login", json={
+        "email": "viewer@example.com", "password": "ChangeMe_Viewer_2026!"})
+    assert r.status_code == 200, r.text
+    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+
+@pytest.fixture(scope="session")
 def analyst_headers(client):
     from backend.app.db import SessionLocal
     from backend.app.models import User

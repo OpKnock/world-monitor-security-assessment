@@ -23,12 +23,20 @@ def test_delete_finding_and_assessment_cascade(client, analyst_headers, lab_serv
     assert len(fs) >= 1
 
     # viewer cannot delete
-    vr = client.post("/api/auth/register", json={
-        "email": "delviewer@example.com", "password": "Viewer_Pass_1"})
-    assert vr.status_code == 201, vr.text
-    vH = {"Authorization": f"Bearer {vr.json()['access_token']}"}
+    from backend.app.db import SessionLocal
+    from backend.app.models import User
+    from backend.app.security import hash_password
+    db = SessionLocal()
+    if not db.query(User).filter(User.email == "delviewer@example.com").one_or_none():
+        db.add(User(email="delviewer@example.com",
+                    password_hash=hash_password("Viewer_Pass_1"), role="viewer"))
+        db.commit()
+    db.close()
+    vt = client.post("/api/auth/login", json={
+        "email": "delviewer@example.com", "password": "Viewer_Pass_1"}).json()
+    vH = {"Authorization": f"Bearer {vt['access_token']}"}
     assert client.delete(f"/api/findings/{fs[0]['id']}",
-                         headers=vH).status_code == 403
+                          headers=vH).status_code == 403
 
     # delete one finding -> gone everywhere
     fid = fs[0]["id"]

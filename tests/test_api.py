@@ -9,11 +9,12 @@ def test_health(client):
 
 def test_register_login_me(client):
     r = client.post("/api/auth/register", json={
-        "email": "viewer1@example.com", "password": "ViewerPass_123"})
+        "email": "analyst1@example.com", "password": "AnalystPass_123"})
     assert r.status_code == 201
+    assert r.json()["role"] == "analyst"
     tok = r.json()["access_token"]
     me = client.get("/api/auth/me", headers={"Authorization": f"Bearer {tok}"})
-    assert me.json()["role"] == "viewer"
+    assert me.json()["role"] == "analyst"
 
 
 def test_duplicate_register_rejected(client):
@@ -34,14 +35,21 @@ def test_assessment_requires_auth(client):
         "authorized": True}).status_code == 401
 
 
-def test_viewer_cannot_create_assessment(client, analyst_headers):
-    # viewer role lacks analyst rights -> 403
-    v = client.post("/api/auth/login", json={
-        "email": "viewer1@example.com", "password": "ViewerPass_123"}).json()
-    headers = {"Authorization": f"Bearer {v['access_token']}"}
+def test_viewer_cannot_create_assessment(client, analyst_headers, viewer_headers):
+    # viewer role lacks analyst rights -> 403 on writes
     assert client.post("/api/assessments", json={
         "target": "http://127.0.0.1/x", "modules": ["headers"], "authorized": True},
-        headers=headers).status_code == 403
+        headers=viewer_headers).status_code == 403
+
+
+def test_viewer_can_read(client, analyst_headers, viewer_headers):
+    # viewer role can read assessments, findings, reports, settings
+    assert client.get("/api/assessments?limit=5", headers=viewer_headers).status_code == 200
+    assert client.get("/api/assessments/-/findings?limit=5",
+                      headers=viewer_headers).status_code == 200
+    assert client.get("/api/settings", headers=viewer_headers).status_code == 200
+    assert client.get("/api/scanners", headers=viewer_headers).status_code == 200
+    assert client.get("/api/dashboard", headers=viewer_headers).status_code == 200
 
 
 def test_unconfirmed_authorization_refused(client, analyst_headers):
@@ -65,6 +73,39 @@ def test_scanners_metadata_lists_all_modules(client, admin_headers):
     keys = {m["key"] for m in data["modules"]}
     assert {"authentication", "authorization", "api", "input_validation",
             "headers", "tls", "secrets", "dependencies"} <= keys
+
+
+def test_findings_search_pagination_and_total(client, analyst_headers):
+    from backend.app.db import SessionLocal
+    from backend.app.models import Assessment, Finding, User
+
+    db = SessionLocal()
+    user = db.query(User).filter(User.email == "analyst@example.com").one()
+    a = Assessment(user_id=user.id, target="http://127.0.0.1/pagination-probe",
+                   modules=["headers"], status="completed", authorized=True)
+    db.add(a)
+    db.commit()
+    seeds = [("CRITICAL", "pagination probe alpha"), ("HIGH", "pagination probe beta"),
+             ("MEDIUM", "unrelated gamma")]
+    for sev, title in seeds:
+        db.add(Finding(assessment_id=a.id, title=title, severity=sev, category="TEST",
+                       scanner="pytest", check_id=f"PYTEST-{sev}", fingerprint=f"fp-{sev}-{a.id}"))
+    db.commit()
+    db.close()
+
+    base = "/api/assessments/-/findings"
+    r = client.get(base, params={"q": "pagination probe", "limit": 1, "offset": 0},
+                   headers=analyst_headers)
+    assert r.status_code == 200, r.text
+    assert r.headers.get("X-Total-Count") == "2"
+    assert len(r.json()) == 1
+    r2 = client.get(base, params={"q": "pagination probe", "limit": 1, "offset": 1},
+                    headers=analyst_headers)
+    assert len(r2.json()) == 1
+    assert r2.json()[0]["id"] != r.json()[0]["id"]
+    r3 = client.get(base, params={"severity": "critical"}, headers=analyst_headers)
+    assert r3.status_code == 200
+    assert all(f["severity"] == "CRITICAL" for f in r3.json())
 
 
 def test_audit_log_admin_only(client, analyst_headers):
